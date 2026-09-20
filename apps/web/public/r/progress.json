@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "progress",
+  "title": "Progress",
+  "description": "A tone gel progress bar in a sunken white track; omit value for the Aqua barber-pole indeterminate state.",
+  "dependencies": [
+    "radix-ui"
+  ],
+  "registryDependencies": [
+    "https://patina.md/r/theme.json"
+  ],
+  "files": [
+    {
+      "path": "src/registry/y2k/progress.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport { Progress as ProgressPrimitive } from \"radix-ui\"\n\nimport { cn } from \"@/lib/utils\"\n\n/**\n * Patina Progress — DESIGN.md › Components › Progress.\n *\n * A tone gel bar in a sunken white track. Two modes:\n *   • determinate: pass `value` (0–100) → a tone gel fill.\n *   • indeterminate: omit `value` → the Aqua \"barber pole\" (45° stripes\n *     scrolling left at 28px/s, via the y2k-barber keyframe in the theme).\n */\nfunction Progress({\n  className,\n  value,\n  ...props\n}: React.ComponentProps<typeof ProgressPrimitive.Root>) {\n  const indeterminate = value == null\n  return (\n    <ProgressPrimitive.Root\n      data-slot=\"progress\"\n      value={value}\n      className={cn(\n        // Sunken white well, pill-shaped, 15px tall.\n        \"relative h-[15px] w-full overflow-hidden rounded-full bg-(--y2k-input-bg)\",\n        \"shadow-[inset_0_1px_2px_rgba(0,0,0,0.3),0_0_0_1px_var(--y2k-input-border),0_1px_0_rgba(255,255,255,0.6)]\",\n        className\n      )}\n      {...props}\n    >\n      <ProgressPrimitive.Indicator\n        data-slot=\"progress-indicator\"\n        className={cn(\n          \"h-full rounded-full transition-[width] duration-300 ease-out\",\n          // Tone gel fill + a gloss cap on the top half.\n          \"bg-(image:--y2k-tone-button) shadow-[inset_0_1px_1px_rgba(255,255,255,0.6),inset_0_-2px_3px_var(--y2k-tone-button-inner)]\",\n          indeterminate &&\n            \"w-full bg-[repeating-linear-gradient(-45deg,var(--y2k-tone)_0_10px,color-mix(in_srgb,var(--y2k-tone)_70%,white)_10px_20px)] bg-[length:28px_28px] animate-[y2k-barber_1s_linear_infinite] motion-reduce:animate-none\"\n        )}\n        style={indeterminate ? undefined : { width: `${value}%` }}\n      />\n    </ProgressPrimitive.Root>\n  )\n}\n\nexport { Progress }\n",
+      "type": "registry:ui",
+      "target": "components/ui/progress.tsx"
+    }
+  ],
+  "type": "registry:ui"
+}

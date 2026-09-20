@@ -1,0 +1,24 @@
+{
+  "name": "patina",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Patina — taste packs for AI coding agents. Y2K is pack #1.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w web",
+    "build": "npm run build -w web",
+    "lint": "npm run lint -w web",
+    "design:lint": "design.md lint DESIGN.md",
+    "design:export": "design.md export --format css-tailwind DESIGN.md",
+    "registry:build": "npm run build -w @patina/ui"
+  },
+  "devDependencies": {
+    "@google/design.md": "^0.4.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

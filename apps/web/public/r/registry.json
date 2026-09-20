@@ -1,0 +1,130 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "patina",
+  "homepage": "https://patina.md",
+  "items": [
+    {
+      "name": "theme",
+      "type": "registry:theme",
+      "title": "Patina · Y2K theme",
+      "description": "Chrome / Bubblegum / Aero tokens, materials and motion. Mirrors DESIGN.md.",
+      "files": [
+        {
+          "path": "src/styles/y2k.css",
+          "type": "registry:style",
+          "target": "styles/y2k.css"
+        }
+      ],
+      "css": {
+        "@import \"./styles/y2k.css\"": {}
+      }
+    },
+    {
+      "name": "button",
+      "type": "registry:ui",
+      "title": "Chrome Button",
+      "description": "Bevelled chrome button with the horizon gradient. Variants: chrome, accent, pill.",
+      "dependencies": ["class-variance-authority", "radix-ui"],
+      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "files": [
+        {
+          "path": "src/registry/y2k/button.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/button.tsx"
+        }
+      ]
+    },
+    {
+      "name": "window",
+      "type": "registry:ui",
+      "title": "Window (Dialog)",
+      "description": "The Dialog is a window: pinstriped title bar, chrome controls, status bar. Static frame + Radix Dialog.",
+      "dependencies": ["radix-ui"],
+      "registryDependencies": ["https://patina.md/r/theme.json", "https://patina.md/r/button.json"],
+      "files": [
+        {
+          "path": "src/registry/y2k/window.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/window.tsx"
+        }
+      ]
+    },
+    {
+      "name": "sidebar",
+      "type": "registry:ui",
+      "title": "Window Sidebar (Source list)",
+      "description": "The Aqua source list: a recessed white column with full-bleed, tone-tinted selected rows and bold group headers. Sits inside a window.",
+      "registryDependencies": ["https://patina.md/r/theme.json", "https://patina.md/r/window.json"],
+      "files": [
+        {
+          "path": "src/registry/y2k/sidebar.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/window-sidebar.tsx"
+        }
+      ]
+    },
+    {
+      "name": "group",
+      "type": "registry:ui",
+      "title": "Group box",
+      "description": "The Aqua group box — a faint sunken well with a bold 11px caption. Patina's answer to a Card (no neutral grey cards).",
+      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "files": [
+        { "path": "src/registry/y2k/group.tsx", "type": "registry:ui", "target": "components/ui/group.tsx" }
+      ]
+    },
+    {
+      "name": "progress",
+      "type": "registry:ui",
+      "title": "Progress",
+      "description": "A tone gel progress bar in a sunken white track; omit value for the Aqua barber-pole indeterminate state.",
+      "dependencies": ["radix-ui"],
+      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "files": [
+        { "path": "src/registry/y2k/progress.tsx", "type": "registry:ui", "target": "components/ui/progress.tsx" }
+      ]
+    },
+    {
+      "name": "tabs",
+      "type": "registry:ui",
+      "title": "Tabs",
+      "description": "A white gel segmented control; the selected segment is filled with the tone gel. Radix Tabs.",
+      "dependencies": ["radix-ui"],
+      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "files": [
+        { "path": "src/registry/y2k/tabs.tsx", "type": "registry:ui", "target": "components/ui/tabs.tsx" }
+      ]
+    },
+    {
+      "name": "toast",
+      "type": "registry:ui",
+      "title": "Toast (Nudge)",
+      "description": "The MSN 'Nudge' — a mini Aqua window that slides up from the Dock and shakes once. Radix Toast.",
+      "dependencies": ["radix-ui"],
+      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "files": [
+        { "path": "src/registry/y2k/toast.tsx", "type": "registry:ui", "target": "components/ui/toast.tsx" }
+      ]
+    },
+    {
+      "name": "marquee",
+      "type": "registry:ui",
+      "title": "Marquee",
+      "description": "The old-web scrolling marquee, done right: seamless loop, pauses on hover, respects reduced-motion.",
+      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "files": [
+        { "path": "src/registry/y2k/marquee.tsx", "type": "registry:ui", "target": "components/ui/marquee.tsx" }
+      ]
+    },
+    {
+      "name": "visitor-counter",
+      "type": "registry:ui",
+      "title": "Visitor counter",
+      "description": "The millennium hit counter — glowing tone odometer digits on a dark LCD panel.",
+      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "files": [
+        { "path": "src/registry/y2k/visitor-counter.tsx", "type": "registry:ui", "target": "components/ui/visitor-counter.tsx" }
+      ]
+    }
+  ]
+}

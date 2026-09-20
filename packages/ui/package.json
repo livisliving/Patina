@@ -1,0 +1,32 @@
+{
+  "name": "@patina/ui",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Patina component sources — the shadcn registry source of truth.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles/y2k.css",
+    "./button": "./src/registry/y2k/button.tsx",
+    "./window": "./src/registry/y2k/window.tsx",
+    "./utils": "./src/lib/utils.ts"
+  },
+  "scripts": {
+    "build": "shadcn build ./registry.json -o ../../apps/web/public/r"
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "radix-ui": "^1.4.3",
+    "tailwind-merge": "^3.3.1"
+  },
+  "peerDependencies": {
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "shadcn": "latest",
+    "typescript": "^5"
+  }
+}

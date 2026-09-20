@@ -1,0 +1,275 @@
+/*
+ * Patina — Aqua structure × millennium colour tones.
+ * Source of truth: /DESIGN.md (Google DESIGN.md format). Keep the two in sync.
+ *
+ * Structure = Mac OS X Aqua (2000–2005): pinstripes, traffic lights, gel
+ * buttons, brushed metal, a translucent Dock. It never changes.
+ * Tone = the hue of everything gel and the wallpaper. Switch with
+ * data-tone="pink|aqua|lime|tangerine|grape" on <html>. Pink is default.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* ── Aqua constants (never toned) ─────────────────────────────── */
+  --y2k-ink: #000000;
+  --y2k-ink-secondary: #4b4b4b;
+  --y2k-ink-disabled: #999999;
+  --y2k-ink-dim: #7f7f7f;
+  --y2k-window-bg: #ececec;
+  --y2k-window-border: rgba(0, 0, 0, 0.4);
+  --y2k-window-border-inactive: rgba(0, 0, 0, 0.08);
+  --y2k-titlebar-border: rgba(0, 0, 0, 0.3);
+  --y2k-titlebar-border-inactive: rgba(0, 0, 0, 0.2);
+  --y2k-separator: rgba(0, 0, 0, 0.2);
+  --y2k-input-bg: #ffffff;
+  --y2k-input-border: rgba(0, 0, 0, 0.2);
+  --y2k-os-blue: #2765ca;
+
+  /* ── Type ─────────────────────────────────────────────────────── */
+  --y2k-font-ui: "Lucida Grande", "LucidaGrande", "AquaKana", var(--font-lato, "Lato"), "Lucida Sans Unicode", "Hiragino Sans", "Hiragino Sans GB", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --y2k-font-wordmark: var(--font-eb-garamond, "EB Garamond"), "Apple Garamond", Garamond, "Times New Roman", serif;
+  --y2k-font-mono: Monaco, ui-monospace, Menlo, "Courier New", monospace;
+
+  /* ── Pinstripes: 1.5px of #ececec then 2.5px of white, 4px period ─ */
+  --y2k-pinstripe: repeating-linear-gradient(0deg, transparent 0px, transparent 1.5px, rgba(255, 255, 255, 0.85) 1.5px, rgba(255, 255, 255, 0.85) 4px), linear-gradient(#ececec, #ececec);
+  --y2k-pinstripe-titlebar: linear-gradient(to bottom, rgba(255, 255, 255, 0.3) 0%, rgba(219, 219, 219, 0.6) 70%, rgba(206, 206, 206, 0.7) 100%);
+  /* Inactive title bar: lighter, desaturated pinstripe with NO opaque base —
+     it composites over the desktop, so a backgrounded window shows the
+     wallpaper faintly through its title bar (real Aqua behaviour). */
+  --y2k-pinstripe-inactive: repeating-linear-gradient(0deg, transparent 0px, transparent 1.5px, rgba(255, 255, 255, 0.45) 1.5px, rgba(255, 255, 255, 0.45) 4px);
+  /* --y2k-window-bg at 55% alpha, so the inactive title bar tracks the same
+     base colour as the active one instead of a hand-copied #ececec. */
+  --y2k-titlebar-inactive-bg: color-mix(in srgb, var(--y2k-window-bg) 55%, transparent);
+  --y2k-pinstripe-menubar: repeating-linear-gradient(0deg, transparent 0px, transparent 1.5px, rgba(255, 255, 255, 0.55) 1.5px, rgba(255, 255, 255, 0.55) 4px);
+  --y2k-menubar-bg: linear-gradient(to bottom, #f8f8f8, #d4d4d4);
+  --y2k-dock-surface: rgba(248, 248, 248, 0.75);
+  --y2k-metal: url("data:image/png;base64,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");
+
+  /* ── Gel (buttons, popups, lights) ─────────────────────────────── */
+  --y2k-gel-white: linear-gradient(rgba(160, 160, 160, 0.625), rgba(255, 255, 255, 0.625));
+  --y2k-gel-white-shadow: 0 2px 3px rgba(0, 0, 0, 0.2), 0 1px 1px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(0, 0, 0, 0.4), inset 0 2px 3px 1px #bbbbbb;
+  --y2k-gel-white-shadow-active: var(--y2k-gel-white-shadow), 0 0 3px rgba(0, 0, 0, 0.25);
+  --y2k-gel-tone-shadow: 0 2px 3px rgba(0, 0, 0, 0.3), 0 1px 1px var(--y2k-tone-button-edge), inset 0 1px 3px rgba(0, 0, 0, 0.55), inset 0 2px 3px 1px var(--y2k-tone-button-inner);
+  --y2k-gel-tone-shadow-active: var(--y2k-gel-tone-shadow), 0 0 3px var(--y2k-tone-glow);
+  --y2k-gel-shine: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.3));
+  --y2k-gel-glow: linear-gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.5));
+  --y2k-popup-shadow: 0 2px 3px rgba(0, 0, 0, 0.2), 0 1px 1px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.3);
+
+  /* ── Scrollbar (Aqua 10.x: a light grooved trough, a gel thumb toned to
+     the current tone, and a paired up/down arrow box at the far end) ─── */
+  --y2k-scrollbar-size: 15px;
+  --y2k-scrollbar-trough: linear-gradient(to right, #cfcfcf, #e6e6e6 45%, #f2f2f2);
+  --y2k-scrollbar-thumb: linear-gradient(to right, color-mix(in srgb, var(--y2k-tone) 55%, white), color-mix(in srgb, var(--y2k-tone) 18%, white) 50%, color-mix(in srgb, var(--y2k-tone) 45%, white));
+  --y2k-scrollbar-thumb-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9), inset 0 -1px 2px rgba(0, 0, 0, 0.25), 0 0 0 0.5px rgba(0, 0, 0, 0.3);
+  --y2k-scrollbar-arrow: linear-gradient(to bottom, #fbfbfb, #d0d0d0);
+
+  /* ── Traffic lights ───────────────────────────────────────────── */
+  /* Aqua lights = radial-gradient sphere (bright core → mid → deep rim) + a
+     white top highlight (the shine div) + a layered shadow that carries a
+     white inset top rim and a crisp dark containment ring. Matches Figma
+     "Apple OS X" + "Chat Aqua", ryOS, and the aqua repo. */
+  --y2k-light-red: radial-gradient(circle at 50% 32%, rgb(255, 150, 150) 2%, rgb(240, 70, 70) 38%, rgb(180, 0, 0) 100%);
+  --y2k-light-red-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), rgba(0, 0, 0, 0.2) 0 2px 3px, rgba(0, 0, 0, 0.3) 0 1px 1px, rgba(225, 70, 64, 0.5) 0 1px 1px, rgba(0, 0, 0, 0.45) 0 0 0 0.5px inset, rgba(150, 40, 30, 0.8) 0 1px 3px inset, rgba(225, 70, 64, 0.55) 0 2px 3px 1px inset;
+  --y2k-light-red-glyph: rgba(130, 30, 20, 0.9);
+  --y2k-light-yellow: radial-gradient(circle at 50% 32%, rgb(255, 224, 110) 2%, rgb(244, 176, 30) 38%, rgb(185, 116, 8) 100%);
+  --y2k-light-yellow-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), rgba(0, 0, 0, 0.2) 0 2px 3px, rgba(0, 0, 0, 0.3) 0 1px 1px, rgba(223, 161, 35, 0.5) 0 1px 1px, rgba(0, 0, 0, 0.45) 0 0 0 0.5px inset, rgb(155, 78, 21) 0 1px 3px inset, rgba(241, 157, 20, 0.55) 0 2px 3px 1px inset;
+  --y2k-light-yellow-glyph: rgba(130, 80, 8, 0.9);
+  --y2k-light-green: radial-gradient(circle at 50% 32%, rgb(170, 240, 140) 2%, rgb(70, 190, 45) 38%, rgb(40, 125, 18) 100%);
+  --y2k-light-green-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), rgba(0, 0, 0, 0.2) 0 2px 3px, rgba(0, 0, 0, 0.3) 0 1px 1px, rgba(59, 173, 29, 0.5) 0 1px 1px, rgba(0, 0, 0, 0.45) 0 0 0 0.5px inset, rgb(53, 91, 17) 0 1px 3px inset, rgba(98, 187, 19, 0.55) 0 2px 3px 1px inset;
+  --y2k-light-green-glyph: rgba(45, 90, 18, 0.9);
+  --y2k-light-off: linear-gradient(rgba(160, 160, 160, 0.625), rgba(255, 255, 255, 0.625));
+  --y2k-light-off-shadow: 0 2px 3px rgba(0, 0, 0, 0.2), 0 1px 1px rgba(0, 0, 0, 0.3), inset 0 0 0 0.5px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(0, 0, 0, 0.4), inset 0 2px 3px 1px #bbbbbb;
+
+  /* ── Elevation ────────────────────────────────────────────────── */
+  /* Aqua window drop = two casts (a tight near shadow + a wide soft far one),
+     plus a white inset top rim-light on the window edge. Alpha 0.7 per ryOS. */
+  --y2k-shadow-window: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 4px 10px rgba(0, 0, 0, 0.3), 0 18px 40px rgba(0, 0, 0, 0.5);
+  --y2k-shadow-window-inactive: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 2px 6px rgba(0, 0, 0, 0.18), 0 8px 20px rgba(0, 0, 0, 0.22);
+  --y2k-shadow-menu: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --y2k-shadow-dock: 0 2px 8px rgba(0, 0, 0, 0.15);
+  --y2k-metal-inset: inset 0 2px 2px rgba(255, 255, 255, 0.7), inset 0 8px 14px rgba(255, 255, 255, 0.12), inset 0 -1px 0 rgba(255, 255, 255, 0.12), inset 1px 0 0 rgba(255, 255, 255, 0.15), inset -1px 0 0 rgba(255, 255, 255, 0.15);
+
+  /* ── Metrics ──────────────────────────────────────────────────── */
+  --y2k-menubar-h: 25px;
+  --y2k-titlebar-h: 22px;
+  --y2k-window-radius: 0.45rem;
+  --y2k-button-h: 20px; /* Apple HIG 2002 p122: push button height 20px fixed (small 17px) */
+  --y2k-dock-icon: 64px;
+  --y2k-dock-h: 70px;
+
+  /* ── Motion ───────────────────────────────────────────────────── */
+  --y2k-ease-aqua: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --y2k-duration-window: 200ms;
+}
+
+/* ── Tones. Button/selection stops follow the Aqua accent formula:
+      top = darken(base, .28), mid = base, bottom = lighten(base, .22),
+      edge = darken(base, .2); alphas .78 / .72 so the window shows through. */
+:root,
+[data-tone="pink"] {
+  --y2k-tone: rgb(232, 68, 154);
+  --y2k-tone-button: linear-gradient(rgba(167, 49, 111, 0.78), rgba(232, 68, 154, 0.72), rgba(237, 109, 176, 0.78));
+  --y2k-tone-button-edge: rgba(186, 54, 123, 0.5);
+  --y2k-tone-button-inner: rgba(186, 54, 123, 0.75);
+  --y2k-tone-selection: rgba(232, 68, 154, 0.88);
+  --y2k-tone-selection-text: #ffffff;
+  --y2k-tone-glow: rgba(232, 68, 154, 0.5);
+  --y2k-tone-focus: rgba(232, 68, 154, 0.25);
+  --y2k-tone-list: linear-gradient(180deg, rgb(241, 143, 194) 0%, rgb(235, 96, 169) 50%, rgb(232, 68, 154) 100%);
+  --y2k-tone-text-shadow: rgba(174, 51, 116, 0.5);
+  --y2k-wall-hi: rgb(242, 152, 199);
+  --y2k-wall-mid: rgb(232, 68, 154);
+  --y2k-wall-lo: rgb(104, 31, 69);
+  /* Finder-face PNG is blue; recolour it per tone with a CSS filter. */
+  --y2k-face-filter: hue-rotate(110deg) saturate(1.15);
+  /* Brand-star PNG is pink; pink is the base so no rotation. */
+  --y2k-star-filter: none;
+}
+[data-tone="aqua"] {
+  --y2k-tone: rgb(39, 101, 202);
+  --y2k-tone-button: linear-gradient(rgba(28, 73, 145, 0.78), rgba(39, 101, 202, 0.72), rgba(87, 135, 214, 0.78));
+  --y2k-tone-button-edge: rgba(31, 81, 162, 0.5);
+  --y2k-tone-button-inner: rgba(31, 81, 162, 0.75);
+  --y2k-tone-selection: rgba(39, 101, 202, 0.88);
+  --y2k-tone-selection-text: #ffffff;
+  --y2k-tone-glow: rgba(39, 101, 202, 0.5);
+  --y2k-tone-focus: rgba(39, 101, 202, 0.25);
+  --y2k-tone-list: linear-gradient(180deg, rgb(125, 163, 223) 0%, rgb(71, 124, 210) 50%, rgb(39, 101, 202) 100%);
+  --y2k-tone-text-shadow: rgba(29, 76, 152, 0.5);
+  --y2k-wall-hi: rgb(136, 170, 226);
+  --y2k-wall-mid: rgb(39, 101, 202);
+  --y2k-wall-lo: rgb(18, 45, 91);
+  --y2k-face-filter: none;
+  /* Brand-star PNG is pink; rotate pink→aqua. */
+  --y2k-star-filter: hue-rotate(-111deg) saturate(0.95);
+}
+[data-tone="lime"] {
+  --y2k-tone: rgb(127, 195, 28);
+  --y2k-tone-button: linear-gradient(rgba(91, 140, 20, 0.78), rgba(127, 195, 28, 0.72), rgba(155, 208, 78, 0.78));
+  --y2k-tone-button-edge: rgba(102, 156, 22, 0.5);
+  --y2k-tone-button-inner: rgba(102, 156, 22, 0.75);
+  --y2k-tone-selection: rgba(127, 195, 28, 0.88);
+  --y2k-tone-selection-text: #000000;
+  --y2k-tone-glow: rgba(127, 195, 28, 0.5);
+  --y2k-tone-focus: rgba(127, 195, 28, 0.25);
+  --y2k-tone-list: linear-gradient(180deg, rgb(178, 219, 119) 0%, rgb(146, 204, 62) 50%, rgb(127, 195, 28) 100%);
+  --y2k-tone-text-shadow: rgba(95, 146, 21, 0.5);
+  --y2k-wall-hi: rgb(185, 222, 130);
+  --y2k-wall-mid: rgb(127, 195, 28);
+  --y2k-wall-lo: rgb(57, 88, 13);
+  --y2k-face-filter: hue-rotate(-130deg) saturate(1.05);
+  /* Brand-star PNG is pink; rotate pink→lime, lift a touch. */
+  --y2k-star-filter: hue-rotate(116deg) saturate(1.1) brightness(1.05);
+}
+[data-tone="tangerine"] {
+  --y2k-tone: rgb(232, 137, 26);
+  --y2k-tone-button: linear-gradient(rgba(167, 99, 19, 0.78), rgba(232, 137, 26, 0.72), rgba(237, 163, 76, 0.78));
+  --y2k-tone-button-edge: rgba(186, 110, 21, 0.5);
+  --y2k-tone-button-inner: rgba(186, 110, 21, 0.75);
+  --y2k-tone-selection: rgba(232, 137, 26, 0.88);
+  --y2k-tone-selection-text: #000000;
+  --y2k-tone-glow: rgba(232, 137, 26, 0.5);
+  --y2k-tone-focus: rgba(232, 137, 26, 0.25);
+  --y2k-tone-list: linear-gradient(180deg, rgb(241, 184, 118) 0%, rgb(235, 155, 60) 50%, rgb(232, 137, 26) 100%);
+  --y2k-tone-text-shadow: rgba(174, 103, 20, 0.5);
+  --y2k-wall-hi: rgb(242, 190, 129);
+  --y2k-wall-mid: rgb(232, 137, 26);
+  --y2k-wall-lo: rgb(104, 62, 12);
+  --y2k-face-filter: hue-rotate(-170deg) saturate(1.2);
+  /* Brand-star PNG is pink; rotate pink→tangerine. */
+  --y2k-star-filter: hue-rotate(64deg) saturate(1.05);
+}
+[data-tone="grape"] {
+  --y2k-tone: rgb(131, 68, 196);
+  --y2k-tone-button: linear-gradient(rgba(94, 49, 141, 0.78), rgba(131, 68, 196, 0.72), rgba(158, 109, 209, 0.78));
+  --y2k-tone-button-edge: rgba(105, 54, 157, 0.5);
+  --y2k-tone-button-inner: rgba(105, 54, 157, 0.75);
+  --y2k-tone-selection: rgba(131, 68, 196, 0.88);
+  --y2k-tone-selection-text: #ffffff;
+  --y2k-tone-glow: rgba(131, 68, 196, 0.5);
+  --y2k-tone-focus: rgba(131, 68, 196, 0.25);
+  --y2k-tone-list: linear-gradient(180deg, rgb(181, 143, 220) 0%, rgb(150, 96, 205) 50%, rgb(131, 68, 196) 100%);
+  --y2k-tone-text-shadow: rgba(98, 51, 147, 0.5);
+  --y2k-wall-hi: rgb(187, 152, 223);
+  --y2k-wall-mid: rgb(131, 68, 196);
+  --y2k-wall-lo: rgb(59, 31, 88);
+  --y2k-face-filter: hue-rotate(55deg) saturate(1.05);
+  /* Brand-star PNG is pink; rotate pink→grape, ease saturation. */
+  --y2k-star-filter: hue-rotate(-59deg) saturate(0.82);
+}
+
+/* Composite gradients are re-declared on every toned element so a swatch with
+   its own data-tone renders in its own tone (custom properties resolve where
+   they are declared, not where they are used). */
+[data-tone] {
+  --y2k-gel-tone-shadow: 0 2px 3px rgba(0, 0, 0, 0.3), 0 1px 1px var(--y2k-tone-button-edge), inset 0 1px 3px rgba(0, 0, 0, 0.55), inset 0 2px 3px 1px var(--y2k-tone-button-inner);
+  --y2k-gel-tone-shadow-active: var(--y2k-gel-tone-shadow), 0 0 3px var(--y2k-tone-glow);
+}
+
+/* ── Keyframes ────────────────────────────────────────────────────── */
+@keyframes y2k-window-in {
+  from { scale: 0.95; opacity: 0; }
+  to   { scale: 1;    opacity: 1; }
+}
+@keyframes y2k-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+/* The default button breathes, like Aqua's blue "Save". */
+@keyframes y2k-pulse {
+  0%, 100% { filter: brightness(1); }
+  50%      { filter: brightness(1.12); }
+}
+@keyframes y2k-barber {
+  from { background-position: 0 0; }
+  to   { background-position: 28px 0; }
+}
+/* Old-web scrolling marquee: the content track slides fully left, then loops. */
+@keyframes y2k-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+/* MSN "Nudge": the toast slides up from the Dock, then shakes once. */
+@keyframes y2k-nudge-in {
+  0%   { transform: translateY(120%); opacity: 0; }
+  60%  { transform: translateY(0);    opacity: 1; }
+  68%  { transform: translate(-4px, 0); }
+  76%  { transform: translate(4px, 0); }
+  84%  { transform: translate(-3px, 0); }
+  92%  { transform: translate(2px, 0); }
+  100% { transform: translate(0, 0); }
+}
+@keyframes y2k-nudge-out {
+  from { transform: translateY(0);    opacity: 1; }
+  to   { transform: translateY(120%); opacity: 0; }
+}
+/* Desktop sparkle: a star glint that fades fully in then out with a scale
+   pulse. Fades to 0 at the loop boundary so the desktop layer can relocate the
+   glint between flashes (each twinkle appears in a new random spot). */
+@keyframes y2k-twinkle {
+  0%, 100% { opacity: 0; transform: scale(0.5); }
+  50%      { opacity: 1; transform: scale(1); }
+}
+
+/* ── Materials ───────────────────────────────────────────────────── */
+
+/* Brushed aluminum (iTunes / Finder in Tiger). Neutral, so a static texture. */
+.y2k-metal {
+  background-color: #c9c9c9;
+  background-image: var(--y2k-metal);
+  background-size: 512px 96px;
+}
+
+/* Gel wordmark text: tone gradient clipped to glyphs. */
+.y2k-gel-text {
+  background: var(--y2k-tone-list);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.7));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-default="true"] { animation: none !important; }
+}

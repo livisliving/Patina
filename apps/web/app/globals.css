@@ -1,0 +1,25 @@
+@import "tailwindcss";
+@import "../../../packages/ui/src/styles/y2k.css";
+
+/* Scan the component package so its utility classes are generated. */
+@source "../../../packages/ui/src";
+
+@theme {
+  --font-ui: var(--y2k-font-ui);
+  --font-wordmark: var(--y2k-font-wordmark);
+  --font-mono: var(--y2k-font-mono);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--y2k-wall-mid);
+  color: var(--y2k-ink);
+  font-family: var(--y2k-font-ui);
+  font-size: 12px;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
