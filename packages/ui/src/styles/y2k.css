@@ -78,7 +78,8 @@
   --y2k-light-green: radial-gradient(circle at 50% 32%, rgb(170, 240, 140) 2%, rgb(70, 190, 45) 38%, rgb(40, 125, 18) 100%);
   --y2k-light-green-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), rgba(0, 0, 0, 0.2) 0 2px 3px, rgba(0, 0, 0, 0.3) 0 1px 1px, rgba(59, 173, 29, 0.5) 0 1px 1px, rgba(0, 0, 0, 0.45) 0 0 0 0.5px inset, rgb(53, 91, 17) 0 1px 3px inset, rgba(98, 187, 19, 0.55) 0 2px 3px 1px inset;
   --y2k-light-green-glyph: rgba(45, 90, 18, 0.9);
-  --y2k-light-off: linear-gradient(rgba(160, 160, 160, 0.625), rgba(255, 255, 255, 0.625));
+  /* An unlit light is the plain white gel — same material, one source. */
+  --y2k-light-off: var(--y2k-gel-white);
   --y2k-light-off-shadow: 0 2px 3px rgba(0, 0, 0, 0.2), 0 1px 1px rgba(0, 0, 0, 0.3), inset 0 0 0 0.5px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(0, 0, 0, 0.4), inset 0 2px 3px 1px #bbbbbb;
 
   /* ── Elevation ────────────────────────────────────────────────── */

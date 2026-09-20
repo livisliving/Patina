@@ -17,7 +17,7 @@ colors:
   # ── Aqua constants (never toned) ───────────────────────────────────
   secondary: "#2765CA"
   on-secondary: "#FFFFFF"
-  tertiary: "#888D99"
+  tertiary: "#999999"
   on-tertiary: "#000000"
   neutral: "#ECECEC"
   on-neutral: "#000000"
@@ -31,10 +31,10 @@ colors:
   surface-dim: "#681F45"
   on-surface: "#FFFFFF"
   outline: "rgba(0, 0, 0, 0.4)"
-  error: "#C13A2D"
+  error: "#F04646"
   on-error: "#FFFFFF"
-  traffic-yellow: "#CA820D"
-  traffic-green: "#6FAE3A"
+  traffic-yellow: "#F4B01E"
+  traffic-green: "#46BE2D"
   # ── Other tones (swap into primary / primary-bright / primary-container)
   tone-aqua: "#2765CA"
   tone-aqua-bright: "#5787D6"
@@ -118,7 +118,7 @@ typography:
 rounded:
   none: 0px
   check: 3px
-  control: 6px
+  control: 8px
   window: 7.2px
   button: 14px
   pill: 9999px
@@ -135,9 +135,10 @@ spacing:
   button-h: 20px      # Apple HIG 2002: push button height 20px fixed
   button-h-small: 17px # Apple HIG 2002: small push button 17px
   popup-h: 20px       # Apple HIG 2002: pop-up / combo 20px (small 17px)
+  scrollbar: 15px       # Aqua 10.x scroller width
   toolbar-item: 56px
-  dock-icon: 48px
-  dock-h: 56px
+  dock-icon: 64px
+  dock-h: 70px
   traffic-light: 14px # Figma Apple OS X design system: 14px (22px pitch)
   traffic-gap: 8px
   window-padding: 16px
@@ -365,47 +366,51 @@ colors everything gel. Both are always present.
 
 **Tone (Pink, default)**
 
-- **Primary — Hot Pink (#FF3D9E):** the middle of every gel gradient. Default
+- **Primary — Y2K pink (#E8449A):** the middle of every gel gradient. Default
   buttons, the checked checkbox, popup arrow caps, scroll thumbs, progress,
   highlighted menu items, the running-app triangle's cousin — anything that
   glows. Text on it is **black** (Aqua 10.0 put black text on its blue
   buttons; the gloss makes white unreadable).
-- **Primary-bright (#FF9AD1):** the top of the gel and the hover state.
-- **Primary-container (#C8107A):** the bottom of the gel and the pressed
+- **Primary-bright (#ED6DB0):** the top of the gel and the hover state.
+- **Primary-container (#A7316F):** the bottom of the gel and the pressed
   state.
-- **Primary-tint (#FFE3F1):** selection highlight, the tinted focus glow.
-- **Surface / surface-bright / surface-dim (#FF3D9E / #FF9FD6 / #8C0A52):**
+- **Primary-tint (#FFE3F1):** the tinted focus glow. The live focus ring is
+  the base at 25% alpha; selection is the base at 88%, with white ink in
+  pink / aqua / grape and black ink in lime / tangerine.
+- **Surface / surface-bright / surface-dim (#E8449A / #F298C7 / #681F45):**
   the wallpaper's mid, ribbon and shadow stops. Desktop icon labels are
   white (`on-surface`) with a black drop shadow (`0 1px 2px rgba(0,0,0,.8)`)
   — the shadow, not the wallpaper, provides their contrast.
 
 **Aqua constants (never toned)**
 
-- **Neutral — Pinstripe white (#FAFAFA) over neutral-dim (#ECECEC):** the
-  window material — 1px lines alternating, everywhere inside a window.
-  Neutral-bright (#FFFFFF) is the top of a white gel button and the field of
-  an input; neutral-tint (#D9D9D9) its bottom. Neutral-variant (#7F7F7F) is
-  inactive-window title text. Neutral-glass (white at 55%) is the Dock and
-  the menus.
-- **Secondary — OS Blue (#4A9FF5):** focus rings and links. The one blue
+- **Neutral — pinstripe white (85% white) over neutral (#ECECEC):** the
+  window material — 1.5px of the base then 2.5px of white on a 4px period,
+  everywhere inside a window. Neutral-bright (#FFFFFF) is the field of an
+  input; neutral-dim (#D4D4D4) the bottom of the menu bar; neutral-tint
+  (#F8F8F8) its top. Neutral-variant (#7F7F7F) is dimmed text; #999999 is a
+  disabled label and #4B4B4B secondary text. Neutral-glass (white at 75%) is
+  the Dock shelf.
+- **Secondary — OS blue (#2765CA):** focus rings and links. The one blue
   Aqua never lets go of, even in a pink tone.
-- **Tertiary — Graphite grey (#8E98A8):** disabled control labels.
-- **Traffic lights:** close = error red (#EE5A4F), minimize = yellow
-  (#F6BD3A), zoom = green (#57C93F). They stay red / yellow / green in every
-  tone. Inactive windows show them gray (#D4D4D4).
-- **Outline (black at 28%):** the hairline around windows, buttons, popups
-  and the Dock.
+- **Tertiary — disabled grey (#999999):** disabled control labels.
+- **Traffic lights:** radial-gradient spheres, not flat discs — a bright core,
+  a saturated middle and a deep rim. Their middles are close = #F04646,
+  minimize = #F4B01E, zoom = #46BE2D. They stay red / yellow / green in every
+  tone; an inactive window shows all three as the plain white gel.
+- **Outline (black):** hairlines are alpha, not a grey — 40% around a window,
+  30% under a title bar, 20% for separators and field edges.
 
 **The other tones** (swap into primary / primary-bright / primary-container;
 wallpaper stops follow):
 
 | Tone | Years · scene | Primary | Bright | Container |
 |:--|:--|:--|:--|:--|
-| Pink (default) | 2001–06 · McBling — Juicy, pink Razr, Bratz | #FF3D9E | #FF9AD1 | #C8107A |
-| Aqua | 1998–01 · Bondi Blue iMac, Mac OS X Aqua | #4A9FF5 | #A4D2FF | #1D63C9 |
-| Lime | 1999–02 · iMac Lime, Nickelodeon slime, Matrix | #9BE11F | #D8FF85 | #4F9A0A |
-| Tangerine | 1999–03 · iMac Tangerine, Fanta, inflatable chairs | #FFA31A | #FFD57F | #D2690A |
-| Grape | 2000–04 · iMac Grape, MSN purple, Lisa Frank | #9B6DE8 | #D0B6FF | #5E37B5 |
+| Y2K pink (default) | 2001–06 · McBling — Juicy, pink Razr, Bratz | #E8449A | #ED6DB0 | #A7316F |
+| Aqua | 1998–01 · Bondi Blue iMac, Mac OS X Aqua | #2765CA | #5787D6 | #1C4991 |
+| Lime | 1999–02 · iMac Lime, Nickelodeon slime, Matrix | #7FC31C | #9BD04E | #5B8C14 |
+| Tangerine | 1999–03 · iMac Tangerine, Fanta, inflatable chairs | #E8891A | #EDA34C | #A76313 |
+| Grape | 2000–04 · iMac Grape, MSN purple, Lisa Frank | #8344C4 | #9E6DD1 | #5E318D |
 
 Never mix tones on one screen. Never put a tone on text.
 
@@ -413,11 +418,16 @@ Never mix tones on one screen. Never put a tone on text.
 
 One family does almost everything, because that is what Aqua did.
 
-- **Lucida Grande** — the system face. 13px regular for body and controls,
-  13px bold for window titles and section headings, 11px for small buttons,
-  status bars, Dock labels and captions, 15–18px bold for the rare headline
-  inside a window. Stack: `"Lucida Grande", "Lucida Sans Unicode", "Lucida
-  Sans", "Noto Sans", sans-serif`. It is a humanist sans with wide, open
+- **Lucida Grande** — the system face. The whole native scale, in px:
+  **10** status bars, **11** captions, group-box labels and small buttons,
+  **12** document body and list rows, **13** default UI text (buttons, menus,
+  fields, window titles in bold), **14** the menu bar and the large push
+  button, **15** document headings in bold. **Font sizes are never snapped to
+  the 4px grid** — they are Apple's own values and stay exactly as drawn. Stack: `"Lucida Grande", "Lucida Sans Unicode", "Lucida
+  Sans Unicode", Lato, "Hiragino Sans", ui-sans-serif, system-ui,
+  sans-serif` — **Lato** is the open-source stand-in on machines without
+  Lucida Grande (Lucida is not redistributable, so it is never bundled). It is
+  a humanist sans with wide, open
   letterforms; **Inter, Geist, Roboto, Helvetica and system-ui are not
   acceptable substitutes** — their neutrality is exactly the AI look this
   pack exists to kill.
@@ -425,7 +435,8 @@ One family does almost everything, because that is what Aqua did.
   for the Apple Garamond of the "Mac OS X" wordmark in the About box.
   Rendered as gel text (tone gradient clipped to the glyphs). Never for
   headings or body.
-- **Monaco** (fallback Menlo) — code, at 11px on a black field.
+- **Monaco** (fallback Menlo, Courier New) — code, at 10–11px; on a black
+  field in the Read Me, inline in documents.
 
 Case: sentence case everywhere. Buttons say `Save`, `Cancel`, `Don't Save`;
 titles say `About Patina`, `Read Me`. Never uppercase, never Title Case
@@ -439,8 +450,8 @@ a 22px menu bar is pinned to the top and a Dock to the bottom; content lives
 in windows that float, overlap and can be dragged by their title bars. There
 is no hero section, no max-width container, no footer.
 
-- **Menu bar:** 22px, pinstriped, app name in bold on the left, menus at
-  13px, tone indicator and clock on the right.
+- **Menu bar:** 25px, pinstriped, app name in bold on the left, menus at
+  14px, the clock on the right.
 - **Windows** are 300–520px wide and sized to content. Title bar 22px;
   toolbar (when present) is a row of 62px white buttons with a 32px icon and
   an 11px label; body padding 16px; status line 20px at 11px, centered.
@@ -449,10 +460,21 @@ is no hero section, no max-width container, no footer.
   column, fields left-aligned beside them, group boxes with a bold 11px
   caption, and the button row bottom-right with **Cancel to the left of the
   default button** and 12px between them.
-- **Spacing unit: 4px.** 2 / 4 / 8 / 12 / 16 / 24. Controls are separated by
-  8px; groups by 12px.
-- **Dock:** bottom center, 48px icons on a translucent white shelf, hover
-  magnifies to 1.3×, a black triangle marks running apps.
+- **Spacing unit: 4px — and it is a hard rule, not a suggestion.** *Every*
+  non-text value snaps to a multiple of 4: spacing, widths, heights, radii,
+  positional offsets. Scale: 4 / 8 / 12 / 16 / 24. Controls are separated by
+  8px; groups by 12px. There are exactly three exceptions:
+  1. **1px hairlines** — borders and separators.
+  2. **2–3px gel highlights** and their small radii — the Aqua gloss detail
+     dies if you round it to 4.
+  3. **HIG-authentic OS metrics** — menu bar 25px, title bar 22px, scroll bar
+     15px, push button 20px (small 17px), traffic light 14px. Snapping these
+     distorts chrome Apple measured.
+  Font sizes are **not** snapped (see Typography).
+- **Dock:** bottom center, 64px icons on a 70px translucent white shelf
+  (white at 75%, pinstriped), hover magnifies to 2× with a 140px falloff, a
+  black triangle marks running apps, minimized windows park to the right of a
+  divider, Trash at the far right behind another.
 - **Desktop icons** sit top-right, 48px with a 12px white label.
 - **Responsive:** below 768px, windows become full-width and stack in order;
   the menu bar and Dock stay pinned; dragging is off.
@@ -462,11 +484,12 @@ is no hero section, no max-width container, no footer.
 Aqua is *all* depth — but it is the depth of glass and candy, not of paper
 cards.
 
-- **Windows** cast one deep, soft shadow: `0 10px 28px rgba(0,0,0,.45)` plus
-  a hairline `0 0 0 1px rgba(0,0,0,.28)`. Inactive windows: `0 4px 12px
-  rgba(0,0,0,.25)`. Nothing else casts this shadow.
-- **Menus and tooltips**: `0 6px 16px rgba(0,0,0,.3)` on a white-at-93%
-  backdrop-blurred sheet.
+- **Windows** cast two stacked casts plus a rim light:
+  `inset 0 1px 0 rgba(255,255,255,.7), 0 4px 10px rgba(0,0,0,.3),
+  0 18px 40px rgba(0,0,0,.5)`. Inactive windows halve it. Nothing else casts
+  this shadow.
+- **Menus and tooltips**: `0 4px 16px rgba(0,0,0,.4)` on a white-at-93%
+  backdrop-blurred sheet. The Dock: `0 2px 8px rgba(0,0,0,.15)`.
 - **Gel** (every colored or white control): three highlights stacked —
   `inset 0 1px 0 rgba(255,255,255,.85)` (top rim), a white-to-transparent
   gloss cap over the top 48%, and `inset 0 -6px 7px -4px
@@ -489,15 +512,17 @@ Controls are candy; windows are sheets.
 
 - `pill` (9999px) — every gel button, popup, scroll thumb, progress bar,
   tone swatch.
-- `window` (6px) — the two top corners of a window; the bottom corners are
+- `window` (7.2px) — the two top corners of a window; the bottom corners are
   square, as in 10.0.
-- `control` (5px) — toolbar buttons, group boxes, menu bottoms.
+- `control` (8px) — toolbar buttons, group boxes, wells, menu bottoms.
 - `check` (3px) — checkboxes, the Dock shelf, code fields.
 - `none` — inputs (sunken white wells), status bars, menus' top edge.
 
-Never 8–16px. A rounded-rectangle card with an 8–12px radius is the single
-strongest tell of a default component library, and it has no equivalent in
-Aqua. Icons are 64px glossy objects (a face, a folder, a gel pill, a gear on
+Never an 8–16px rounded *card*. A rounded rectangle with an 8–12px radius
+floating on a flat background is the single strongest tell of a default
+component library, and it has no equivalent in Aqua — the 8px `control`
+radius belongs to sunken wells and group boxes that sit **on** the pinstripes,
+never to a card that floats above them. Icons are 64px glossy objects (a face, a folder, a gel pill, a gear on
 a tile, a wire-mesh trash) drawn with gradients and a gloss cap — never a
 thin-line icon set.
 
@@ -536,9 +561,10 @@ tone gel with a black check. **Input** — a square sunken white well, 22px.
 menu sheet is white at 93% with a 5px bottom radius; highlighted item = tone
 background, black text; check marks for radio items.
 
-**Dock** — translucent white shelf, 64px glossy icons, 1.3× hover
-magnification, tooltip label above, black triangle under running apps, Trash
-at the far right behind a divider.
+**Dock** — translucent white shelf, 64px glossy icons, 2× hover
+magnification, tooltip label above, black triangle under running apps,
+minimized windows parked after a divider, Trash at the far right behind
+another. Finder sits leftmost, as the Aqua smiley.
 
 **Scroll bar** — a tone gel thumb in a white sunken track, 15px.
 
@@ -552,7 +578,7 @@ once. **Tabs** — white gel segmented control, selected segment in tone.
 the tone so they re-color with it.
 
 **Copy voice** — system voice, short, sentence case: `Save`, `Cancel`,
-`Read Me`, `6 items, 56k available`, `Public Beta (build DAY1)`. No
+`Read Me`, `6 items, 56k available`, `Public Beta`. No
 "Welcome back 👋", no "Get started", no emoji in controls.
 
 ## Do's and Don'ts
@@ -563,7 +589,8 @@ the tone so they re-color with it.
 - Do put black text on gel; white text belongs only on the wallpaper.
 - Do give each window exactly one default button, and let it pulse.
 - Do keep the traffic lights red / yellow / green in every tone.
-- Do use pills for controls and 6px only for window tops; nothing between.
+- Do use pills for controls, 7.2px for window tops and 8px for sunken wells
+  and group boxes; nothing else.
 - Do lay out dialogs with right-aligned labels and Cancel left of the default.
 - Do keep WCAG AA: black on pink 6.4:1, black on pinstripe 20:1, black on
   aqua 7.6:1, black on lime 13:1.
@@ -571,13 +598,16 @@ the tone so they re-color with it.
   magnification.
 
 **Don't** (the anti-rules; `/check-y2k` fails on any of them)
-- Don't use Inter, Geist, Roboto, Helvetica, Arial or `system-ui`. Lucida
-  Grande (with its stack) is the only UI face.
+- Don't use Inter, Geist, Roboto, Helvetica or Arial, and don't *name*
+  `system-ui` as the face. Lucida Grande is the only UI face; Lato is its
+  open-source stand-in, and `system-ui` appears only as the last resort at the
+  tail of the stack.
 - Don't use grey cards: no `#F4F4F5`, no zinc/slate/stone/gray surfaces, no
   white card on off-white. Surfaces are pinstriped or wallpaper.
 - Don't use the purple-to-blue "AI" gradient (`#8B5CF6 → #3B82F6`), aurora
   meshes, or any gradient that isn't a gel or the wallpaper.
-- Don't use 8–16px corner radii anywhere.
+- Don't put an 8–16px radius on a floating card or panel. The 8px radius is
+  reserved for wells and group boxes that sit on the pinstripes.
 - Don't put a shadow on anything that isn't a window, a menu, a tooltip, the
   Dock or a gel control. No `0 4px 12px rgba(0,0,0,.1)` card shadows.
 - Don't use thin-line icon sets (Lucide, Heroicons, Feather).

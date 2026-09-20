@@ -121,6 +121,18 @@ export function StarIcon({ className, style }: IconProps) {
   )
 }
 
+/** Finder — the Aqua smiley face. Olivia's own artwork (drawn for Patina, not
+    Apple's icon), painted blue; --y2k-face-filter (set per tone in y2k.css)
+    rotates it to the active tone, so the default reading is the pink face.
+    Same zero-JS recolour technique as StarIcon. */
+export function FaceIcon({ className, style }: IconProps) {
+  return (
+    <span className={cn(WRAP, className)} style={style}>
+      <PngIcon src="/icons/finder.png" alt="Finder" style={{ filter: "var(--y2k-face-filter, none)" }} />
+    </span>
+  )
+}
+
 /* ── Neutral PNG icons (same across tones) ─────────────────────────── */
 
 /** Hard disk (Patina HD). */

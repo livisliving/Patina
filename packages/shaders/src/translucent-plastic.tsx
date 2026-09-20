@@ -5,29 +5,47 @@ import * as React from "react"
 import { ShaderSurface } from "./shader-surface"
 
 /**
- * Translucent plastic — the iMac G3 gel: a tone-tinted translucent shell with
- * drifting internal caustics and a glossy top sheen. The tone colour is read
- * from the --y2k-tone CSS var at mount and baked into the shader as a constant.
+ * Translucent plastic — the iMac G3 gel: a tone-tinted translucent shell with a
+ * glossy cap on top, light pooling at the base, and slow internal caustics. The
+ * tone colour is read from the --y2k-tone CSS var and baked into the shader as
+ * a constant; it is re-read whenever <html data-tone> changes.
  *
  * CSS fallback: a tone radial-gradient blob with a white gloss cap — no WebGL,
  * shown when WebGL is unavailable or reduced-motion is on.
  */
 
-/** Parse a computed CSS colour to a 0–1 rgb triple; falls back to hot pink. */
+const PINK: [number, number, number] = [0.91, 0.27, 0.6]
+
+/**
+ * Parse the computed --y2k-tone to a 0–1 rgb triple; falls back to pink.
+ * Browsers hand custom-property colours back in whatever form they please —
+ * `rgb(232, 68, 154)` as authored, or a normalised `#e8449a` — so both shapes
+ * have to be understood, or the shader silently sticks on the fallback colour.
+ */
 function readTone(el: HTMLElement | null): [number, number, number] {
-  if (!el || typeof window === "undefined") return [0.91, 0.27, 0.6]
+  if (!el || typeof window === "undefined") return PINK
   const raw = getComputedStyle(el).getPropertyValue("--y2k-tone").trim()
-  const m = raw.match(/(\d+(?:\.\d+)?)/g)
+
+  const hex = raw.match(/^#([0-9a-f]{3,8})$/i)
+  if (hex) {
+    let h = hex[1]
+    if (h.length === 3 || h.length === 4) h = h.split("").map((c) => c + c).join("")
+    if (h.length < 6) return PINK
+    return [parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255]
+  }
+
+  const m = raw.match(/\d+(?:\.\d+)?/g)
   if (m && m.length >= 3) return [Number(m[0]) / 255, Number(m[1]) / 255, Number(m[2]) / 255]
-  return [0.91, 0.27, 0.6]
+  return PINK
 }
 
+/* uv.y runs 0 at the bottom of the quad to 1 at the top (gl_FragCoord is
+   bottom-up), so "up" in the shader is up on screen. */
 const frag = (r: number, g: number, b: number) => `
 uniform vec2 u_resolution;
 uniform float u_time;
 
-// simple value noise for caustics
-float hash(vec2 p){ return fract(sin(dot(p, vec2(41.3, 289.1))) * 43758.5); }
+float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
 float noise(vec2 p){
   vec2 i = floor(p), f = fract(p);
   vec2 u = f*f*(3.0-2.0*f);
@@ -37,25 +55,35 @@ float noise(vec2 p){
 
 void main() {
   vec2 uv = gl_FragCoord.xy / u_resolution;
+  vec2 c = uv - 0.5;
   vec3 tone = vec3(${r.toFixed(3)}, ${g.toFixed(3)}, ${b.toFixed(3)});
 
-  // Base translucent tint: darker at the bottom, brighter toward the top.
-  vec3 col = mix(tone * 0.55, mix(tone, vec3(1.0), 0.35), uv.y);
+  // Shell body: saturated and deep at the bottom, lighter toward the top,
+  // where the light enters.
+  vec3 deep = tone * 0.45;
+  vec3 lit = mix(tone, vec3(1.0), 0.28);
+  vec3 col = mix(deep, lit, smoothstep(0.0, 0.92, uv.y));
 
-  // Drifting internal caustics (refraction inside the plastic).
-  float n = noise(uv * 4.0 + vec2(u_time * 0.15, u_time * 0.1));
-  n += 0.5 * noise(uv * 8.0 - vec2(u_time * 0.1, 0.0));
-  col += (n - 0.7) * 0.18 * tone;
+  // Light that passed through the shell pools along the base.
+  col += tone * 0.30 * smoothstep(0.30, 0.0, uv.y);
 
-  // Glossy top sheen — a bright cap on the upper third.
-  float sheen = smoothstep(0.62, 1.0, uv.y) * (1.0 - uv.y * 0.3);
-  col = mix(col, vec3(1.0), sheen * 0.5);
+  // Internal caustics. Zero-mean and low amplitude, so they read as a faint
+  // drift inside the plastic instead of dirt on top of it.
+  float n = noise(uv * 3.0 + vec2(u_time * 0.06, u_time * 0.04));
+  n = mix(n, noise(uv * 6.0 - vec2(0.0, u_time * 0.05)), 0.4);
+  col += (n - 0.5) * 0.07;
 
-  // Soft edge darkening (the thick rim of a gel shell).
-  float edge = smoothstep(0.0, 0.12, uv.x) * smoothstep(1.0, 0.88, uv.x);
-  col *= mix(0.8, 1.0, edge);
+  // Aqua gloss cap: a soft ellipse of white across the upper third.
+  vec2 gloss = vec2(c.x / 0.46, (uv.y - 0.80) / 0.24);
+  float sheen = 1.0 - smoothstep(0.30, 1.0, length(gloss));
+  col = mix(col, vec3(1.0), sheen * 0.72);
 
-  gl_FragColor = vec4(col, 1.0);
+  // The thick wall of the shell darkens all four edges evenly.
+  float rx = smoothstep(0.0, 0.10, uv.x) * (1.0 - smoothstep(0.90, 1.0, uv.x));
+  float ry = smoothstep(0.0, 0.10, uv.y) * (1.0 - smoothstep(0.90, 1.0, uv.y));
+  col *= mix(0.80, 1.0, rx * ry);
+
+  gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }
 `
 
@@ -63,8 +91,14 @@ export function TranslucentPlastic({ className, style, children, ...props }: Rea
   const ref = React.useRef<HTMLDivElement>(null)
   const [rgb, setRgb] = React.useState<[number, number, number]>([0.91, 0.27, 0.6])
 
+  // Re-read the tone on mount and on every tone switch, so the plastic tracks
+  // the active tone the way the CSS fallback does.
   React.useEffect(() => {
-    setRgb(readTone(ref.current))
+    const sync = () => setRgb(readTone(ref.current))
+    sync()
+    const mo = new MutationObserver(sync)
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-tone"] })
+    return () => mo.disconnect()
   }, [])
 
   return (
@@ -79,14 +113,14 @@ export function TranslucentPlastic({ className, style, children, ...props }: Rea
             position: "absolute",
             inset: 0,
             background:
-              "radial-gradient(ellipse at 50% 25%, color-mix(in srgb, var(--y2k-tone) 40%, white) 0%, var(--y2k-tone) 55%, color-mix(in srgb, var(--y2k-tone) 55%, black) 100%)",
+              "radial-gradient(ellipse at 50% 20%, color-mix(in srgb, var(--y2k-tone) 30%, white) 0%, var(--y2k-tone) 55%, color-mix(in srgb, var(--y2k-tone) 55%, black) 100%)",
           }}
         >
           <div
             style={{
               position: "absolute",
               inset: 0,
-              background: "linear-gradient(to bottom, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 45%)",
+              background: "linear-gradient(to bottom, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0) 40%)",
             }}
           />
         </div>
