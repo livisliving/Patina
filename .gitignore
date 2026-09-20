@@ -8,3 +8,5 @@ dist
 *.tsbuildinfo
 next-env.d.ts
 .vercel
+packages/cli/assets
+packages/cli/*.tgz

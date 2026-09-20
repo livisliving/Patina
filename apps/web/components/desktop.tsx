@@ -26,6 +26,7 @@ import {
   WindowTrigger,
   WindowWell,
   cn,
+  parseColor,
 } from "@patina/ui"
 
 import { DiskIcon, DocIcon, FaceIcon, FolderIcon, HeartIcon, NoteIcon, PillIcon, PrefsIcon, StarIcon, TerminalIcon, TrashIcon, SearchGlyph } from "./aqua-icons"
@@ -193,7 +194,7 @@ function Popup({
           className={cn(
             "relative inline-flex h-[22px] min-w-[60px] cursor-default items-center overflow-hidden rounded-[8px] py-[2px] pr-6 pl-2 text-left text-[13px] text-(--y2k-ink) outline-none",
             "bg-(image:--y2k-gel-white) shadow-(--y2k-popup-shadow) [text-shadow:0_1px_1px_rgba(255,255,255,0.5)]",
-            "before:pointer-events-none before:absolute before:inset-x-px before:top-0 before:h-1/2 before:rounded-[7px_7px_0_0] before:bg-[linear-gradient(to_bottom,rgba(255,255,255,0.9)_0%,rgba(255,255,255,0.4)_60%,rgba(255,255,255,0)_100%)] before:content-['']",
+            "before:pointer-events-none before:absolute before:inset-x-px before:top-0 before:h-1/2 before:rounded-[8px_8px_0_0] before:bg-[linear-gradient(to_bottom,rgba(255,255,255,0.9)_0%,rgba(255,255,255,0.4)_60%,rgba(255,255,255,0)_100%)] before:content-['']",
             "focus-visible:shadow-[var(--y2k-popup-shadow),0_0_0_3px_var(--y2k-tone-focus)] active:brightness-95 data-[state=open]:brightness-95",
             className
           )}
@@ -299,8 +300,8 @@ const SEG = {
   tone: {
     container: "shadow-(--y2k-popup-shadow) rounded-[8px]",
     cell: "h-[22px] w-7 bg-(image:--y2k-gel-white) before:pointer-events-none before:absolute before:inset-x-px before:top-0 before:h-1/2 before:bg-[linear-gradient(to_bottom,rgba(255,255,255,0.7),rgba(255,255,255,0.25)_60%,rgba(255,255,255,0))] before:content-['']",
-    firstCell: "rounded-l-[8px] before:rounded-tl-[7px]",
-    lastCell: "rounded-r-[8px] before:rounded-tr-[7px]",
+    firstCell: "rounded-l-[8px] before:rounded-tl-[8px]",
+    lastCell: "rounded-r-[8px] before:rounded-tr-[8px]",
     divider: "shadow-[inset_1px_0_0_rgba(0,0,0,0.35)]",
     active: "bg-(image:--y2k-tone-list) text-white before:opacity-50 [&_svg]:drop-shadow-[0_1px_0_rgba(0,0,0,0.4)]",
     glyph: "[&_svg]:size-3.5 [&_svg]:text-neutral-600",
@@ -347,17 +348,9 @@ function Segmented({ items, variant = "tone" }: { items: { label: string; icon: 
             it.active && s.active
           )}
         >
-          <span
-            className={cn(
-              "relative z-[1]",
-              s.glyph,
-              // On the filled segment the glyph goes to ink, as Aqua keeps it
-              // dark on the blue selection.
-              it.active && variant === "view" && "[&_svg]:text-(--y2k-ink)"
-            )}
-          >
-            {it.icon}
-          </span>
+          {/* Aqua keeps the glyph dark on the filled segment, which is what
+              `view`'s glyph rule already paints in both states. */}
+          <span className={cn("relative z-[1]", s.glyph)}>{it.icon}</span>
         </button>
       ))}
     </div>
@@ -435,6 +428,22 @@ type FinderItem = {
    *  inspector. An empty array is still a folder — it just opens empty. */
   contents?: FinderItem[]
 }
+
+/** Macintosh HD's folders: the machine's own disk, listed in the column view's
+ *  first column. They hold nothing this desktop models, and nothing about them
+ *  depends on state, so they are built once. */
+const macFolders: FinderItem[] = ["Applications", "Library", "System", "Users"].map((label) => ({
+  label,
+  icon: <FolderIcon />,
+  kind: "Folder",
+  size: "—",
+  created: "24/03/01",
+  modified: "24/03/01",
+  contents: [],
+}))
+
+/** Which of the Finder's items the Favourites folder collects. */
+const FAVOURITE_LABELS = ["Read Me", "Design System", "Tone", "DESIGN.md"]
 
 /** A row in a Finder column: 20px tall, 16px icon, 12px label, and a
  *  disclosure triangle when it opens a further column. Aqua tints the
@@ -538,7 +547,8 @@ function ColumnSplit({ width, onResize }: { width: number; onResize: (w: number)
       }}
       className={cn(
         "relative w-2 shrink-0 cursor-col-resize touch-none bg-[linear-gradient(to_right,#d6d6d6,#e7e7e7,#f7f7f7)]",
-        "outline-none focus-visible:shadow-[inset_0_0_0_1px_var(--y2k-tone)]"
+        // The pack's focus halo, same as every other focusable surface.
+        "outline-none focus-visible:shadow-[0_0_0_3px_var(--y2k-tone-focus)]"
       )}
     >
       <span aria-hidden className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-[2px]">
@@ -739,12 +749,16 @@ const TONE_NAMES: string[] = TONE_TOKENS.map((t) => t.token)
  * fixed tokens off <html>. Printing measured values (instead of a hand-copied
  * table) means the palette in the Design System can never drift from y2k.css.
  * Values are empty until the effect runs, so rows render "—" during SSR.
+ *
+ * Reading costs a style recalc plus a probe element in the document, so it
+ * waits until the window that shows the palette is actually open.
  */
-function useTokenValues() {
+function useTokenValues(enabled: boolean) {
   const [fixed, setFixed] = React.useState<Record<string, string>>({})
   const [byTone, setByTone] = React.useState<Record<string, Record<string, string>>>({})
 
   React.useEffect(() => {
+    if (!enabled) return
     const read = (el: Element, names: readonly string[]) => {
       const cs = getComputedStyle(el)
       return Object.fromEntries(names.map((n) => [n, cs.getPropertyValue(n).trim()]))
@@ -761,7 +775,7 @@ function useTokenValues() {
     }
     probe.remove()
     setByTone(next)
-  }, [])
+  }, [enabled])
 
   return { fixed, byTone }
 }
@@ -780,40 +794,30 @@ function midStop(value: string) {
  *  and the hex-with-alpha shorthand hides the actual RGB. */
 function formatColor(raw: string) {
   const v = midStop(raw.trim())
-  let r: number, g: number, b: number
-  let a = 1
-  const hex = v.match(/^#([0-9a-f]{3,8})$/i)
-  if (hex) {
-    let h = hex[1]
-    if (h.length === 3 || h.length === 4) h = h.split("").map((c) => c + c).join("")
-    r = parseInt(h.slice(0, 2), 16)
-    g = parseInt(h.slice(2, 4), 16)
-    b = parseInt(h.slice(4, 6), 16)
-    if (h.length === 8) a = parseInt(h.slice(6, 8), 16) / 255
-  } else {
-    const m = v.match(/rgba?\(([^)]+)\)/i)
-    if (!m) return v
-    const parts = m[1].split(/[\s,/]+/).filter(Boolean).map(Number)
-    if (parts.length < 3 || parts.some((n) => Number.isNaN(n))) return v
-    ;[r, g, b] = parts
-    if (parts.length > 3) a = parts[3]
-  }
+  const c = parseColor(v)
+  if (!c) return v
+  const { r, g, b, a } = c
   const pair = (n: number) => Math.round(n).toString(16).padStart(2, "0")
   const out = `#${pair(r)}${pair(g)}${pair(b)} · rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`
   return a < 1 ? `${out} · ${Math.round(a * 100)}% α` : out
 }
 
+/** An inline code token — a token name, a hex value, a command. One place for
+ *  the pack's mono style; `className` takes the 10px palette size. */
+function Mono({ className, children }: { className?: string; children: React.ReactNode }) {
+  return <code className={cn("font-(family-name:--y2k-font-mono) text-[11px]", className)}>{children}</code>
+}
+
 /** A 32px colour chip: paints `background` (a flat colour or a gradient) over
  *  a checkerboard, so an α-token reads as translucent rather than solid. */
-function Swatch({ background, className }: { background: string; className?: string }) {
+function Swatch({ background }: { background: string }) {
   return (
     <span
       aria-hidden
       className={cn(
         "size-8 shrink-0 rounded-[4px] bg-[length:8px_8px] bg-[position:0_0,0_4px,4px_-4px,-4px_0]",
         "bg-[linear-gradient(45deg,#cfcfcf_25%,transparent_25%),linear-gradient(-45deg,#cfcfcf_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#cfcfcf_75%),linear-gradient(-45deg,transparent_75%,#cfcfcf_75%)]",
-        "shadow-[inset_0_0_0_1px_rgba(0,0,0,0.3)]",
-        className
+        "shadow-[inset_0_0_0_1px_rgba(0,0,0,0.3)]"
       )}
     >
       <span className="block size-full rounded-[4px]" style={{ background }} />
@@ -830,11 +834,11 @@ function ColorRow({ token, role, value }: { token: string; role: string; value?:
       <Swatch background={`var(${token})`} />
       <span className="min-w-[132px] flex-1">
         <span className="block text-[11px]">{role}</span>
-        <code className="block truncate font-(family-name:--y2k-font-mono) text-[10px] text-(--y2k-ink-dim)">{token}</code>
+        <Mono className="block truncate text-[10px] text-(--y2k-ink-dim)">{token}</Mono>
       </span>
-      <code className="shrink-0 font-(family-name:--y2k-font-mono) text-[10px] text-(--y2k-ink-secondary)">
+      <Mono className="shrink-0 text-[10px] text-(--y2k-ink-secondary)">
         {value ? formatColor(value) : "—"}
-      </code>
+      </Mono>
     </div>
   )
 }
@@ -868,8 +872,12 @@ export function Desktop() {
   // Column widths, dragged by the strips between them (index 0 = volumes,
   // 1 = the volume's contents, 2 = an opened folder).
   const [columnWidths, setColumnWidths] = React.useState<number[]>([176, 176, 176])
+  // A drag fires per pointer move, but `clamp` snaps to the 4px grid, so most
+  // moves resolve to the width already set — returning `prev` unchanged lets
+  // React skip the re-render of the whole desktop.
   const setColumnWidth = React.useCallback(
-    (i: number, w: number) => setColumnWidths((prev) => prev.map((v, n) => (n === i ? w : v))),
+    (i: number, w: number) =>
+      setColumnWidths((prev) => (prev[i] === w ? prev : prev.map((v, n) => (n === i ? w : v)))),
     []
   )
   // Opening a folder pushes a column past the window's width; the Finder always
@@ -894,7 +902,7 @@ export function Desktop() {
   // Trash is empty — clicking it in the Dock says so.
   const [trashOpen, setTrashOpen] = React.useState(false)
   // Literal token values for the Design System's "Colors" group.
-  const { fixed: fixedColors, byTone: toneColors } = useTokenValues()
+  const { fixed: fixedColors, byTone: toneColors } = useTokenValues(wins.buttons.open)
   // Which tone the "Colors" group is showing. Follows the active tone, but can
   // be tabbed away from to read another family's values.
   const [colorTab, setColorTab] = React.useState<Tone>(tone)
@@ -912,18 +920,6 @@ export function Desktop() {
     { label: "Favourites", icon: <HeartIcon />, onClick: openWin("favourites"), kind: "Folder", size: "—", created: "14/09/26", modified: "18/09/26" },
   ]
 
-  // The column view's first column lists VOLUMES, not files — the files live
-  // one level in, under Patina HD. Macintosh HD is the machine's own disk; its
-  // folders are listed, they just hold nothing this desktop models.
-  const macFolders: FinderItem[] = ["Applications", "Library", "System", "Users"].map((label) => ({
-    label,
-    icon: <FolderIcon />,
-    kind: "Folder",
-    size: "—",
-    created: "24/03/01",
-    modified: "24/03/01",
-    contents: [],
-  }))
   const volumes: FinderItem[] = [
     { label: "Patina HD", icon: <DiskIcon />, kind: "Volume", size: "56k available", created: "14/09/26", modified: "20/09/26", contents: finderItems },
     { label: "Macintosh HD", icon: <DiskIcon />, kind: "Volume", size: "18.2 GB available", created: "24/03/01", modified: "20/09/26", contents: macFolders },
@@ -931,13 +927,43 @@ export function Desktop() {
   const q = finderQuery.trim().toLowerCase()
   const visibleFinderItems = q ? finderItems.filter((it) => it.label.toLowerCase().includes(q)) : finderItems
 
-  // Curated quick-links shown in the Favourites window.
-  const favourites: { label: string; icon: React.ReactNode; onClick: () => void }[] = [
-    { label: "Read Me", icon: <DocIcon />, onClick: openWin("readme") },
-    { label: "Design System", icon: <PillIcon />, onClick: openWin("buttons") },
-    { label: "Tone", icon: <PrefsIcon />, onClick: openWin("tone") },
-    { label: "DESIGN.md", icon: <DocIcon />, onClick: openWin("design") },
+  // Curated quick-links shown in the Favourites window — a subset of the
+  // Finder's own items, so a folder that opens them lists the same rows.
+  const favourites = finderItems.filter((it) => FAVOURITE_LABELS.includes(it.label))
+
+  // The column view: a volume, the row picked inside it, and (when that row is
+  // a folder) the row picked one level further in. The inspector describes the
+  // deepest selected FILE.
+  const vol = volumes.find((v) => v.label === columnVolume) ?? volumes[0]
+  const columnRows = vol.label === "Patina HD" ? visibleFinderItems : (vol.contents ?? [])
+  const contentsOf = (it: FinderItem | undefined): FinderItem[] | undefined =>
+    it?.label === "Favourites" ? favourites : it?.contents
+  const columnSelItem = columnRows.find((r) => r.label === columnSel) ?? columnRows[0]
+  const columnKids = contentsOf(columnSelItem)
+  const columnKidItem = columnKids?.find((k) => k.label === columnChildSel) ?? columnKids?.[0]
+  const columnShown = columnKids ? columnKidItem : columnSelItem
+  // Each column carries its rows and which of them is selected; the strip below
+  // renders them all the same way.
+  const columns: { items: FinderItem[]; on?: string; volume?: boolean }[] = [
+    { items: volumes, on: vol.label, volume: true },
+    { items: columnRows, on: columnSelItem?.label },
+    ...(columnKids ? [{ items: columnKids, on: columnKidItem?.label }] : []),
   ]
+  // Selecting at a depth drops the selection below it, the way descending a
+  // path does.
+  const selectColumn = (depth: 0 | 1 | 2, label: string) => {
+    if (depth === 0) {
+      setColumnVolume(label)
+      setColumnSel(null)
+      setColumnChildSel(null)
+    }
+    if (depth === 1) {
+      setColumnSel(label)
+      setColumnChildSel(null)
+    }
+    if (depth === 2) setColumnChildSel(label)
+    setColumnFocus(depth)
+  }
 
   // Design System window: show a group only if its label matches the search.
   // The group bodies are unique JSX, but the label set lives here once so the
@@ -1025,9 +1051,7 @@ export function Desktop() {
             className="md:h-[400px] md:w-[560px]"
             status={
               finderView === "columns"
-                ? columnVolume === "Patina HD"
-                  ? `${visibleFinderItems.length} items, 56k available`
-                  : "4 items, 18.2 GB available"
+                ? `${columnRows.length} items, ${vol.size}`
                 : `${visibleFinderItems.length} of ${finderItems.length} items, 56k available`
             }
             toolbar={
@@ -1071,94 +1095,36 @@ export function Desktop() {
                 {visibleFinderItems.length === 0 ? (
                   <p className="p-6 text-center text-[12px] text-(--y2k-ink-secondary)">No items match “{finderQuery}”.</p>
                 ) : finderView === "columns" ? (
-                  (() => {
-                    // Aqua column view, rebuilt from the 10.2 reference. The
-                    // FIRST column lists volumes — double-height rows, 32px
-                    // icons, a disclosure arrow on every one — and the files
-                    // live one level in, under Patina HD. Columns are 176px,
-                    // parted by an 8px bevel with a grip at its foot; the strip
-                    // scrolls sideways once a folder opens a fourth column,
-                    // exactly as the real Finder does.
-                    const contentsOf = (it: FinderItem | undefined): FinderItem[] | undefined =>
-                      it?.label === "Favourites"
-                        ? favourites
-                            .map((f) => finderItems.find((i) => i.label === f.label))
-                            .filter((f): f is FinderItem => f !== undefined)
-                        : it?.contents
-
-                    const vol = volumes.find((v) => v.label === columnVolume) ?? volumes[0]
-                    const rows = vol.label === "Patina HD" ? visibleFinderItems : (vol.contents ?? [])
-                    const sel = rows.find((r) => r.label === columnSel) ?? rows[0]
-                    const kids = contentsOf(sel)
-                    const kid = kids?.find((k) => k.label === columnChildSel) ?? kids?.[0]
-                    // The inspector always describes the deepest selected FILE.
-                    const shown = kids ? kid : sel
-
-                    return (
-                      <div ref={columnStripRef} className="flex min-h-full overflow-x-auto">
-                        <div className="shrink-0 overflow-y-auto py-1" style={{ width: columnWidths[0] }}>
-                          {volumes.map((v) => (
-                            <ColumnRow
-                              key={v.label}
-                              item={v}
-                              volume
-                              chevron
-                              on={vol.label === v.label}
-                              focused={columnFocus === 0}
-                              onSelect={() => {
-                                setColumnVolume(v.label)
-                                setColumnSel(null)
-                                setColumnChildSel(null)
-                                setColumnFocus(0)
-                              }}
-                            />
-                          ))}
-                        </div>
-                        <ColumnSplit width={columnWidths[0]} onResize={(w) => setColumnWidth(0, w)} />
-                        <div className="shrink-0 overflow-y-auto py-1" style={{ width: columnWidths[1] }}>
-                          {rows.map((it) => (
+                  // Aqua column view, rebuilt from the 10.2 reference. The FIRST
+                  // column lists volumes — double-height rows, 32px icons, a
+                  // disclosure arrow on every one — and the files live one level
+                  // in, under Patina HD. Columns are 176px, parted by an 8px
+                  // bevel with a grip at its foot; the strip scrolls sideways
+                  // once a folder opens a fourth column, as the real Finder does.
+                  <div ref={columnStripRef} className="flex min-h-full overflow-x-auto">
+                    {columns.map((col, depth) => (
+                      <React.Fragment key={depth}>
+                        <div className="shrink-0 overflow-y-auto py-1" style={{ width: columnWidths[depth] }}>
+                          {col.items.map((it) => (
                             <ColumnRow
                               key={it.label}
                               item={it}
-                              on={sel?.label === it.label}
-                              focused={columnFocus === 1}
+                              volume={col.volume}
+                              on={col.on === it.label}
+                              focused={columnFocus === depth}
                               chevron={contentsOf(it) !== undefined}
-                              onSelect={() => {
-                                setColumnSel(it.label)
-                                setColumnChildSel(null)
-                                setColumnFocus(1)
-                              }}
+                              onSelect={() => selectColumn(depth as 0 | 1 | 2, it.label)}
                             />
                           ))}
                         </div>
-                        <ColumnSplit width={columnWidths[1]} onResize={(w) => setColumnWidth(1, w)} />
-                        {kids ? (
-                          <>
-                            <div className="shrink-0 overflow-y-auto py-1" style={{ width: columnWidths[2] }}>
-                              {kids.map((it) => (
-                                <ColumnRow
-                                  key={it.label}
-                                  item={it}
-                                  on={kid?.label === it.label}
-                                  focused={columnFocus === 2}
-                                  chevron={contentsOf(it) !== undefined}
-                                  onSelect={() => {
-                                    setColumnChildSel(it.label)
-                                    setColumnFocus(2)
-                                  }}
-                                />
-                              ))}
-                            </div>
-                            <ColumnSplit width={columnWidths[2]} onResize={(w) => setColumnWidth(2, w)} />
-                          </>
-                        ) : null}
-                        {shown && <ColumnInspector item={shown} />}
-                        {/* The reference pads the rest of the width with an
-                            empty column, ready for the next level. */}
-                        <div className="w-44 min-w-0 flex-1 border-l border-black/10" />
-                      </div>
-                    )
-                  })()
+                        <ColumnSplit width={columnWidths[depth]} onResize={(w) => setColumnWidth(depth, w)} />
+                      </React.Fragment>
+                    ))}
+                    {columnShown && <ColumnInspector item={columnShown} />}
+                    {/* The reference pads the rest of the width with an empty
+                        column, ready for the next level. */}
+                    <div className="w-44 min-w-0 flex-1 border-l border-black/10" />
+                  </div>
                 ) : finderView === "list" ? (
                   <div className="relative flex min-h-full flex-col py-1" {...finderRootProps}>
                     <Band rect={finderBand} z />
@@ -1291,9 +1257,9 @@ export function Desktop() {
               <ol className="flex list-decimal flex-col gap-2 pl-5">
                 <li>
                   <strong>Install a pack into your project</strong>
-                  <code className="mt-1 block rounded-[3px] bg-neutral-900 px-2 py-1 font-(family-name:--y2k-font-mono) text-[11px] text-white">
+                  <Mono className="mt-1 block rounded-[3px] bg-neutral-900 px-2 py-1 text-white">
                     npx patina init
-                  </code>
+                  </Mono>
                   Copies <code className="text-[12px]">DESIGN.md</code>, the <code className="text-[12px]">/y2k-ify</code> and{" "}
                   <code className="text-[12px]">/check-y2k</code> skills, and points <code className="text-[12px]">components.json</code> at this registry.
                 </li>
@@ -1484,7 +1450,7 @@ export function Desktop() {
                   </section>
 
                   <section className="flex flex-col gap-2">
-                    <p className="text-[11px] font-bold">Tone families — live, switched by <code className="font-(family-name:--y2k-font-mono) text-[10px]">data-tone</code> on &lt;html&gt;</p>
+                    <p className="text-[11px] font-bold">Tone families — live, switched by <Mono className="text-[10px]">data-tone</Mono> on &lt;html&gt;</p>
                     {/* One tab per tone instead of five stacked lists — the
                         section was far too long. Each trigger carries its own
                         data-tone, so the selected segment fills with the gel it
@@ -1516,12 +1482,12 @@ export function Desktop() {
                     <p className="text-[11px] font-bold">Listed, not swatched</p>
                     <p className="text-[11px] text-(--y2k-ink-secondary)">
                       Gradient and texture tokens carry no single colour:{" "}
-                      <code className="font-(family-name:--y2k-font-mono) text-[10px]">--y2k-gel-white</code>,{" "}
-                      <code className="font-(family-name:--y2k-font-mono) text-[10px]">--y2k-gel-shine</code>,{" "}
-                      <code className="font-(family-name:--y2k-font-mono) text-[10px]">--y2k-gel-glow</code>,{" "}
-                      <code className="font-(family-name:--y2k-font-mono) text-[10px]">--y2k-pinstripe</code>,{" "}
-                      <code className="font-(family-name:--y2k-font-mono) text-[10px]">--y2k-metal</code>,{" "}
-                      <code className="font-(family-name:--y2k-font-mono) text-[10px]">--y2k-shadow-window</code>.
+                      <Mono className="text-[10px]">--y2k-gel-white</Mono>,{" "}
+                      <Mono className="text-[10px]">--y2k-gel-shine</Mono>,{" "}
+                      <Mono className="text-[10px]">--y2k-gel-glow</Mono>,{" "}
+                      <Mono className="text-[10px]">--y2k-pinstripe</Mono>,{" "}
+                      <Mono className="text-[10px]">--y2k-metal</Mono>,{" "}
+                      <Mono className="text-[10px]">--y2k-shadow-window</Mono>.
                     </p>
                   </section>
                 </div>
@@ -1538,7 +1504,7 @@ export function Desktop() {
                           <span className="shrink-0 text-[13px]" style={{ fontFamily: `var(${f.token})` }}>
                             {f.sample}
                           </span>
-                          <code className="shrink-0 font-(family-name:--y2k-font-mono) text-[10px]">{f.token}</code>
+                          <Mono className="shrink-0 text-[10px]">{f.token}</Mono>
                           <span className="shrink-0 text-[11px] text-(--y2k-ink-dim)">{f.role}</span>
                         </div>
                         {/* The whole stack, in fallback order — truncated, full text on hover. */}
@@ -1562,7 +1528,7 @@ export function Desktop() {
                         >
                           Aa
                         </span>
-                        <code className="w-[40px] shrink-0 font-(family-name:--y2k-font-mono) text-[10px]">{s.px}px</code>
+                        <Mono className="w-[40px] shrink-0 text-[10px]">{s.px}px</Mono>
                         <span className="w-[88px] shrink-0 text-[11px] text-(--y2k-ink-secondary)">{s.weight}</span>
                         <span className="min-w-0 flex-1 truncate text-[11px]">{s.role}</span>
                       </div>
@@ -1635,9 +1601,9 @@ export function Desktop() {
               <div className="flex flex-col gap-3 px-6 py-5 font-(family-name:--y2k-font-ui) text-[12px] leading-[1.6]">
                 <h2 className="text-[15px] font-bold">DESIGN.md</h2>
                 <p className="text-(--y2k-ink-secondary)">
-                  The taste spec your coding agent reads. <code className="font-(family-name:--y2k-font-mono) text-[11px]">npx patina init</code> drops the full
-                  file into your project, along with the <code className="font-(family-name:--y2k-font-mono) text-[11px]">/y2k-ify</code> and{" "}
-                  <code className="font-(family-name:--y2k-font-mono) text-[11px]">/check-y2k</code> skills. This window is the same spec, abridged.
+                  The taste spec your coding agent reads. <Mono>npx patina init</Mono> drops the full
+                  file into your project, along with the <Mono>/y2k-ify</Mono> and{" "}
+                  <Mono>/check-y2k</Mono> skills. This window is the same spec, abridged.
                 </p>
 
                 <h3 className="mt-1 font-bold"># Two layers</h3>
@@ -1645,8 +1611,8 @@ export function Desktop() {
                   <strong>Structure</strong> is Mac OS X Aqua (2000–2005) and never changes: pinstriped windows, three
                   glossy traffic lights top-left, a centred bold title, deep soft shadows, gel controls, a translucent
                   Dock. <strong>Tone</strong> is the colour of everything gel — buttons, selection, the scroll thumb,
-                  the wallpaper. Five families, one active at a time via <code className="font-(family-name:--y2k-font-mono) text-[11px]">data-tone</code> on{" "}
-                  <code className="font-(family-name:--y2k-font-mono) text-[11px]">&lt;html&gt;</code>. Never mix two tones on a screen; never put a tone on text.
+                  the wallpaper. Five families, one active at a time via <Mono>data-tone</Mono> on{" "}
+                  <Mono>&lt;html&gt;</Mono>. Never mix two tones on a screen; never put a tone on text.
                 </p>
 
                 <h3 className="mt-1 font-bold"># Grid</h3>
@@ -1659,15 +1625,15 @@ export function Desktop() {
 
                 <h3 className="mt-1 font-bold"># Colours</h3>
                 <p>
-                  Tone bases: Y2K pink <code className="font-(family-name:--y2k-font-mono) text-[11px]">#e8449a</code>, aqua <code className="font-(family-name:--y2k-font-mono) text-[11px]">#2765ca</code>,
-                  lime <code className="font-(family-name:--y2k-font-mono) text-[11px]">#7fc31c</code>, tangerine <code className="font-(family-name:--y2k-font-mono) text-[11px]">#e8891a</code>, grape{" "}
-                  <code className="font-(family-name:--y2k-font-mono) text-[11px]">#8344c4</code>. Everything else in a family derives from its base: the button
+                  Tone bases: Y2K pink <Mono>#e8449a</Mono>, aqua <Mono>#2765ca</Mono>,
+                  lime <Mono>#7fc31c</Mono>, tangerine <Mono>#e8891a</Mono>, grape{" "}
+                  <Mono>#8344c4</Mono>. Everything else in a family derives from its base: the button
                   gel is the base at 78/72/78% alpha, the glow 50%, the focus ring 25%.
                 </p>
                 <p>
-                  Aqua constants, never toned: ink <code className="font-(family-name:--y2k-font-mono) text-[11px]">#000000</code>, secondary ink{" "}
-                  <code className="font-(family-name:--y2k-font-mono) text-[11px]">#4b4b4b</code>, window <code className="font-(family-name:--y2k-font-mono) text-[11px]">#ececec</code>, field{" "}
-                  <code className="font-(family-name:--y2k-font-mono) text-[11px]">#ffffff</code>, OS blue <code className="font-(family-name:--y2k-font-mono) text-[11px]">#2765ca</code>, hairlines black
+                  Aqua constants, never toned: ink <Mono>#000000</Mono>, secondary ink{" "}
+                  <Mono>#4b4b4b</Mono>, window <Mono>#ececec</Mono>, field{" "}
+                  <Mono>#ffffff</Mono>, OS blue <Mono>#2765ca</Mono>, hairlines black
                   at 20–40%. Traffic lights stay red/yellow/green in every tone. The full table lives in the Design
                   System&apos;s Colors group.
                 </p>
@@ -1705,7 +1671,7 @@ export function Desktop() {
 
                 <h3 className="mt-1 font-bold"># Don&apos;t</h3>
                 <p>
-                  <code className="font-(family-name:--y2k-font-mono) text-[11px]">/check-y2k</code> fails on any of these: grey cards and zinc/slate surfaces;
+                  <Mono>/check-y2k</Mono> fails on any of these: grey cards and zinc/slate surfaces;
                   the purple-to-blue AI gradient; 8–16px card radii; shadows on non-window elements; thin-line icons;
                   tinted pinstripes or traffic lights; two tones on one screen; a page layout (hero, centred column,
                   three-up feature grid, link-column footer); muted-foreground helper text under every field.
@@ -1773,7 +1739,7 @@ export function Desktop() {
               <p>✓ DESIGN.md · /y2k-ify · /check-y2k · components.json</p>
               <p className="mt-1">
                 <span className="text-white">patina:~ olivia$</span>{" "}
-                <span className="inline-block h-[14px] w-[7px] translate-y-[2px] animate-pulse bg-[#d6ffd6]" aria-hidden />
+                <span className="inline-block h-[14px] w-[8px] translate-y-[2px] animate-pulse bg-[#d6ffd6]" aria-hidden />
               </p>
             </div>
           </DesktopWindow>

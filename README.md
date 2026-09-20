@@ -8,7 +8,7 @@ a Dock — in a millennium tone (hot pink by default; Aqua, Lime, Tangerine, Gra
 switchable). *"The most anti-AI thing in 2026 is 2000's idea of the future."*
 
 It is not a browser extension that restyles a page you're looking at: it changes what
-your coding agent *produces*. `npx patina init` → your agent reads DESIGN.md →
+your coding agent *produces*. `npx @patina/cli init` → your agent reads DESIGN.md →
 `/y2k-ify` rewrites an existing page (both Day 2).
 
 ## Layout
@@ -21,10 +21,11 @@ patina/
 ├── packages/ui/           # Component sources = shadcn registry source (registry.json)
 │   └── src/registry/y2k/  #   button.tsx, window.tsx …
 │   └── src/styles/y2k.css #   tokens → CSS variables, materials, keyframes, data-theme remaps
-├── packages/shaders/      # (Day 1, todo) chrome reflection + translucent plastic, CSS fallbacks
-├── packages/cli/          # (Day 2, todo) npx patina init
+├── packages/shaders/      # chrome reflection + translucent plastic, CSS fallbacks
+├── packages/cli/          # npx @patina/cli init — installs the pack into a project
 ├── examples/before-after/ # (Day 2, todo)
-└── .claude/skills/        # (Day 2, todo) y2k-ify / make-window / chrome-text / check-y2k
+├── scripts/check-y2k.mjs  # the /check-y2k scanner: reads its rules out of DESIGN.md
+└── .claude/skills/        #   check-y2k ✓ · y2k-ify / make-window / chrome-text (Day 2, todo)
 ```
 
 npm workspaces; Node ≥ 20.
@@ -36,6 +37,11 @@ npm install
 npm run dev              # Y2K OS at http://localhost:3000
 npm run design:lint      # npx @google/design.md lint DESIGN.md
 npm run registry:build   # shadcn build → apps/web/public/r/*.json
+npm run check:y2k        # /check-y2k against DESIGN.md (exit 1 on any violation)
+npm pack -w @patina/cli  # build the installer tarball (assets are synced on prepack)
+
+# point the built registry somewhere else (preview, localhost) — canonical when unset
+PATINA_REGISTRY=http://localhost:3000/r npm run registry:build
 ```
 
 ## Consuming the registry (once deployed)

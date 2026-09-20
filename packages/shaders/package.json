@@ -8,6 +8,9 @@
     "./chrome": "./src/chrome-reflection.tsx",
     "./plastic": "./src/translucent-plastic.tsx"
   },
+  "dependencies": {
+    "@patina/ui": "*"
+  },
   "peerDependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

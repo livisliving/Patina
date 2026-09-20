@@ -12,11 +12,11 @@
         {
           "path": "src/styles/y2k.css",
           "type": "registry:style",
-          "target": "styles/y2k.css"
+          "target": "app/y2k.css"
         }
       ],
       "css": {
-        "@import \"./styles/y2k.css\"": {}
+        "@import \"./y2k.css\"": {}
       }
     },
     {

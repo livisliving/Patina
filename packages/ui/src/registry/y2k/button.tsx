@@ -21,7 +21,7 @@ const buttonVariants = cva(
     "border-0 font-(family-name:--y2k-font-ui) font-medium leading-none text-(--y2k-ink) antialiased outline-none",
     "transition-[filter] duration-150",
     // Top shine (Aqua gel cap: upper ~46%, pill-shaped, per HIG/aqua gloss)
-    "before:pointer-events-none before:absolute before:top-[1.5px] before:left-[7%] before:right-[7%] before:z-[2] before:h-[46%] before:rounded-full before:bg-(image:--y2k-gel-shine) before:blur-[0.4px] before:content-['']",
+    "before:pointer-events-none before:absolute before:top-[2px] before:left-[7%] before:right-[7%] before:z-[2] before:h-[46%] before:rounded-full before:bg-(image:--y2k-gel-shine) before:blur-[0.4px] before:content-['']",
     // Bottom glow
     "after:pointer-events-none after:absolute after:bottom-0 after:left-1/2 after:h-[33%] after:w-[calc(100%-8px)] after:-translate-x-1/2 after:rounded-full after:bg-(image:--y2k-gel-glow) after:blur-[1px] after:content-['']",
     "disabled:pointer-events-none disabled:text-(--y2k-ink-disabled) disabled:[text-shadow:none] disabled:before:opacity-40 disabled:after:opacity-40",

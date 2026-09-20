@@ -9,7 +9,8 @@
     "./styles.css": "./src/styles/y2k.css",
     "./button": "./src/registry/y2k/button.tsx",
     "./window": "./src/registry/y2k/window.tsx",
-    "./utils": "./src/lib/utils.ts"
+    "./utils": "./src/lib/utils.ts",
+    "./color": "./src/lib/color.ts"
   },
   "scripts": {
     "build": "shadcn build ./registry.json -o ../../apps/web/public/r"

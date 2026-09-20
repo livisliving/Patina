@@ -13,7 +13,8 @@
     "lint": "npm run lint -w web",
     "design:lint": "design.md lint DESIGN.md",
     "design:export": "design.md export --format css-tailwind DESIGN.md",
-    "registry:build": "npm run build -w @patina/ui"
+    "check:y2k": "node scripts/check-y2k.mjs apps/web packages",
+    "registry:build": "npm run build -w @patina/ui && node scripts/registry-base.mjs"
   },
   "devDependencies": {
     "@google/design.md": "^0.4.0"

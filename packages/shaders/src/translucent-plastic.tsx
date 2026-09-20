@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { parseColor } from "@patina/ui/color"
 
 import { ShaderSurface } from "./shader-surface"
 
@@ -17,26 +18,15 @@ import { ShaderSurface } from "./shader-surface"
 const PINK: [number, number, number] = [0.91, 0.27, 0.6]
 
 /**
- * Parse the computed --y2k-tone to a 0–1 rgb triple; falls back to pink.
- * Browsers hand custom-property colours back in whatever form they please —
- * `rgb(232, 68, 154)` as authored, or a normalised `#e8449a` — so both shapes
- * have to be understood, or the shader silently sticks on the fallback colour.
+ * Read the computed --y2k-tone as a 0–1 rgb triple; falls back to pink. The
+ * browser returns custom properties in whichever syntax it likes, which is why
+ * the parse lives in @patina/ui and is shared with the Design System palette —
+ * miss a syntax here and the shader silently sticks on the fallback colour.
  */
 function readTone(el: HTMLElement | null): [number, number, number] {
   if (!el || typeof window === "undefined") return PINK
-  const raw = getComputedStyle(el).getPropertyValue("--y2k-tone").trim()
-
-  const hex = raw.match(/^#([0-9a-f]{3,8})$/i)
-  if (hex) {
-    let h = hex[1]
-    if (h.length === 3 || h.length === 4) h = h.split("").map((c) => c + c).join("")
-    if (h.length < 6) return PINK
-    return [parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255]
-  }
-
-  const m = raw.match(/\d+(?:\.\d+)?/g)
-  if (m && m.length >= 3) return [Number(m[0]) / 255, Number(m[1]) / 255, Number(m[2]) / 255]
-  return PINK
+  const c = parseColor(getComputedStyle(el).getPropertyValue("--y2k-tone"))
+  return c ? [c.r / 255, c.g / 255, c.b / 255] : PINK
 }
 
 /* uv.y runs 0 at the bottom of the quad to 1 at the top (gl_FragCoord is
@@ -89,7 +79,7 @@ void main() {
 
 export function TranslucentPlastic({ className, style, children, ...props }: React.ComponentProps<"div">) {
   const ref = React.useRef<HTMLDivElement>(null)
-  const [rgb, setRgb] = React.useState<[number, number, number]>([0.91, 0.27, 0.6])
+  const [rgb, setRgb] = React.useState<[number, number, number]>(PINK)
 
   // Re-read the tone on mount and on every tone switch, so the plastic tracks
   // the active tone the way the CSS fallback does.
