@@ -18,9 +18,11 @@ Structure before colour. A page with a hero, a centered column and three
 feature cards is still a page after you paint it pink — fixing that is most of
 the job, and doing it last means redoing the paint.
 
-1. **Structure.** The viewport is a desktop, not a document: a wallpaper, and
-   content in windows that sit on it. Replace the centered `max-w-*` column,
-   the hero and the footer. One `WindowFrame` per thing the page is about.
+1. **Structure.** The viewport is a desktop, not a document: a `Wallpaper`,
+   a `MenuBar` pinned to the top, content in windows that sit on it, and a
+   `Dock` along the foot when the page has places to go. Replace the
+   centered `max-w-*` column, the hero and the footer. One `WindowFrame` per
+   thing the page is about.
    A `<section>` inside a window becomes a `WindowGroup`; a sunken area (a
    list, a preview, a field's background) becomes a `WindowWell`.
 2. **Controls.** Swap the defaults for the pack's components, one for one —
@@ -43,7 +45,8 @@ the job, and doing it last means redoing the paint.
 | `Card` / a bordered panel | `WindowFrame` (standalone) or `WindowGroup` (inside a window) |
 | `Dialog` / `Sheet` / modal | `Window` + `WindowTrigger` + `WindowContent`; a confirm → `WindowAlert` inside it |
 | `AlertDialog` | `WindowAlert` (64px icon, bold message, informative text, button row) |
-| `Button` | `Button` — `variant="white"` normally, `isDefault` for the one default action per window (`pulsing` for the dialog throb); `BevelButton` for a `Choose…` |
+| `Button` | `Button` — `variant="white"` normally, `isDefault` for the one default action per window (`pulsing` for the dialog throb); `BevelButton` for a `Choose…`. shadcn's `variant`/`size` names still compile after install — replace them anyway: they are a bridge |
+| A text link / `variant="link"` | a plain `<a>` in `text-(--y2k-link) underline`, or `Button variant="link"` |
 | `Checkbox` | `Checkbox` (supports `"mixed"`) |
 | `RadioGroup` | `RadioGroup` + `Radio` |
 | `Input` | `TextField`; a search box → `SearchField` |
@@ -61,6 +64,10 @@ the job, and doing it last means redoing the paint.
 | Badge, pill, "New!" | `Marquee` or `VisitorCounter` where it fits; otherwise plain text |
 | Scroll container | `WindowScrollArea` (15px Aqua scrollbars — vertical, and along the foot when content is too wide) |
 | Status line, result count | `WindowStatusBar`, 11px, left-aligned, on the placard stripe |
+| Site header, top nav | `MenuBar`: the product's name as the bold app menu, its sections as menus |
+| Footer, bottom nav | `Dock` (one icon per place), or nothing |
+| Page background, hero backdrop | `Wallpaper` (the tone's swoosh; the project's own photos via `photos`) |
+| lucide / heroicons / feather icon | the pack's icon: `ICONS[lucideToPack.Settings]` from `components/ui/icons` (e.g. `<IconPreferences className="size-8" />`); 32px in toolbars, 16px in lists, 64px in alerts. No match in `lucideToPack` → remove it |
 | `text-muted-foreground` | `text-(--y2k-ink-secondary)` |
 | `bg-card` / `bg-background` | pinstripes (`--y2k-pinstripe`) |
 | Arbitrary accent colour | `var(--y2k-tone)` and its `--y2k-tone-*` gradients |

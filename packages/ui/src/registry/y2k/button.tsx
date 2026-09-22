@@ -18,13 +18,22 @@ import { cn } from "@/lib/utils"
  *            rows, the sides shading in, a short drop onto the metal, the
  *            glyph in the metal's #393939. Disabled, only the glyph greys,
  *            to #9c9c9c; the disc stays.
+ *   link   — not an Aqua control: a text link in OS blue (--y2k-link), for
+ *            what the web needs and shadcn's variant="link".
  * Pressed (held, or aria-pressed for a toggle) lays the original's grey press
  * over the fill and pulls the shadow in. Disabled fades to 55% with #8d8d8d
  * text and no shadow.
  *
  * size="icon" is the Aqua round button: a 20px grey sphere, 11px glyph.
+ *
+ * shadcn's own names are accepted too, so a page written for shadcn's Button
+ * compiles on this one before /y2k-ify has been over it: `default` is the
+ * tone gel; `outline`, `secondary`, `ghost` and `destructive` the white one
+ * (Aqua has one push button; a destructive action is still a white button
+ * with a plain label); `lg` and `default` sizes are the one push-button size,
+ * `xs` the small one, `icon-lg`/`icon-xs` the round buttons.
  */
-const buttonVariants = cva(
+const packVariants = cva(
   [
     "relative inline-flex shrink-0 cursor-default select-none items-center justify-center gap-1.5 whitespace-nowrap",
     "border-0 font-(family-name:--y2k-font-ui) font-normal leading-none text-(--y2k-ink) antialiased outline-none",
@@ -45,6 +54,7 @@ const buttonVariants = cva(
           "[--face:var(--y2k-metal-button)] [--drop:0_0_0_1px_rgba(0,0,0,0.1),0_1px_1px_rgba(0,0,0,0.2),0_3px_3px_rgba(0,0,0,0.3)]",
           "[--rim:inset_1px_0_0_rgba(0,0,0,0.25),inset_-1px_0_0_rgba(0,0,0,0.25),inset_4px_0_4px_-2px_rgba(0,0,0,0.25),inset_-4px_0_4px_-2px_rgba(0,0,0,0.25)]",
         ],
+        link: "",
       },
       size: {
         sm: "h-[17px] min-w-[56px] rounded-full px-3 text-[11px] shadow-[var(--rim),var(--y2k-shadow-button-small)] active:shadow-[var(--rim),var(--y2k-shadow-button-active)]",
@@ -70,6 +80,14 @@ const buttonVariants = cva(
           "disabled:text-[#9c9c9c] disabled:opacity-100 disabled:shadow-[var(--rim),var(--drop)]",
         ],
       },
+      // A link has no body at all, whatever the size.
+      {
+        variant: "link",
+        className: [
+          "h-auto min-w-0 rounded-none bg-none px-0 text-(--y2k-link) underline underline-offset-2 shadow-none",
+          "active:bg-none active:shadow-none disabled:shadow-none",
+        ],
+      },
     ],
     defaultVariants: {
       variant: "white",
@@ -77,6 +95,23 @@ const buttonVariants = cva(
     },
   }
 )
+
+/** shadcn's Button names, mapped onto the pack's. */
+const VARIANT_ALIAS = { default: "tone", outline: "white", secondary: "white", ghost: "white", destructive: "white" } as const
+const SIZE_ALIAS = { default: "md", lg: "md", xs: "sm", "icon-lg": "icon", "icon-xs": "icon-sm" } as const
+
+type PackProps = VariantProps<typeof packVariants>
+type ButtonVariant = NonNullable<PackProps["variant"]> | keyof typeof VARIANT_ALIAS
+type ButtonSize = NonNullable<PackProps["size"]> | keyof typeof SIZE_ALIAS
+
+const packVariant = (v?: ButtonVariant | null) => (v && v in VARIANT_ALIAS ? VARIANT_ALIAS[v as keyof typeof VARIANT_ALIAS] : (v as PackProps["variant"]))
+const packSize = (s?: ButtonSize | null) => (s && s in SIZE_ALIAS ? SIZE_ALIAS[s as keyof typeof SIZE_ALIAS] : (s as PackProps["size"]))
+
+/** The button's classes, for a link or anything else that should look like
+ *  one — shadcn's names welcome. */
+function buttonVariants({ variant, size, className }: { variant?: ButtonVariant | null; size?: ButtonSize | null; className?: string } = {}) {
+  return packVariants({ variant: packVariant(variant), size: packSize(size), className })
+}
 
 function Button({
   className,
@@ -87,8 +122,10 @@ function Button({
   asChild = false,
   children,
   ...props
-}: React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & {
+}: React.ComponentProps<"button"> & {
+    variant?: ButtonVariant | null
+    size?: ButtonSize | null
+  } & {
     /** The window's default action: the tone gel. One per window. */
     isDefault?: boolean
     /** The dialog throb of the default button (off by default, as in the
@@ -97,16 +134,17 @@ function Button({
     asChild?: boolean
   }) {
   const Comp = asChild ? Slot.Root : "button"
-  const resolvedVariant = isDefault ? "tone" : variant
+  const resolvedVariant = isDefault ? "tone" : packVariant(variant)
+  const resolvedSize = packSize(size)
 
   return (
     <Comp
       data-slot="button"
       data-variant={resolvedVariant}
-      data-size={size}
+      data-size={resolvedSize}
       data-default={isDefault || undefined}
       data-pulsing={(isDefault && pulsing) || undefined}
-      className={cn(buttonVariants({ variant: resolvedVariant, size, className }))}
+      className={cn(packVariants({ variant: resolvedVariant, size: resolvedSize, className }))}
       {...props}
     >
       {asChild ? children : <span className="relative z-[1]">{children}</span>}

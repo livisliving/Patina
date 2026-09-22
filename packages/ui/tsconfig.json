@@ -13,6 +13,7 @@
     "baseUrl": ".",
     "paths": {
       "@/lib/utils": ["./src/lib/utils.ts"],
+      "@/components/ui/*": ["./src/registry/y2k/*"],
       "@/*": ["./src/*"]
     }
   },

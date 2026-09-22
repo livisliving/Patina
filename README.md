@@ -9,23 +9,22 @@ switchable). *"The most anti-AI thing in 2026 is 2000's idea of the future."*
 
 It is not a browser extension that restyles a page you're looking at: it changes what
 your coding agent *produces*. `npx @patina/cli init` → your agent reads DESIGN.md →
-`/y2k-ify` rewrites an existing page (both Day 2).
+`/y2k-ify` rewrites an existing page.
 
 ## Layout
 
 ```
 patina/
-├── DESIGN.md              # The product. Google DESIGN.md format; Chrome theme complete,
-│                          # Bubblegum / Aero tokens. Lint: npm run design:lint
+├── DESIGN.md              # The product. Google DESIGN.md format; Aqua in five tones.
+│                          # Lint: npm run design:lint
 ├── apps/web/              # Y2K OS — the demo desktop + registry output (public/r/*.json)
 ├── packages/ui/           # Component sources = shadcn registry source (registry.json)
 │   └── src/registry/y2k/  #   button.tsx, window.tsx …
-│   └── src/styles/y2k.css #   tokens → CSS variables, materials, keyframes, data-theme remaps
+│   └── src/styles/y2k.css #   tokens → CSS variables, materials, keyframes, data-tone remaps
 ├── packages/shaders/      # chrome reflection + translucent plastic, CSS fallbacks
 ├── packages/cli/          # npx @patina/cli init — installs the pack into a project
-├── examples/before-after/ # (Day 2, todo)
 ├── scripts/check-y2k.mjs  # the /check-y2k scanner: reads its rules out of DESIGN.md
-└── .claude/skills/        #   check-y2k ✓ · y2k-ify / make-window / chrome-text (Day 2, todo)
+└── .claude/skills/        #   check-y2k · y2k-ify
 ```
 
 npm workspaces; Node ≥ 20.
@@ -44,11 +43,14 @@ npm pack -w @patina/cli  # build the installer tarball (assets are synced on pre
 PATINA_REGISTRY=http://localhost:3000/r npm run registry:build
 ```
 
-## Consuming the registry (once deployed)
+## Consuming the registry
 
 ```bash
-npx shadcn@latest add https://patina.md/r/window.json
+npx shadcn@latest add https://patina-one.vercel.app/r/window.json
 ```
+
+The built registry points at the Vercel deployment (`PATINA_REGISTRY` at build time);
+`registry.json` itself stays canonical at `https://patina.md/r` for when that domain is live.
 
 `window` pulls `button` and `theme` (the CSS variables) automatically.
 

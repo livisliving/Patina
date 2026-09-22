@@ -390,6 +390,9 @@ components:
   dock-label:
     textColor: "{colors.neutral-bright}"
     typography: "{typography.label-dock}"
+  link:
+    textColor: "{colors.secondary}"
+    typography: "{typography.body-md}"
   # ── Tone mapping: the same button in each tone ──────────────────
   button-default-aqua:
     backgroundColor: "{colors.tone-aqua-gel}"
@@ -512,10 +515,10 @@ colors everything gel. Both are always present.
   status bars a placard stripe (#F1F1F1 / #FFFFFF / #F1F1F1 / #EAEAEA).
   Neutral-bright (#FFFFFF) is the field of an input; neutral-tint (#F8F8F8)
   the status bar. Neutral-variant (#7F7F7F) is dimmed text; #8D8D8D is a
-  disabled label and #4B4B4B secondary text. Neutral-glass (white at 75%) is
-  the Dock shelf.
-- **Secondary — OS blue (#2765CA):** focus rings and links. The one blue
-  Aqua never lets go of, even in a pink tone.
+  disabled label and #4B4B4B secondary text. Neutral-glass (#ECECEC at 55%,
+  pinstriped) is the Dock shelf.
+- **Secondary — OS blue (#2765CA, `--y2k-link`):** links, underlined. The
+  one blue Aqua never lets go of, even in a pink tone.
 - **Tertiary — disabled grey (#8D8D8D):** disabled control labels; the
   control itself fades to 55%.
 - **Traffic lights:** radial-gradient spheres, not flat discs — a bright core,
@@ -584,7 +587,9 @@ is no hero section, no max-width container, no footer.
   in, the clock on the right. After the ★ (About, the tones, the pack's
   windows) come 10.1's Finder menus in its order: the front window's app
   in bold (the Finder when nothing else is in front), File, Edit, View, Go,
-  Window, Help. On a phone only ★, the app and Help stay.
+  Window, Help. On a phone only ★, the app and Help stay. It is the
+  `MenuBar` component: menus are data, with the original's shortcuts shown
+  and bound.
 - **Windows** are 300–520px wide and sized to content. Title bar 26px;
   toolbar (when present) is a strip falling from #FBFBFB to #DEDEDE over a
   #9A9A9A foot, its items 10px apart (a 32px icon over an 11px label), shown
@@ -615,7 +620,9 @@ is no hero section, no max-width container, no footer.
   a 70px translucent shelf (the Dock pinstripe at 55% under a 1px white
   rim), hover magnifies to 2× with a 140px falloff, a
   black triangle marks running apps, minimized windows park to the right of a
-  divider, Trash at the far right behind another.
+  divider, Trash at the far right behind another. It is the `Dock`
+  component. On a phone the shelf scrolls sideways and an edge with more
+  icons past it fades out over 48px — the cue to swipe.
 - **Desktop icons** sit top-right, 48px with a 12px white label.
 - **Responsive:** below 768px, windows become full-width and stack in order;
   the menu bar and Dock stay pinned; dragging is off.
@@ -662,11 +669,11 @@ cards.
   - **Brushed metal** (`--y2k-metal`, `.y2k-metal`) — textured windows.
   All are 1px rows on a 4px period. The **shaders** (chrome reflection,
   translucent plastic) are a separate, animated layer for hero surfaces.
-- **The wallpaper** is Olivia's photo collage for the tone: a 16:9 one on
-  the desktop and a portrait one (1247×2796) below md, both in
-  `/wallpapers/`. The tone-reactive abstract — a deep-to-light diagonal
-  with two blurred white ribbons, Aqua's swoosh recoloured — is the
-  fallback for a tone without one.
+- **The wallpaper** is the `Wallpaper` component. The pack's own is the
+  tone-reactive swoosh: a deep-to-light diagonal of the tone with two
+  blurred white ribbons, Aqua's swoosh recoloured. A project can pass its
+  own photos per tone — a 16:9 one and a portrait one for phones, picked at
+  md; the Patina site uses Olivia's collages.
 - **Toolbar buttons and group boxes** sit *on* the pinstripes with a 1px
   hairline and a 1–2px shadow. No card floats above another card.
 
@@ -715,6 +722,13 @@ size), 68px minimum,
   Disabled buttons fade to 55% with #8D8D8D text — exempt from the contrast
   rule, as disabled controls are. Focus is a 3px ring in the light tone at
   55%.
+- A text link is not a button: 13px OS blue (`--y2k-link`), underlined
+  (`variant="link"` when it must be a Button).
+- shadcn's Button names still compile — `default` is the tone gel;
+  `outline`, `secondary`, `ghost` and `destructive` the white button;
+  `lg` the one push-button size, `xs` the small one — so an existing page
+  builds after install. They are a bridge, not the design: /y2k-ify still
+  decides which one button in a window is the default.
 
 **Window** — the Dialog *is* a window; there is no modal card.
 1. Title bar (26px): the original's 26 rows ending in a 1px #7F7F7F foot,
@@ -814,7 +828,14 @@ tab is the light tone tab gel with **black** ink — the original's white
 label on that light gel fails AA, so the pack departs from it.
 
 **Icons** — 64px glossy objects with a gloss cap and a hairline; fills use
-the tone so they re-color with it.
+the tone so they re-color with it. The pack ships 24 of them (`icons`:
+`IconComputer`, `IconHome`, `IconFolder`, `IconDocument`, `IconMail`,
+`IconChart`, `IconLock`…), drawn for it on a 128px grid and legible from
+16px; the colour parts follow the tone, the materials (paper, glass, metal,
+white plastic) stay neutral, and the status ones keep their own colours —
+Info's OS blue, Warning's yellow, Check's green. `lucideToPack` names the one
+to use for a lucide-react icon; one with no match is removed, not kept as a
+line icon.
 
 **Copy voice** — system voice, short, sentence case: `Save`, `Cancel`,
 `Read Me`, `6 items, 56k available`, `Public Beta`. No

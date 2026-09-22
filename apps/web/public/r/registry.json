@@ -166,6 +166,63 @@
       "files": [
         { "path": "src/registry/y2k/segmented.tsx", "type": "registry:ui", "target": "components/ui/segmented.tsx" }
       ]
+    },
+    {
+      "name": "menu-bar",
+      "type": "registry:ui",
+      "title": "Menu bar",
+      "description": "Aqua's menu bar pinned to the top: 22px of light pinstripe, the logo menu where the Apple menu sits, the front app's name in bold, a clock. Menus are data, with the original's shortcuts bound.",
+      "dependencies": ["radix-ui"],
+      "registryDependencies": ["https://patina-one.vercel.app/r/theme.json", "https://patina-one.vercel.app/r/popup.json"],
+      "files": [
+        {
+          "path": "src/registry/y2k/menu-bar.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/menu-bar.tsx"
+        }
+      ]
+    },
+    {
+      "name": "dock",
+      "type": "registry:ui",
+      "title": "Dock",
+      "description": "The 10.1 Dock: a translucent pinstriped shelf, icons edge to edge that magnify under the cursor, name labels, running triangles, dividers; on a phone it scrolls, its edges fading where there is more.",
+      "registryDependencies": ["https://patina-one.vercel.app/r/theme.json"],
+      "files": [
+        {
+          "path": "src/registry/y2k/dock.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/dock.tsx"
+        }
+      ]
+    },
+    {
+      "name": "wallpaper",
+      "type": "registry:ui",
+      "title": "Wallpaper",
+      "description": "The desktop behind every window: Aqua's swoosh in the current tone, or your own photos per tone (desktop and phone).",
+      "registryDependencies": ["https://patina-one.vercel.app/r/theme.json"],
+      "files": [
+        {
+          "path": "src/registry/y2k/wallpaper.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/wallpaper.tsx"
+        }
+      ]
+    },
+    {
+      "name": "icons",
+      "type": "registry:ui",
+      "title": "Icons",
+      "description": "24 glossy Aqua-style icons drawn for the pack (computer, home, folder, document, mail, chart, lock…), their colour parts in the tone; `lucideToPack` names the one to use for a lucide-react icon.",
+      "registryDependencies": ["https://patina-one.vercel.app/r/theme.json"],
+      "files": [
+        {
+          "path": "src/registry/y2k/icons.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/icons.tsx"
+        }
+      ]
     }
   ]
 }

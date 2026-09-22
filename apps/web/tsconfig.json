@@ -26,6 +26,9 @@
       "@/lib/utils": [
         "../../packages/ui/src/lib/utils.ts"
       ],
+      "@/components/ui/*": [
+        "../../packages/ui/src/registry/y2k/*"
+      ],
       "@/*": [
         "./*"
       ]

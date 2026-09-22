@@ -39,6 +39,10 @@ const COMPONENTS = {
   table: "table.tsx",
   popup: "popup.tsx",
   segmented: "segmented.tsx",
+  "menu-bar": "menu-bar.tsx",
+  dock: "dock.tsx",
+  wallpaper: "wallpaper.tsx",
+  icons: "icons.tsx",
 }
 const ITEMS = ["theme", ...Object.keys(COMPONENTS)]
 
@@ -335,9 +339,8 @@ export async function init({ cwd, registry, components, force, dryRun, yes }) {
   Next:
     node scripts/check-y2k.mjs .     # or: npx @patina/cli init --help
     Ask your coding agent to build a page — it reads DESIGN.md.
-    Pages that used shadcn's Button variants (outline, ghost, lg…) will not
-    type-check until /y2k-ify has been over them: the pack's Button has its
-    own (white, tone, isDefault, sm, icon).
+    Existing pages still build: the pack's Button accepts shadcn's variant
+    and size names. /y2k-ify is what turns them into Aqua.
 `)
 
   if (blocked && !force) console.log(`  ${blocked} file(s) kept as they were. Re-run with --force to replace them.\n`)

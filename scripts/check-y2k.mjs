@@ -214,7 +214,7 @@ const RULES = [
     test(line) {
       const m = line.match(/from\s+["']([^"']*(lucide|heroicons|react-feather|feather-icons)[^"']*)["']/)
       if (!m) return null
-      return { col: m.index + 1, msg: `${m[1]} is a thin-line icon set. Aqua icons are photographic, not hairline strokes.` }
+      return { col: m.index + 1, msg: `${m[1]} is a thin-line icon set. Aqua icons are glossy objects — use the pack's (components/ui/icons: \`ICONS[lucideToPack.<Name>]\`), or none.` }
     },
   },
   {

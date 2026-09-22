@@ -15,6 +15,8 @@
   --y2k-ink: #000000;
   --y2k-ink-secondary: #4b4b4b;
   --y2k-ink-disabled: #8d8d8d;
+  /* Links: the one blue Aqua keeps in every tone (DESIGN.md secondary). */
+  --y2k-link: #2765ca;
   /* Window titles: #2f2f2f lifted by a white 1px; #8a8a8a unfocused. */
   --y2k-title-ink: #2f2f2f;
   --y2k-title-ink-inactive: #8a8a8a;

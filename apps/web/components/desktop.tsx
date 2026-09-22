@@ -44,11 +44,13 @@ import {
   SegmentedControl,
   cn,
   parseColor,
+  Dock,
+  Wallpaper,
+  ICONS,
 } from "@patina/ui"
 
 import { ComputerIcon, DiskIcon, DocIcon, FaceIcon, FolderIcon, HeartIcon, HomeIcon, IPodIcon, LogoIcon, NoteIcon, PillIcon, PrefsIcon, TerminalIcon, TrashIcon } from "./aqua-icons"
 import { ChromeReflection, TranslucentPlastic } from "@patina/shaders"
-import { Dock } from "./dock"
 import { IPod } from "./ipod"
 import { MenuBar, type MenuRow, type MenuSpec } from "./menubar"
 import { TONES, type Tone } from "./tones"
@@ -57,7 +59,11 @@ import { useMarqueeSelect } from "./use-marquee-select"
 import { useMediaQuery } from "./use-media-query"
 import { useResize } from "./use-resize"
 import { Stars } from "./stars"
-import { Wallpaper } from "./wallpaper"
+
+/** Olivia's photo wallpapers, a 16:9 one and a phone one per tone. */
+const WALLPAPERS = Object.fromEntries(
+  TONES.map((t) => [t.id, { desktop: `/wallpapers/${t.id}.webp`, mobile: `/wallpapers/${t.id}-mobile.webp` }])
+)
 
 /* ── Window manager ───────────────────────────────────────────────── */
 
@@ -980,7 +986,7 @@ export function Desktop() {
   const DS_GROUPS = [
     "Buttons", "Variants", "Sizes", "Icon buttons", "States", "Form controls",
     "Checkbox & radio", "Text fields", "Slider & stepper", "Progress", "Tabs",
-    "Tree & table", "Alert", "Marquee & counter", "Materials", "Tone",
+    "Tree & table", "Alert", "Icons", "Marquee & counter", "Materials", "Tone",
     "Colors", "Type",
   ]
   const dsq = dsQuery.trim().toLowerCase()
@@ -1134,7 +1140,7 @@ export function Desktop() {
 
   return (
     <div className="min-h-dvh overflow-x-hidden font-(family-name:--y2k-font-ui) text-(--y2k-ink)">
-      <Wallpaper />
+      <Wallpaper photos={WALLPAPERS} />
       <Stars />
       <MenuBar tone={tone} onToneChange={setTone} onOpen={open} menus={menus} />
 
@@ -1579,6 +1585,22 @@ export function Desktop() {
                   <TabsContent value="appearance">Appearance settings would live here.</TabsContent>
                   <TabsContent value="advanced">Advanced settings would live here.</TabsContent>
                 </Tabs>
+              </WindowGroup>
+              )}
+              {dsMatch("Icons") && (
+              <WindowGroup label="Icons">
+                <div className="grid grid-cols-4 gap-y-3 sm:grid-cols-6">
+                  {(Object.keys(ICONS) as (keyof typeof ICONS)[]).map((name) => {
+                    const Icon = ICONS[name]
+                    return (
+                      <span key={name} className="flex flex-col items-center gap-1 text-[11px]">
+                        <Icon className="size-8" />
+                        {name}
+                      </span>
+                    )
+                  })}
+                </div>
+                <p className="mt-3 text-[11px] text-(--y2k-ink-secondary)">32px, as a toolbar sets them. Colour parts follow the tone; <Mono>lucideToPack</Mono> maps lucide names.</p>
               </WindowGroup>
               )}
               {dsMatch("Marquee & counter") && (
