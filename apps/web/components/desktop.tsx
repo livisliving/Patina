@@ -725,12 +725,13 @@ const TONE_NAMES: string[] = TONE_TOKENS.map((t) => t.token)
 type TokenValues = { fixed: Record<string, string>; byTone: Record<string, Record<string, string>> }
 const NO_TOKENS: TokenValues = { fixed: {}, byTone: {} }
 let tokenValues: TokenValues | null = null
+const tokenReaders = new Set<() => void>()
 
-/** Every token's declared value, read out of the stylesheet the first time
- *  it is asked for and kept: the fixed tokens off <html>, the five tones via a
- *  hidden `data-tone` probe. */
-function readTokens(): TokenValues {
-  if (tokenValues) return tokenValues
+/** Read every token's declared value out of the stylesheet, once: the fixed
+ *  ones off <html>, the five tones through a hidden `data-tone` probe. Touches
+ *  the document, so it is only ever called from an effect. */
+function readTokens() {
+  if (tokenValues) return
   const read = (el: Element, names: readonly string[]) => {
     const cs = getComputedStyle(el)
     return Object.fromEntries(names.map((n) => [n, cs.getPropertyValue(n).trim()]))
@@ -744,10 +745,16 @@ function readTokens(): TokenValues {
     byTone[id] = read(probe, TONE_NAMES)
   }
   probe.remove()
-  return (tokenValues = { fixed: read(document.documentElement, FIXED_NAMES), byTone })
+  tokenValues = { fixed: read(document.documentElement, FIXED_NAMES), byTone }
+  tokenReaders.forEach((listener) => listener())
 }
 
-const noSubscription = () => () => {}
+function subscribeTokens(listener: () => void) {
+  tokenReaders.add(listener)
+  return () => {
+    tokenReaders.delete(listener)
+  }
+}
 
 /**
  * The palette the Design System prints: measured values rather than a
@@ -756,7 +763,10 @@ const noSubscription = () => () => {}
  * until then, and on the server, rows render "—".
  */
 function useTokenValues(enabled: boolean) {
-  return React.useSyncExternalStore(noSubscription, () => (enabled ? readTokens() : NO_TOKENS), () => NO_TOKENS)
+  React.useEffect(() => {
+    if (enabled) readTokens()
+  }, [enabled])
+  return React.useSyncExternalStore(subscribeTokens, () => (enabled && tokenValues ? tokenValues : NO_TOKENS), () => NO_TOKENS)
 }
 
 /** The middle `rgb(...)`/hex stop of a gradient, what a gradient token's
@@ -927,11 +937,6 @@ export function Desktop() {
   const [trashOpen, setTrashOpen] = React.useState(false)
   // Literal token values for the Design System's "Colours" group.
   const { fixed: fixedColors, byTone: toneColors } = useTokenValues(wins.buttons.open)
-  // Which tone the "Colours" group is showing: the active tone, unless another
-  // family's tab was picked since the tone last changed.
-  const [picked, setPicked] = React.useState<{ under: Tone; tab: Tone } | null>(null)
-  const colorTab = picked?.under === tone ? picked.tab : tone
-  const setColorTab = (tab: Tone) => setPicked({ under: tone, tab })
 
   // `kind` / `size` / `modified` feed the column view's inspector pane, the way
   // the 10.2 Finder's third column describes the selected file.
@@ -1833,7 +1838,9 @@ export function Desktop() {
                         data-tone, so the selected segment fills with the gel it
                         documents; the panel below is scoped the same way, which
                         is what makes the swatches resolve to that tone. */}
-                    <Tabs value={colorTab} onValueChange={(v) => setColorTab(v as Tone)}>
+                    {/* The tabs keep their own pick; a new tone starts them
+                        again on that tone's family. */}
+                    <Tabs key={tone} defaultValue={tone}>
                       <TabsList className="flex w-full overflow-x-auto pl-0">
                         {TONES.map((t) => (
                           <TabsTrigger key={t.id} value={t.id} data-tone={t.id} className="flex-1 px-1 whitespace-nowrap sm:px-2">

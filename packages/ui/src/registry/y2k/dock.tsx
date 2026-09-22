@@ -85,10 +85,12 @@ function Dock({ items, className }: { items: DockItem[]; className?: string }) {
 
   const reset = React.useCallback(() => setSizes(items.map(() => BASE)), [items])
 
-  // Apps starting up: their icons bounce until the animation ends.
+  // Apps starting up: their icons bounce until the animation ends. With
+  // reduced motion there is no animation to end, so there is nothing to mark.
   const [bouncing, setBouncing] = React.useState<ReadonlySet<string>>(() => new Set())
   const launch = (item: DockItem) => {
-    if (!item.running && !item.minimized) setBouncing((b) => new Set(b).add(item.id))
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    if (!still && !item.running && !item.minimized) setBouncing((b) => new Set(b).add(item.id))
     item.onClick?.()
   }
   const landed = (id: string) =>
@@ -206,6 +208,9 @@ function Dock({ items, className }: { items: DockItem[]; className?: string }) {
  *  once the caller has changed the page. */
 type GenieTarget = Element | DOMRect | string
 
+/** Marks the copies, so hiding the window being restored leaves them alone. */
+const COPY = "y2k-genie-copy"
+
 const frame = () => new Promise<number>((resolve) => requestAnimationFrame(resolve))
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
 const smooth = (v: number) => v * v * (3 - 2 * v)
@@ -232,7 +237,9 @@ async function genie(windowTarget: GenieTarget, tileTarget: GenieTarget, { rever
 
   const hider = reverse && typeof windowTarget === "string" ? document.createElement("style") : null
   if (hider) {
-    hider.textContent = `${windowTarget} { visibility: hidden !important; }`
+    // Everything the selector matches EXCEPT the copies below, which carry
+    // the window's own attributes and would otherwise be hidden with it.
+    hider.textContent = `${windowTarget}:not(.${COPY}) { visibility: hidden !important; }`
     document.head.append(hider)
   }
   const layer = document.createElement("div")
@@ -251,6 +258,7 @@ async function genie(windowTarget: GenieTarget, tileTarget: GenieTarget, { rever
       if (reverse) band.style.visibility = "hidden"
       const c = source.cloneNode(true) as HTMLElement
       c.removeAttribute("id")
+      c.classList.add(COPY)
       Object.assign(c.style, {
         position: "absolute", left: "0", top: `${-i * bandH}px`, right: "auto", bottom: "auto",
         width: `${rect.width}px`, height: `${rect.height}px`, margin: "0",
