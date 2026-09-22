@@ -1,5 +1,6 @@
-# The demo desktop and the component registry on GitHub Pages:
-# https://livisliving.github.io/patina/ (registry at …/patina/r/<item>.json).
+# The demo desktop and the component registry on GitHub Pages (registry at
+# <site>/r/<item>.json). Where the site lives comes from GitHub itself:
+# /Patina under the account's Pages domain, or the root of a custom domain.
 # Needs Settings › Pages › Source set to "GitHub Actions" once.
 name: GitHub Pages
 
@@ -27,13 +28,22 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - id: pages
+        uses: actions/configure-pages@v5
+      # Pages answers https once it has a certificate; ask for it by name.
+      - id: site
+        run: |
+          url='${{ steps.pages.outputs.base_url }}'
+          echo "url=${url/#http:/https:}" >> "$GITHUB_OUTPUT"
       # The registry's items point at each other by URL: point them here.
       - run: npm run registry:build
         env:
-          PATINA_REGISTRY: https://livisliving.github.io/patina/r
+          PATINA_REGISTRY: ${{ steps.site.outputs.url }}/r
       - run: npm run build
         env:
           GITHUB_PAGES: "true"
+          PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          PAGES_BASE_URL: ${{ steps.site.outputs.url }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: apps/web/out

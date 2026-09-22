@@ -1,11 +1,13 @@
 import type { NextConfig } from "next";
 
-// GITHUB_PAGES=true builds the static site for https://livisliving.github.io/patina/
-// (see .github/workflows/pages.yml): plain files under /patina, no server.
+// GITHUB_PAGES=true builds the static site for GitHub Pages: plain files, no
+// server. The workflow (.github/workflows/pages.yml) asks GitHub where the
+// site lives and passes it in: PAGES_BASE_PATH ("/Patina", or "" on a custom
+// domain) and PAGES_BASE_URL (the address the registry is served from).
 const pages = process.env.GITHUB_PAGES === "true";
-const basePath = pages ? "/patina" : "";
+const basePath = pages ? (process.env.PAGES_BASE_PATH ?? "") : "";
 // Where this copy of the site serves the component registry (public/r).
-const registry = pages ? "https://livisliving.github.io/patina/r" : "https://patina-one.vercel.app/r";
+const registry = pages ? `${process.env.PAGES_BASE_URL ?? ""}/r` : "https://patina-one.vercel.app/r";
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@patina/ui", "@patina/shaders"],

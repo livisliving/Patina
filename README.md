@@ -44,9 +44,10 @@ npm pack -w @patina/cli  # build the installer tarball (assets are synced on pre
 # point the built registry somewhere else (preview, localhost) — canonical when unset
 PATINA_REGISTRY=http://localhost:3000/r npm run registry:build
 
-# the static copy for GitHub Pages (apps/web/out, served under /patina);
-# .github/workflows/pages.yml does this on every push to main
-GITHUB_PAGES=true npm run build
+# the static copy for GitHub Pages (apps/web/out); the workflow in
+# .github/workflows/pages.yml does this on every push to main, with the path
+# and address GitHub gives it
+GITHUB_PAGES=true PAGES_BASE_PATH=/Patina PAGES_BASE_URL=https://example.com/Patina npm run build
 ```
 
 ## Consuming the registry
