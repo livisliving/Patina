@@ -89,18 +89,29 @@ function MenuBarTitle({ className, ...props }: React.ComponentProps<typeof Menu.
   )
 }
 
-/** The clock at the right: weekday, date and time, a minute at a time. */
+/** The clock at the right: weekday, date and time from the visitor's own
+ *  clock, in their time zone and their locale's format. It turns over on the
+ *  minute, and checks again when the tab comes back or the machine wakes. */
 function MenuBarClock({ locale }: { locale?: string }) {
   const [time, setTime] = React.useState<string | null>(null)
   React.useEffect(() => {
+    let timer = 0
     const tick = () => {
       const d = new Date()
       const day = d.toLocaleDateString(locale, { weekday: "short", month: "short", day: "numeric" }).replace(",", "")
       setTime(`${day} ${d.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" })}`)
+      window.clearTimeout(timer)
+      timer = window.setTimeout(tick, 60_000 - (d.getTime() % 60_000))
     }
+    const onShow = () => document.visibilityState === "visible" && tick()
     tick()
-    const id = window.setInterval(tick, 10_000)
-    return () => window.clearInterval(id)
+    document.addEventListener("visibilitychange", onShow)
+    window.addEventListener("focus", tick)
+    return () => {
+      window.clearTimeout(timer)
+      document.removeEventListener("visibilitychange", onShow)
+      window.removeEventListener("focus", tick)
+    }
   }, [locale])
   return <span suppressHydrationWarning>{time ?? ""}</span>
 }

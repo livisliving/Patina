@@ -50,5 +50,5 @@ export function MenuBar({ tone, onToneChange, onOpen, menus }: MenuBarProps) {
       </>
     ),
   }
-  return <PackMenuBar logo={star} menus={menus} locale="en-GB" />
+  return <PackMenuBar logo={star} menus={menus} />
 }

@@ -67,7 +67,7 @@ const WALLPAPERS = Object.fromEntries(
 
 /* ── Window manager ───────────────────────────────────────────────── */
 
-type WinId = "about" | "readme" | "finder" | "buttons" | "tone" | "window" | "design" | "changelog" | "terminal" | "ipod"
+type WinId = "about" | "readme" | "help" | "finder" | "buttons" | "tone" | "window" | "design" | "changelog" | "terminal" | "ipod"
 type WinState = Record<WinId, { open: boolean; z: number; minimized: boolean; zoomed?: boolean }>
 
 /** Each window's facts: the app it belongs to (the menu bar's bold name
@@ -80,6 +80,7 @@ const WINDOWS: Record<WinId, { app: string; title: string; icon: React.ReactNode
   finder: { app: "Finder", title: "Computer", icon: <FaceIcon /> },
   about: { app: "Finder", title: "About Patina", icon: <LogoIcon />, open: true, closeOnly: true },
   readme: { app: "TextEdit", title: "Read Me", icon: <NoteIcon /> },
+  help: { app: "Help Viewer", title: "Patina Help", icon: <ICONS.info /> },
   buttons: { app: "Design System", title: "Design System", icon: <PillIcon /> },
   tone: { app: "Tone Preferences", title: "Tone", icon: <PrefsIcon /> },
   window: { app: "Design System", title: "Window", icon: <PillIcon /> },
@@ -507,13 +508,14 @@ function SaveDialog({
 const LOGIN_STAMP = "Sat Sep 20 09:41"
 
 const PROMPT = "patina:~ olivia$ "
+const INIT = "npx @patina/cli init"
 const INSTALL = ["Installing the Y2K pack…", "✓ DESIGN.md · /y2k-ify · /check-y2k · components.json"]
 
 /** The Terminal window's shell: a handful of commands over the Finder's own
  *  files. Keystrokes go to a hidden input; the line is drawn as text with the
  *  block cursor at the caret (solid while typing, hollow when unfocused). */
 function TerminalSession({ files, onOpen }: { files: FinderItem[]; onOpen: (file: FinderItem) => void }) {
-  const [lines, setLines] = React.useState(() => [`Last login: ${LOGIN_STAMP} on ttys000`, `${PROMPT}npx patina init`, ...INSTALL])
+  const [lines, setLines] = React.useState(() => [`Last login: ${LOGIN_STAMP} on ttys000`, `${PROMPT}${INIT}`, ...INSTALL])
   const [input, setInput] = React.useState("")
   const [caret, setCaret] = React.useState(0)
   const [focused, setFocused] = React.useState(false)
@@ -541,12 +543,12 @@ function TerminalSession({ files, onOpen }: { files: FinderItem[]; onOpen: (file
     const bare = (s: string) => s.toLowerCase().replace(/["'\s]/g, "")
     let out: string[] = []
     if (name === "clear") return setLines([])
-    if (line === "npx patina init") out = INSTALL
+    if (line === INIT) out = INSTALL
     else if (name === "help")
       out = [
-        "ls              list Patina HD",
-        "open <file>     open a file, e.g. open DESIGN.md",
-        "npx patina init install the Y2K pack",
+        "ls                    list Patina HD",
+        "open <file>           open a file, e.g. open DESIGN.md",
+        `${INIT}  install the Y2K pack`,
         "echo · pwd · whoami · clear",
       ]
     else if (name === "ls") out = [files.map((f) => f.label).join("  ")]
@@ -704,7 +706,7 @@ const TYPE_SCALE = [
 const TYPE_FACES = [
   { token: "--y2k-font-ui", role: "UI", sample: "Lucida Grande 13" },
   { token: "--y2k-font-wordmark", role: "Wordmark", sample: "Patina" },
-  { token: "--y2k-font-mono", role: "Mono", sample: "npx patina init" },
+  { token: "--y2k-font-mono", role: "Mono", sample: "npx @patina/cli init" },
 ] as const
 
 const TONE_IDS = TONES.map((t) => t.id)
@@ -1135,7 +1137,7 @@ export function Desktop() {
         ...ids.map((id) => ({ label: titleOf(id), mark: wins[id].minimized ? "◆" : id === frontId ? "✓" : undefined, onSelect: openWin(id) })),
       ],
     },
-    { label: "Help", items: [{ label: "Patina Help", shortcut: "⌘?", onSelect: openWin("readme") }] },
+    { label: "Help", items: [{ label: "Patina Help", shortcut: "⌘?", onSelect: openWin("help") }] },
   ]
 
   return (
@@ -1347,11 +1349,16 @@ export function Desktop() {
               </h1>
               <p className="text-[11px]">Public Beta</p>
               <dl className="mt-2 grid grid-cols-[auto_auto] gap-x-2 text-[11px]">
-                <dt className="text-right">Taste:</dt><dd className="text-left">Aqua × millennium tones</dd>
+                <dt className="text-right">Taste:</dt><dd className="text-left">Aqua × millennium</dd>
                 <dt className="text-right">Tone:</dt><dd className="text-left">{currentTone.label}</dd>
                 <dt className="text-right">Version:</dt><dd className="text-left">1.0 (Public Beta)</dd>
               </dl>
-              <p className="mt-2 text-[11px]">Built by Olivia Forster</p>
+              <p className="mt-2 text-[11px]">
+                Built by{" "}
+                <a href="https://oliviazuo.com" target="_blank" rel="noopener noreferrer" className="text-(--y2k-link) underline underline-offset-2">
+                  Olivia Forster
+                </a>
+              </p>
             </WindowBody>
           </DesktopWindow>
         )}
@@ -1386,31 +1393,32 @@ export function Desktop() {
                 )}
                 style={{ fontFamily: FONT_STACK[font] ?? font, fontSize: `${fontSize}px` }}
               >
-              <h2 className="text-[13px] font-bold">Patina — Read Me</h2>
+              <h2 className="text-[13px] font-bold">Read Me</h2>
               <p>
-                <strong>Patina</strong> is a platform of <strong>taste packs for AI coding agents</strong>. A pack doesn&apos;t
-                restyle a site you&apos;re looking at — it changes what your coding agent <em>produces</em>. Install one into a
-                project and anything Claude Code, Cursor or Codex builds there comes out with real taste, not Inter on a grey
-                card. This desktop is <strong>Y2K</strong> — pack #1, Aqua × millennium tones.
+                Patina makes taste packs for AI coding agents. A pack isn&apos;t a browser extension and doesn&apos;t touch
+                sites you visit. It changes what your agent builds: install one in a project and whatever Claude Code,
+                Cursor or Codex makes there comes out with some taste, instead of Inter on a grey card. This desktop is
+                built with <strong>Y2K</strong>, the first pack: Aqua in millennium colours.
               </p>
               <ol className="flex list-decimal flex-col gap-2 pl-5">
                 <li>
-                  <strong>Install a pack into your project</strong>
-                  <Mono className="y2k-field mt-1 block px-[6px] py-1">
-                    npx patina init
+                  Install the pack in your project:
+                  <Mono className="y2k-field my-1 block px-[6px] py-1">
+                    npx @patina/cli init
                   </Mono>
-                  Copies <Mono>DESIGN.md</Mono>, the <Mono>/y2k-ify</Mono> and{" "}
-                  <Mono>/check-y2k</Mono> skills, and points <Mono>components.json</Mono> at this registry.
+                  That adds <Mono>DESIGN.md</Mono>, the pack&apos;s components and the <Mono>/y2k-ify</Mono> and{" "}
+                  <Mono>/check-y2k</Mono> skills.
                 </li>
                 <li>
-                  <strong>Ask your agent for anything.</strong> &ldquo;Make a settings page.&rdquo; It reads DESIGN.md and builds it
-                  Aqua-style in your tone.
+                  Ask your agent for whatever you need, say &ldquo;make a settings page&rdquo;. It reads DESIGN.md and
+                  builds the page in Aqua, in your tone.
                 </li>
                 <li>
-                  <strong>Already have a page?</strong> Run <Mono>/y2k-ify</Mono> — the agent screenshots it and
-                  rewrites it with the pack&apos;s components. <Mono>/check-y2k</Mono> flags any AI default that creeps back.
+                  For a page you already have, run <Mono>/y2k-ify</Mono> and the agent rebuilds it with the pack&apos;s
+                  components. <Mono>/check-y2k</Mono> catches AI defaults that creep back in.
                 </li>
               </ol>
+              <p>More in Help › Patina Help.</p>
               </div>
             </WindowScrollArea>
             <WindowFooter className="pt-3">
@@ -1419,6 +1427,94 @@ export function Desktop() {
               </SaveDialog>
               <Button isDefault onClick={() => close("readme")}>OK</Button>
             </WindowFooter>
+          </DesktopWindow>
+        )}
+
+        {wins.help.open && !wins.help.minimized && (
+          <DesktopWindow
+            {...winProps("help")}
+            initial={{ x: 240, y: 72 }}
+            className="md:h-[460px] md:w-[520px]"
+          >
+            <WindowScrollArea className="bg-white shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)]">
+              <div className="flex flex-col gap-3 px-6 py-5 text-[12px] leading-[1.6]">
+                <h2 className="flex items-center gap-2 text-[13px] font-bold">
+                  <ICONS.info className="size-8" />
+                  Patina Help
+                </h2>
+                <p>
+                  Patina is a set of taste packs for AI coding agents. Install a pack in a project and whatever Claude
+                  Code, Cursor or Codex builds there follows the pack&apos;s style, instead of the usual Inter on a grey
+                  card. Y2K is the first pack: Mac OS X Aqua in five millennium colours. This desktop is built with it.
+                </p>
+
+                <h3 className="mt-1 font-bold">Install</h3>
+                <p>Run this in a React project that uses Tailwind (a new create-next-app is fine):</p>
+                <Mono className="y2k-field block px-[6px] py-1">npx @patina/cli init</Mono>
+                <p>
+                  It puts <Mono>DESIGN.md</Mono> at the root of the project, the pack&apos;s components in{" "}
+                  <Mono>components/ui</Mono>, the <Mono>/y2k-ify</Mono> and <Mono>/check-y2k</Mono> skills in{" "}
+                  <Mono>.claude/skills</Mono>, and a note in <Mono>CLAUDE.md</Mono> and <Mono>AGENTS.md</Mono> that
+                  tells your agent to read DESIGN.md before it builds any UI. Files you already have are left alone
+                  unless you add <Mono className="whitespace-nowrap">--force</Mono>.
+                </p>
+                <p>
+                  Lucida Grande belongs to Apple, so it isn&apos;t in the pack. Macs already have it. Everywhere else the
+                  pack falls back to Lato, which you add from Google Fonts.
+                </p>
+                <p>If you only want one component, shadcn can fetch it on its own:</p>
+                <Mono className="y2k-field block px-[6px] py-1 break-all">
+                  npx shadcn@latest add https://patina-one.vercel.app/r/window.json
+                </Mono>
+
+                <h3 className="mt-1 font-bold">Build something</h3>
+                <p>
+                  Ask your agent the way you normally would, for example &ldquo;make a settings page&rdquo;. It reads
+                  DESIGN.md first and builds the page from the pack&apos;s windows, buttons and controls.
+                </p>
+
+                <h3 className="mt-1 font-bold">Restyle a page you already have</h3>
+                <p>
+                  Run <Mono>/y2k-ify</Mono> in your agent. It rebuilds the page with the pack&apos;s components and
+                  keeps what the page does (same routes, same data), then runs <Mono>/check-y2k</Mono> on what it
+                  changed. Your other pages keep building meanwhile, because the pack&apos;s Button accepts shadcn&apos;s
+                  variant and size names.
+                </p>
+
+                <h3 className="mt-1 font-bold">Check before you ship</h3>
+                <p>
+                  <Mono>/check-y2k</Mono>, or <Mono className="whitespace-nowrap">node scripts/check-y2k.mjs .</Mono> in a terminal, reads the rules
+                  out of DESIGN.md and lists every place the page slips back to the defaults: grey cards, the
+                  purple-to-blue gradient, thin-line icons. It exits with an error when it finds one, so it can run in CI.
+                </p>
+
+                <h3 className="mt-1 font-bold">Change the tone</h3>
+                <p>
+                  Pink is the default. Aqua, Lime, Tangerine and Grape change the gel, the selection colour and the
+                  wallpaper. In your project, set it on the page: <Mono>&lt;html data-tone=&quot;aqua&quot;&gt;</Mono>.
+                  Here, choose one from the ★ menu or open Tone Preferences.
+                </p>
+
+                <h3 className="mt-1 font-bold">Using this desktop</h3>
+                <p>
+                  Double-click an icon to open it and drag a window by its title bar. The three lights at the top left
+                  close, minimize and zoom. Everything else is in the Dock. The Design System app shows the pack&apos;s
+                  components, colours and type, and{" "}
+                  <button type="button" onClick={openWin("design")} className="cursor-pointer text-(--y2k-link) underline underline-offset-2">
+                    DESIGN.md
+                  </button>{" "}
+                  has the rules in full.
+                </p>
+
+                <h3 className="mt-1 font-bold">Source</h3>
+                <p>
+                  The code is on GitHub:{" "}
+                  <a href="https://github.com/livisliving/patina" target="_blank" rel="noopener noreferrer" className="text-(--y2k-link) underline underline-offset-2">
+                    github.com/livisliving/patina
+                  </a>
+                </p>
+              </div>
+            </WindowScrollArea>
           </DesktopWindow>
         )}
 
@@ -1451,7 +1547,7 @@ export function Desktop() {
                 <div className="flex flex-wrap items-center gap-3">
                   <Button variant="white">White gel</Button>
                   <Button variant="tone">Tone gel</Button>
-                  <span className="text-[11px] text-(--y2k-ink-secondary)">Two materials: the white push-button fill and the gel in the active tone.</span>
+                  <span className="text-[11px] text-(--y2k-ink-secondary)">White gel, and gel in the current tone.</span>
                 </div>
               </WindowGroup>
               )}
@@ -1581,7 +1677,7 @@ export function Desktop() {
                     <TabsTrigger value="appearance">Appearance</TabsTrigger>
                     <TabsTrigger value="advanced">Advanced</TabsTrigger>
                   </TabsList>
-                  <TabsContent value="general">Folder tabs on a pinstriped panel — the selected tab takes the light tone gel, with black ink.</TabsContent>
+                  <TabsContent value="general">Folder tabs on a pinstriped panel. The selected tab is light tone gel with black text.</TabsContent>
                   <TabsContent value="appearance">Appearance settings would live here.</TabsContent>
                   <TabsContent value="advanced">Advanced settings would live here.</TabsContent>
                 </Tabs>
@@ -1600,7 +1696,7 @@ export function Desktop() {
                     )
                   })}
                 </div>
-                <p className="mt-3 text-[11px] text-(--y2k-ink-secondary)">32px, as a toolbar sets them. Colour parts follow the tone; <Mono>lucideToPack</Mono> maps lucide names.</p>
+                <p className="mt-3 text-[11px] text-(--y2k-ink-secondary)">At 32px, the size a toolbar uses. The coloured parts change with the tone, and <Mono>lucideToPack</Mono> maps lucide icon names to these.</p>
               </WindowGroup>
               )}
               {dsMatch("Marquee & counter") && (
@@ -1662,7 +1758,7 @@ export function Desktop() {
               <WindowGroup label="Colors">
                 <div className="flex flex-col gap-4">
                   <section className="flex flex-col gap-2">
-                    <p className="text-[11px] font-bold">Neutrals &amp; surfaces — fixed, never toned</p>
+                    <p className="text-[11px] font-bold">Neutrals and surfaces, the same in every tone</p>
                     <div className="flex flex-col gap-2">
                       {FIXED_TOKENS.map((t) => (
                         <ColorRow key={t.token} token={t.token} role={t.role} value={fixedColors[t.token]} />
@@ -1671,7 +1767,7 @@ export function Desktop() {
                   </section>
 
                   <section className="flex flex-col gap-2">
-                    <p className="text-[11px] font-bold">Traffic lights — the measured gem rows; the value is the middle row</p>
+                    <p className="text-[11px] font-bold">Traffic lights (each value is the middle row of its gradient)</p>
                     <div className="flex flex-col gap-2">
                       {LIGHT_TOKENS.map((t) => (
                         <ColorRow key={t.token} token={t.token} role={`${t.role} (gradient)`} value={fixedColors[t.token]} />
@@ -1680,7 +1776,7 @@ export function Desktop() {
                   </section>
 
                   <section className="flex flex-col gap-2">
-                    <p className="text-[11px] font-bold">Tone families — live, switched by <Mono>data-tone</Mono> on &lt;html&gt;</p>
+                    <p className="text-[11px] font-bold">Tone colours, set by <Mono>data-tone</Mono> on &lt;html&gt;</p>
                     {/* One tab per tone instead of five stacked lists — the
                         section was far too long. Each trigger carries its own
                         data-tone, so the selected segment fills with the gel it
@@ -1703,16 +1799,16 @@ export function Desktop() {
                       ))}
                     </Tabs>
                     <p className="text-[11px] text-(--y2k-ink-secondary)">
-                      Everything else in a tone comes from the base: every gel row is the measured aqua row with its
-                      lightness and chroma carried into the tone&apos;s hue; the glow is the base at 50%, the focus ring
-                      the light tone at 55%.
+                      The rest of each tone is worked out from its base. Every gel row keeps the lightness and chroma
+                      of the matching row in the original Aqua gel and takes the tone&apos;s hue. The glow is the base
+                      at 50% and the focus ring is the light tone at 55%.
                     </p>
                   </section>
 
                   <section className="flex flex-col gap-2">
-                    <p className="text-[11px] font-bold">Listed, not swatched</p>
+                    <p className="text-[11px] font-bold">No swatch</p>
                     <p className="text-[11px] text-(--y2k-ink-secondary)">
-                      Gradient and texture tokens carry no single colour:{" "}
+                      These are gradients and textures, so there&apos;s no single colour to show:{" "}
                       <Mono>--y2k-gel-white</Mono>,{" "}
                       <Mono>--y2k-tone-button</Mono>,{" "}
                       <Mono>--y2k-listheader</Mono>,{" "}
@@ -1747,7 +1843,7 @@ export function Desktop() {
                   </section>
 
                   <section className="flex flex-col gap-2">
-                    <p className="text-[11px] font-bold">Scale — native Aqua sizes, never snapped to the 4px grid</p>
+                    <p className="text-[11px] font-bold">Sizes, Aqua&apos;s own and not snapped to the 4px grid</p>
                     {TYPE_SCALE.map((s) => (
                       <div key={s.px} className="flex min-w-0 items-baseline gap-2">
                         <span
@@ -1762,7 +1858,7 @@ export function Desktop() {
                       </div>
                     ))}
                     <p className="text-[11px] text-(--y2k-ink-secondary)">
-                      Line height 1.45–1.6 for text, 1.0 for chrome. Sentence case everywhere.
+                      Line height is 1.45 to 1.6 for text and 1.0 for chrome. Sentence case everywhere.
                     </p>
                   </section>
                 </div>
@@ -1791,8 +1887,8 @@ export function Desktop() {
               <div className="flex flex-col gap-1">
                 <p className="text-[13px] font-bold">This is a Window.</p>
                 <p className="text-[12px] text-(--y2k-ink-secondary)">
-                  A draggable Aqua window: pinstriped title bar, three traffic lights, a gel default
-                  button. Your coding agent gets it from <Mono>Window</Mono> in the registry.
+                  Drag it by the title bar. It has the pinstripes, the three traffic lights and a gel
+                  default button, and your agent gets the same window from <Mono>Window</Mono> in the registry.
                 </p>
               </div>
             </WindowBody>
@@ -1817,89 +1913,93 @@ export function Desktop() {
               <div className="flex flex-col gap-3 px-6 py-5 font-(family-name:--y2k-font-ui) text-[12px] leading-[1.6]">
                 <h2 className="text-[13px] font-bold">DESIGN.md</h2>
                 <p className="text-(--y2k-ink-secondary)">
-                  The taste spec your coding agent reads. <Mono>npx patina init</Mono> drops the full
-                  file into your project, along with the <Mono>/y2k-ify</Mono> and{" "}
-                  <Mono>/check-y2k</Mono> skills. This window is the same spec, abridged.
+                  This is the spec your coding agent reads. <Mono>npx @patina/cli init</Mono> puts the full file in
+                  your project, with the <Mono>/y2k-ify</Mono> and <Mono>/check-y2k</Mono> skills. What follows is a
+                  shorter version.
                 </p>
 
                 <h3 className="mt-1 font-bold"># Two layers</h3>
                 <p>
-                  <strong>Structure</strong> is Mac OS X Aqua (2000–2005) and never changes: pinstriped windows, three
-                  glossy traffic lights top-left, a centred bold title, soft drop shadows, gel controls, a translucent
-                  Dock. <strong>Tone</strong> is the colour of everything gel — buttons, selection, the scroll thumb,
-                  the wallpaper. Five families, one active at a time via <Mono>data-tone</Mono> on{" "}
-                  <Mono>&lt;html&gt;</Mono>. Never mix two tones on a screen; never put a tone on text.
+                  <strong>Structure</strong> is Mac OS X Aqua from 2000 to 2005, and it is the same in every tone:
+                  pinstriped windows, three glossy traffic lights at the top left, a centred bold title, soft drop
+                  shadows, gel controls and a translucent Dock. <strong>Tone</strong> is the colour of everything made
+                  of gel: buttons, the selection, the scroll thumb and the wallpaper. There are five, and{" "}
+                  <Mono>data-tone</Mono> on <Mono>&lt;html&gt;</Mono> picks one. Don&apos;t mix two tones on one
+                  screen, and don&apos;t colour text with a tone.
                 </p>
 
                 <h3 className="mt-1 font-bold"># Grid</h3>
                 <p>
-                  Every non-text element snaps to a <strong>4px</strong> grid — spacing, sizes, radii, offsets. Three
-                  exceptions: 1px hairlines; 2–3px gel highlights; and the Aqua 10.0 metrics (menu bar 22px, title bar
-                  26px, traffic lights 13px, scrollbar 15px, push button 20px, check box cell 15 × 16px, pop-up gem 21px…), each named by a
-                  token in DESIGN.md. <strong>Font sizes are never snapped</strong> — the native Aqua sizes stay as
-                  Apple drew them.
+                  Everything except text snaps to a <strong>4px</strong> grid: spacing, sizes, radii and offsets. There
+                  are three exceptions: 1px hairlines, the 2 or 3px highlights on gel, and Aqua 10.0&apos;s own
+                  measurements (menu bar 22px, title bar 26px, traffic lights 13px, scroll bar 15px, push button 20px,
+                  check box cell 15 × 16px, pop-up gem 21px and a few more), each with a named token in DESIGN.md.{" "}
+                  <strong>Font sizes don&apos;t snap.</strong> They stay at the sizes Apple used.
                 </p>
 
                 <h3 className="mt-1 font-bold"># Colours</h3>
                 <p>
-                  Tone bases: Y2K pink <Mono>#e8449a</Mono>, aqua <Mono>#4d83d2</Mono>,
-                  lime <Mono>#7fc31c</Mono>, tangerine <Mono>#e8891a</Mono>, grape{" "}
-                  <Mono>#7a3aba</Mono>. Every gel, tab, control and progress gradient is the original&apos;s own rows,
-                  one colour per pixel, read off the rendered 10.0 controls: aqua takes them as they are, the other
-                  tones keep each row&apos;s lightness and chroma in their own hue. Alternate list rows, selected text
-                  and the focus ring (the light tone at 55%) follow the tone too.
+                  The base colours are Y2K pink <Mono>#e8449a</Mono>, aqua <Mono>#4d83d2</Mono>,
+                  lime <Mono>#7fc31c</Mono>, tangerine <Mono>#e8891a</Mono> and grape{" "}
+                  <Mono>#7a3aba</Mono>. The gradients on gel, tabs, controls and progress bars were read off rendered
+                  10.0 controls, one pixel row at a time. Aqua uses those rows as they are; the other tones keep each
+                  row&apos;s lightness and chroma and swap in their own hue. Alternate list rows, selected text and the
+                  focus ring (the light tone at 55%) change with the tone as well.
                 </p>
                 <p>
-                  Aqua constants, never toned: ink <Mono>#000000</Mono>, secondary ink{" "}
+                  Some colours never change: ink <Mono>#000000</Mono>, secondary ink{" "}
                   <Mono>#4b4b4b</Mono>, disabled <Mono>#8d8d8d</Mono>, window pinstripe{" "}
-                  <Mono>#dedede</Mono>, field <Mono>#ffffff</Mono>, window rim <Mono>#7f7f7f</Mono>. Traffic lights stay red/yellow/green in every tone. The full table lives in the Design
-                  System&apos;s Colors group.
+                  <Mono>#dedede</Mono>, field <Mono>#ffffff</Mono> and window rim <Mono>#7f7f7f</Mono>. The traffic
+                  lights are red, yellow and green in every tone. The full table is in the Colors group of the Design
+                  System app.
                 </p>
 
                 <h3 className="mt-1 font-bold"># Type</h3>
                 <p>
-                  Lucida Grande first, open-source Lato as the fallback for non-Mac, then the system sans. EB Garamond
-                  for the wordmark only, at 44px, as gel text. Monaco for code, at 11px. Aqua&rsquo;s whole scale is three
-                  sizes: 11px small (status bars, placards, segments, toolbar labels), 12px legend (group-box captions,
-                  bold) and list rows, 13px system (everything else; window titles and headings in bold) — and one 14px bold, the
-                  Dock&rsquo;s name label. Sentence case everywhere. <strong>No Inter, Geist, Roboto, Helvetica or system-ui</strong> —
-                  their neutrality is the look this pack exists to kill.
+                  Lucida Grande comes first, then open-source Lato on machines that aren&apos;t Macs, then the system
+                  sans. EB Garamond is only for the wordmark, at 44px, as gel text. Code is Monaco at 11px. Aqua uses
+                  three sizes: 11px for small text (status bars, placards, segments, toolbar labels), 12px for group
+                  box captions (bold) and list rows, and 13px for everything else, with window titles and headings in
+                  bold. The one extra is the Dock&rsquo;s name label, 14px bold. Use sentence case everywhere.{" "}
+                  <strong>No Inter, Geist, Roboto, Helvetica or system-ui.</strong> That neutral look is what this pack
+                  is here to replace.
                 </p>
 
                 <h3 className="mt-1 font-bold"># Materials</h3>
                 <p>
-                  White gel and tone gel for controls; pinstripes on every window surface including title and menu bars;
-                  brushed metal for iTunes-style windows; translucent plastic and chrome for hero surfaces. Shadows
-                  belong to windows, menus, the Dock and gel only — never a card shadow, because there are no cards.
+                  Controls are white gel or tone gel. Every window surface is pinstriped, title and menu bars included.
+                  iTunes-style windows are brushed metal, and hero surfaces are translucent plastic or chrome. Only
+                  windows, menus, the Dock and gel have shadows. There are no cards, so there are no card shadows.
                 </p>
 
                 <h3 className="mt-1 font-bold"># Shapes</h3>
                 <p>
-                  Push buttons are capsules; windows round 8px on top and 6px below; group boxes, tab panels and menus
-                  5px; segmented controls and pop-ups 4px; folder tabs 7px on top; check boxes and progress bars
-                  square; text fields 2px, search fields 10px. Icons are 64px glossy
-                  objects with a gloss cap — never a thin-line icon set.
+                  Push buttons are capsules. Windows have 8px corners on top and 6px below; group boxes, tab panels and
+                  menus 5px; segmented controls and pop-ups 4px; folder tabs 7px on top; text fields 2px and search
+                  fields 10px. Check boxes and progress bars are square. Icons are 64px glossy objects with a gloss
+                  cap, never a thin-line set.
                 </p>
 
                 <h3 className="mt-1 font-bold"># Components</h3>
                 <p>
-                  Push buttons are 20px tall, 68px minimum, 13px regular label, black ink on gel, floating on a deep
-                  soft shadow. One default button per window, in the tone gel; the dialog throb is opt-in. Tabs are
-                  folder tabs on a panel, the selected one in the light tone gel with black ink. Group boxes set their
-                  bold 12px caption into the top border. Dialogs <em>are</em> windows: right-aligned labels, Cancel to
-                  the left of the default, the button row bottom-right; status bars read left-aligned. Unfocused
-                  windows keep their shadow while their title bar turns translucent grey. Scroll bars carry an arrow
-                  at each end, and a second bar runs along the foot when the content is too wide. Progress bars are
-                  square and ribbed while running; indeterminate = the Aqua barber pole. The Dock magnifies on hover
-                  and marks running apps with a black triangle.
+                  Push buttons are 20px tall and at least 68px wide, with a 13px regular label in black on gel and a
+                  deep, soft shadow. Each window has one default button, in the tone gel; the throb it does in dialogs
+                  is optional. Tabs are folder tabs on a panel, the selected one in light tone gel with black text.
+                  Group boxes set their bold 12px caption into the top border. Dialogs <em>are</em> windows, with
+                  right-aligned labels, Cancel to the left of the default button and the button row at the bottom
+                  right. Status bars are left-aligned. A window that loses focus keeps its shadow and its title bar
+                  turns translucent grey. Scroll bars have an arrow at each end, and a second bar runs along the bottom
+                  when the content is too wide. Progress bars are square and ribbed while they run, and show the Aqua
+                  barber pole when there&apos;s no telling how long the wait is. The Dock magnifies on hover and puts a
+                  black triangle under apps that are running.
                 </p>
 
                 <h3 className="mt-1 font-bold"># Don&apos;t</h3>
                 <p>
-                  <Mono>/check-y2k</Mono> fails on any of these: grey cards and zinc/slate surfaces;
-                  the purple-to-blue AI gradient; 8–16px card radii; shadows on non-window elements; thin-line icons;
-                  tinted pinstripes or traffic lights; two tones on one screen; a page layout (hero, centred column,
-                  three-up feature grid, link-column footer); muted-foreground helper text under every field.
+                  <Mono>/check-y2k</Mono> fails on any of these: grey cards and zinc or slate surfaces; the
+                  purple-to-blue AI gradient; 8 to 16px card radii; shadows on anything that isn&apos;t a window; thin-line
+                  icons; tinted pinstripes or traffic lights; two tones on one screen; a page layout (hero, centred
+                  column, three-up feature grid, footer of link columns); muted helper text under every field.
                 </p>
               </div>
             </WindowScrollArea>
@@ -1921,11 +2021,11 @@ export function Desktop() {
                 <div>
                   <p className="font-bold">1.0 — Public Beta</p>
                   <ul className="mt-1 flex list-disc flex-col gap-1 pl-5 text-(--y2k-ink-secondary)">
-                    <li>Star brand mark, tone-reactive across all five tones.</li>
-                    <li>Photo wallpapers per tone; twinkling desktop stars.</li>
-                    <li>Design System window: components + full colour palette.</li>
-                    <li>Project-wide 4px layout grid (native font sizes kept).</li>
-                    <li>Minimize-to-Dock, draggable windows, Finder marquee select.</li>
+                    <li>The star logo changes colour with the tone.</li>
+                    <li>A photo wallpaper for each tone, and stars that twinkle on the desktop.</li>
+                    <li>The Design System window, with the components and the full palette.</li>
+                    <li>Layout snaps to a 4px grid. Font sizes stay at Aqua&apos;s own.</li>
+                    <li>Windows drag and minimize to the Dock, and you can drag a box in the Finder to select.</li>
                   </ul>
                 </div>
               </div>
@@ -1963,7 +2063,7 @@ export function Desktop() {
               <div className="flex items-start gap-3">
                 <PrefsIcon className="size-12 shrink-0 drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]" />
                 <p className="text-[11px] text-(--y2k-ink-secondary)">
-                  Five colour families that ruled 1998–2006. Pick one; every gel surface, selection, the Dock icons and the wallpaper follow. The traffic lights stay.
+                  Five colour families from 1998 to 2006. Pick one and the gel, the selection, the Dock icons and the wallpaper all change to match. The traffic lights stay red, yellow and green.
                 </p>
               </div>
               {(() => {
@@ -2004,7 +2104,7 @@ export function Desktop() {
                 {currentTone.blurb}
               </WindowWell>
               <p className="text-[11px] text-(--y2k-ink-secondary)">
-                Sources: Y2K palette surveys (hot pink · baby blue · chrome · lime · black), iMac G3 flavours 1998–2001, McBling 2001–06.
+                Where the colours come from: the Y2K palette (hot pink, baby blue, chrome, lime, black), the iMac G3 flavours of 1998 to 2001, and McBling, 2001 to 2006.
               </p>
             </WindowBody>
             </WindowScrollArea>

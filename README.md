@@ -1,15 +1,17 @@
 # Patina
 
-**Taste packs for AI coding agents.** Y2K is pack #1.
+**Taste packs for AI coding agents.** Y2K is the first one.
 
-Drop `DESIGN.md` into a project and vibe-coded output stops looking like Inter on a
-grey card — it comes out as Mac OS X 10.0 Aqua: pinstripes, traffic lights, gel buttons,
-a Dock — in a millennium tone (hot pink by default; Aqua, Lime, Tangerine, Grape
-switchable). *"The most anti-AI thing in 2026 is 2000's idea of the future."*
+Put the pack's `DESIGN.md` in a project and what your agent builds there stops looking
+like Inter on a grey card. It comes out as Mac OS X 10.0 Aqua, with pinstripes, traffic
+lights, gel buttons and a Dock, in a millennium tone: hot pink by default, or Aqua, Lime,
+Tangerine or Grape. *"The most anti-AI thing in 2026 is 2000's idea of the future."*
 
-It is not a browser extension that restyles a page you're looking at: it changes what
-your coding agent *produces*. `npx @patina/cli init` → your agent reads DESIGN.md →
-`/y2k-ify` rewrites an existing page.
+Patina isn't a browser extension and doesn't restyle pages you visit. It changes what
+your coding agent writes. After `npx @patina/cli init` your agent reads DESIGN.md before
+it builds any UI, and `/y2k-ify` rebuilds a page you already have.
+
+The demo desktop, built with the pack: https://patina-one.vercel.app
 
 ## Layout
 
@@ -49,14 +51,15 @@ PATINA_REGISTRY=http://localhost:3000/r npm run registry:build
 npx shadcn@latest add https://patina-one.vercel.app/r/window.json
 ```
 
-The built registry points at the Vercel deployment (`PATINA_REGISTRY` at build time);
-`registry.json` itself stays canonical at `https://patina.md/r` for when that domain is live.
+The built registry points at the Vercel deployment (set by `PATINA_REGISTRY` at build
+time). `registry.json` itself keeps `https://patina.md/r`, for when that domain is live.
 
-`window` pulls `button` and `theme` (the CSS variables) automatically.
+Adding `window` also brings in `button` and `theme` (the CSS variables).
 
 ## Rules of the house
 
-`DESIGN.md › Do's and Don'ts` is the source of truth. The short version: no Inter/Geist
-(Lucida Grande only), no grey cards (pinstripes), no purple→blue gradients (gel or
-wallpaper only), no 8–16px radius (pills and 6px window tops), shadows only on windows /
-menus / Dock / gel, no thin-line icons, traffic lights stay red-yellow-green in every tone.
+The rules live in `DESIGN.md › Do's and Don'ts`. In short: Lucida Grande, never Inter
+or Geist. Pinstripes instead of grey cards. Gel or wallpaper instead of purple-to-blue
+gradients. Capsule buttons and Aqua's window corners instead of 8 to 16px card radii. Shadows only on
+windows, menus, the Dock and gel. No thin-line icons. The traffic lights stay red, yellow
+and green in every tone.
