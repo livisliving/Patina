@@ -143,8 +143,8 @@ export const DiskIcon = makePngIcon("/icons/disk.png", "Disk")
 export const DocIcon = makePngIcon("/icons/doc.png", "Document")
 /** Note — the DETAILED letter+pen scene (TextEdit). Use in the Dock. */
 export const NoteIcon = makePngIcon("/icons/note.png", "TextEdit")
-/** Trash — wire-mesh bin. */
-export const TrashIcon = makePngIcon("/icons/bin.png", "Trash")
+/** The Bin — wire mesh. */
+export const TrashIcon = makePngIcon("/icons/bin.png", "Bin")
 /** Terminal — the Install step. */
 export const TerminalIcon = makePngIcon("/icons/terminal.png", "Terminal")
 /** iPod — the music player (Finder toolbar, Dock). */

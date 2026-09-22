@@ -50,7 +50,7 @@ const BOUNCE_MS = 1200
  * magnify with the cursor (falloff over 140px, spring-ish via CSS
  * transitions). The hovered icon's name floats above it in bold white with a
  * dark shadow; a black triangle marks running apps; minimized windows and
- * Trash sit after white hairline dividers on the right. On a phone the shelf
+ * the Bin sit after white hairline dividers on the right. On a phone the shelf
  * scrolls sideways, and an edge with more icons past it fades out — the cue
  * that there is more to swipe to.
  *

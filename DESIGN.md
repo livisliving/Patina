@@ -620,7 +620,7 @@ is no hero section, no max-width container, no footer.
   a 70px translucent shelf (the Dock pinstripe at 55% under a 1px white
   rim), hover magnifies to 2× with a 140px falloff, a
   black triangle marks running apps, minimized windows park to the right of a
-  divider, Trash at the far right behind another. It is the `Dock`
+  divider, the Bin at the far right behind another. It is the `Dock`
   component. On a phone the shelf scrolls sideways and an edge with more
   icons past it fades out over 48px — the cue to swipe.
 - **Desktop icons** sit top-right, 48px with a 12px white label.
@@ -786,7 +786,7 @@ the top and ends and no rounded corners; 64px glossy icons edge to edge, 2×
 hover magnification; the hovered icon's name floats 4px above it in 14px
 bold white with a dark shadow (no pill); black triangle under running apps;
 minimized windows parked after a divider — a white hairline (78%) the
-shelf's full height — and Trash at the far right behind another. Finder
+shelf's full height — and the Bin at the far right behind another. Finder
 sits leftmost, as the Aqua smiley. An app that isn't running bounces its
 icon twice (half its height) as it starts; a window being minimised pours
 into its tile through the genie's funnel, and out again when it comes back

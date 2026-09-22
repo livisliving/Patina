@@ -922,7 +922,7 @@ export function Desktop() {
   const [underline, setUnderline] = React.useState(false)
   // Last saved file, surfaced in the Read Me status bar after Save.
   const [savedNote, setSavedNote] = React.useState<string | null>(null)
-  // Trash is empty — clicking it in the Dock says so.
+  // The Bin is empty — clicking it in the Dock says so.
   const [trashOpen, setTrashOpen] = React.useState(false)
   // Literal token values for the Design System's "Colours" group.
   const { fixed: fixedColors, byTone: toneColors } = useTokenValues(wins.buttons.open)
@@ -1076,8 +1076,8 @@ export function Desktop() {
         },
         "-",
         { label: "Preferences…", onSelect: openWin("tone") },
-        // The Trash is always empty, so there is nothing to empty.
-        ...(app === "Finder" ? (["-", { label: "Empty Trash…", shortcut: "⇧⌘⌫", disabled: true }] as MenuRow[]) : []),
+        // The Bin is always empty, so there is nothing to empty.
+        ...(app === "Finder" ? (["-", { label: "Empty Bin…", shortcut: "⇧⌘⌫", disabled: true }] as MenuRow[]) : []),
         "-",
         // Hiding is minimizing: the Dock is the only place a window can go.
         { label: `Hide ${app}`, shortcut: "⌘H", disabled: !mine.length, onSelect: () => mine.forEach(minimize) },
@@ -2195,20 +2195,20 @@ export function Desktop() {
             dividerBefore: i === 0,
             onClick: openWin(id),
           })),
-          { id: "trash", label: "Trash", icon: <TrashIcon />, dividerBefore: true, onClick: () => setTrashOpen(true) },
+          { id: "trash", label: "Bin", icon: <TrashIcon />, dividerBefore: true, onClick: () => setTrashOpen(true) },
         ]}
       />
 
-      {/* Trash: empty. A controlled Aqua dialog, opened from the Dock. */}
+      {/* The Bin: empty. A controlled Aqua dialog, opened from the Dock. */}
       <Window open={trashOpen} onOpenChange={setTrashOpen}>
         <WindowContent
-          title="Trash"
-          description="The Trash is empty."
+          title="Bin"
+          description="The Bin is empty."
           className="w-[min(calc(100%-2rem),22rem)]"
         >
           <WindowBody className="flex items-center gap-3 pt-5">
             <TrashIcon className="size-12 shrink-0 drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]" />
-            <p className="text-[13px]">The Trash is empty.</p>
+            <p className="text-[13px]">The Bin is empty.</p>
           </WindowBody>
           <WindowFooter>
             <WindowClose asChild>
