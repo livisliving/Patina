@@ -424,6 +424,13 @@
   from { transform: translateY(0);    opacity: 1; }
   to   { transform: translateY(120%); opacity: 0; }
 }
+/* The Dock icon of an app that is starting: up half its height, slowing,
+   then down again, speeding; the Dock runs it twice. */
+@keyframes y2k-dock-bounce {
+  0%   { transform: translateY(0); animation-timing-function: cubic-bezier(0.25, 0.6, 0.4, 1); }
+  50%  { transform: translateY(-32px); animation-timing-function: cubic-bezier(0.6, 0, 0.75, 0.4); }
+  100% { transform: translateY(0); }
+}
 /* Desktop sparkle: a star glint that fades fully in then out with a scale
    pulse. Fades to 0 at the loop boundary so the desktop layer can relocate the
    glint between flashes (each twinkle appears in a new random spot). */

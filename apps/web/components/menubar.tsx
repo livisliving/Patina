@@ -54,7 +54,8 @@ export function MenuBar({ tone, onToneChange, onOpen, menus, volume, onVolumeCha
     ),
   }
   return (
-    <PackMenuBar logo={star} menus={menus} locale="en-GB">
+    // Today's date, in 2000.
+    <PackMenuBar logo={star} menus={menus} locale="en-GB" clockYear={2000}>
       <MenuBarVolume value={volume} onValueChange={onVolumeChange} />
     </PackMenuBar>
   )

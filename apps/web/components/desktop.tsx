@@ -47,6 +47,7 @@ import {
   Dock,
   Wallpaper,
   ICONS,
+  genie,
 } from "@patina/ui"
 
 import { ComputerIcon, DiskIcon, DocIcon, FaceIcon, FolderIcon, HeartIcon, HomeIcon, IPodIcon, LogoIcon, NoteIcon, PillIcon, PrefsIcon, TerminalIcon, TrashIcon } from "./aqua-icons"
@@ -68,7 +69,7 @@ const WALLPAPERS = Object.fromEntries(
 
 /* ── Window manager ───────────────────────────────────────────────── */
 
-type WinId = "about" | "readme" | "help" | "finder" | "buttons" | "tone" | "window" | "design" | "changelog" | "terminal" | "ipod"
+type WinId = "about" | "appinfo" | "readme" | "help" | "finder" | "buttons" | "tone" | "window" | "design" | "changelog" | "terminal" | "ipod"
 type WinState = Record<WinId, { open: boolean; z: number; minimized: boolean; zoomed?: boolean }>
 
 /** Each window's facts: the app it belongs to (the menu bar's bold name
@@ -80,6 +81,8 @@ type WinState = Record<WinId, { open: boolean; z: number; minimized: boolean; zo
 const WINDOWS: Record<WinId, { app: string; title: string; icon: React.ReactNode; open?: boolean; closeOnly?: boolean }> = {
   finder: { app: "Finder", title: "Computer", icon: <FaceIcon /> },
   about: { app: "Finder", title: "About Patina", icon: <LogoIcon />, open: true, closeOnly: true },
+  // About <the front app>: its app and title are looked up live, as the Finder's are.
+  appinfo: { app: "Finder", title: "About The Finder", icon: <FaceIcon />, closeOnly: true },
   readme: { app: "TextEdit", title: "Read Me", icon: <NoteIcon /> },
   help: { app: "Help Viewer", title: "Patina Help", icon: <ICONS.info /> },
   buttons: { app: "Design System", title: "Design System", icon: <PillIcon /> },
@@ -170,6 +173,7 @@ function DesktopWindow({ id, title, initial, z, zoomed, active, onRaise, onDismi
   // !important width/height here, or it would beat the inline maximized size.
   return (
     <WindowFrame
+      data-window-id={id}
       title={title ?? WINDOWS[id].title}
       active={active}
       onClose={() => onDismiss(id)}
@@ -633,16 +637,13 @@ function TerminalSession({ files, onOpen }: { files: FinderItem[]; onOpen: (file
   )
 }
 
-/** Read Me font menu → real fallback stacks. The classic Mac bitmap faces
- *  (Chicago, Charcoal, Geneva, Monaco) aren't installed on modern systems, so
- *  each maps to a distinct present-day fallback — otherwise picking "Charcoal"
- *  and "Chicago" would render identically (both falling back to the same font).
- *  Keys must match the Popup options exactly. */
+/** Read Me font menu → real fallback stacks. The classic Mac faces (Charcoal,
+ *  Geneva, Monaco) aren't installed everywhere, so each maps to a distinct
+ *  present-day fallback. Keys must match the Popup options exactly. */
 const FONT_STACK: Record<string, string> = {
   "Lucida Grande": '"Lucida Grande", "Lucida Sans Unicode", sans-serif',
   Geneva: 'Geneva, Verdana, "Segoe UI", sans-serif',
   Monaco: 'Monaco, "Courier New", ui-monospace, monospace',
-  Chicago: '"Chicago", Impact, "Arial Black", sans-serif',
   Charcoal: '"Charcoal", Georgia, "Times New Roman", serif',
 }
 
@@ -821,14 +822,32 @@ function ColorRow({ token, role, value }: { token: string; role: string; value?:
 
 export function Desktop() {
   const [tone, setTone] = React.useState<Tone>("pink")
-  const { wins, focus, open, close, minimize, zoom, frontId } = useWindows()
+  const { wins, focus, open, close, minimize: park, zoom, frontId } = useWindows()
+  // Minimising pours the window into its Dock tile; bringing a minimised
+  // window back pours it out again.
+  const minimize = React.useCallback(
+    (id: WinId) => {
+      const el = document.querySelector(`[data-window-id="${id}"]`)
+      if (el) void genie(el, () => document.querySelector(`[data-dock-id="min:${id}"]`))
+      park(id)
+    },
+    [park]
+  )
+  const show = (id: WinId) => {
+    const tile = wins[id].minimized ? document.querySelector(`[data-dock-id="min:${id}"]`) : null
+    if (tile) {
+      const at = `[data-window-id="${id}"]`
+      void genie(() => document.querySelector(at), tile.getBoundingClientRect(), { reverse: true, hide: at })
+    }
+    open(id)
+  }
 
   React.useEffect(() => {
     document.documentElement.dataset.tone = tone
   }, [tone])
 
   const currentTone = TONES.find((t) => t.id === tone)!
-  const openWin = (id: WinId) => () => open(id)
+  const openWin = (id: WinId) => () => show(id)
   // What every desktop window takes from the window manager.
   const winProps = (id: WinId) => ({
     id,
@@ -844,6 +863,8 @@ export function Desktop() {
   const ejectIPod = React.useCallback(() => close("ipod"), [close])
   // The system volume in the menu bar; the iPod plays at its own volume times this.
   const [volume, setVolume] = React.useState(75)
+  // Which app the About window is about (the front app's first menu opens it).
+  const [aboutApp, setAboutApp] = React.useState("Finder")
 
   // Finder / Design System / Tone search queries, and the icon selection set
   // (populated by single-click or the desktop marquee drag-select).
@@ -1008,7 +1029,9 @@ export function Desktop() {
   // Windows currently minimized to the Dock (open but hidden). Ordered by WinId
   // for a stable Dock tile order.
   const minimizedWindows = (Object.keys(wins) as WinId[]).filter((id) => wins[id].open && wins[id].minimized)
-  const titleOf = (id: WinId) => (id === "finder" ? (here?.label ?? "Computer") : WINDOWS[id].title)
+  const titleOf = (id: WinId) =>
+    id === "finder" ? (here?.label ?? "Computer") : id === "appinfo" ? (aboutApp === "Finder" ? "About The Finder" : `About ${aboutApp}`) : WINDOWS[id].title
+  const appOf = (id: WinId) => (id === "appinfo" ? aboutApp : WINDOWS[id].app)
 
   // Desktop icons, top-right: single click selects, double click (or File ›
   // Open) opens.
@@ -1022,15 +1045,15 @@ export function Desktop() {
   /* ── The menu bar, after the ★: the front app, then the Finder's menus ── */
 
   // The front app is the front window's; with none, the Finder.
-  const app = frontId ? WINDOWS[frontId].app : "Finder"
+  const app = frontId ? appOf(frontId) : "Finder"
   const ids = (Object.keys(wins) as WinId[]).filter((id) => wins[id].open)
   const shown = ids.filter((id) => !wins[id].minimized)
-  const appWindows = ids.filter((id) => WINDOWS[id].app === app)
+  const appWindows = ids.filter((id) => appOf(id) === app)
   // What Hide can send to the Dock (not a window that only closes): the
   // front app's windows, or everyone else's.
   const hideable = shown.filter((id) => !WINDOWS[id].closeOnly)
-  const mine = hideable.filter((id) => WINDOWS[id].app === app)
-  const others = hideable.filter((id) => WINDOWS[id].app !== app)
+  const mine = hideable.filter((id) => appOf(id) === app)
+  const others = hideable.filter((id) => appOf(id) !== app)
   const frontFixed = !frontId || WINDOWS[frontId].closeOnly
   const finderShown = shown.includes("finder")
   // What File › Open opens: the selected desktop icons and Finder items.
@@ -1044,7 +1067,13 @@ export function Desktop() {
     {
       label: app,
       items: [
-        { label: "About Patina", onSelect: openWin("about") },
+        {
+          label: `About ${app}`,
+          onSelect: () => {
+            setAboutApp(app)
+            open("appinfo")
+          },
+        },
         "-",
         { label: "Preferences…", onSelect: openWin("tone") },
         // The Trash is always empty, so there is nothing to empty.
@@ -1053,7 +1082,7 @@ export function Desktop() {
         // Hiding is minimizing: the Dock is the only place a window can go.
         { label: `Hide ${app}`, shortcut: "⌘H", disabled: !mine.length, onSelect: () => mine.forEach(minimize) },
         { label: "Hide Others", disabled: !others.length, onSelect: () => others.forEach(minimize) },
-        { label: "Show All", disabled: !minimizedWindows.length, onSelect: () => minimizedWindows.forEach(open) },
+        { label: "Show All", disabled: !minimizedWindows.length, onSelect: () => minimizedWindows.forEach(show) },
         // The Finder never quits.
         ...(app === "Finder" ? [] : (["-", { label: `Quit ${app}`, shortcut: "⌘Q", onSelect: () => appWindows.forEach(close) }] as MenuRow[])),
       ],
@@ -1233,8 +1262,9 @@ export function Desktop() {
                 <WindowToolbarItem icon={<ComputerIcon />} onClick={() => navigate([])}>Computer</WindowToolbarItem>
                 <WindowToolbarItem icon={<HomeIcon />} onClick={() => navigate(HOME)}>Home</WindowToolbarItem>
                 <WindowToolbarItem icon={<HeartIcon />} onClick={() => navigate(FAVOURITES)}>Favourites</WindowToolbarItem>
-                <WindowToolbarItem icon={<IPodIcon />} onClick={openWin("ipod")}>iPod</WindowToolbarItem>
-                <SearchField ref={finderSearch} value={finderQuery} onChange={setFinderQuery} placeholder="" className="order-last mt-1 w-full self-start sm:order-none sm:ml-auto sm:w-40" />
+                <WindowToolbarControl label="Search" className="order-last w-full sm:order-none sm:ml-auto sm:w-40">
+                  <SearchField ref={finderSearch} value={finderQuery} onChange={setFinderQuery} placeholder="" className="w-full" />
+                </WindowToolbarControl>
               </WindowToolbar>
             }
           >
@@ -1328,7 +1358,8 @@ export function Desktop() {
                         <span
                           className={cn(
                             "rounded-[3px] px-1.5 py-[1px] text-[12px]",
-                            selected.has(key) && "bg-(--y2k-tone-selection) text-(--y2k-tone-selection-text)"
+                            // The light tone under black ink, the same in every tone.
+                            selected.has(key) && "bg-(--y2k-tone-focus) text-(--y2k-ink)"
                           )}
                         >
                           {it.label}
@@ -1368,6 +1399,18 @@ export function Desktop() {
           </DesktopWindow>
         )}
 
+        {wins.appinfo.open && !wins.appinfo.minimized && (
+          <DesktopWindow {...winProps("appinfo")} title={titleOf("appinfo")} initial={{ x: 96, y: 96 }} className="md:w-[300px]">
+            <WindowBody className="flex flex-col items-center gap-2 pt-5 pb-6 text-center text-[13px]">
+              <span className="size-16 [&_img]:size-full [&_svg]:size-full">
+                {Object.values(WINDOWS).find((w) => w.app === aboutApp)?.icon}
+              </span>
+              <p>{aboutApp}</p>
+              <p>Patina 1.0 (Public Beta)</p>
+            </WindowBody>
+          </DesktopWindow>
+        )}
+
         {wins.readme.open && !wins.readme.minimized && (
           <DesktopWindow
             {...winProps("readme")}
@@ -1376,7 +1419,7 @@ export function Desktop() {
             status={savedNote ?? undefined}
             toolbar={
               <WindowToolbar>
-                <PopupButton value={font} onChange={setFont} options={["Lucida Grande", "Geneva", "Monaco", "Chicago", "Charcoal"]} className="w-[128px]" />
+                <PopupButton value={font} onChange={setFont} options={["Lucida Grande", "Geneva", "Monaco", "Charcoal"]} className="w-[128px]" />
                 <PopupButton value={fontSize} onChange={setFontSize} options={["9", "10", "12", "13", "14", "18", "24"]} className="w-[52px]" />
                 <SegmentedControl
                   items={[

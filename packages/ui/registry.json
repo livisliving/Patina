@@ -186,7 +186,7 @@
       "name": "dock",
       "type": "registry:ui",
       "title": "Dock",
-      "description": "The 10.1 Dock: a translucent pinstriped shelf, icons edge to edge that magnify under the cursor, name labels, running triangles, dividers; on a phone it scrolls, its edges fading where there is more.",
+      "description": "The 10.1 Dock: a translucent pinstriped shelf, icons edge to edge that magnify under the cursor, name labels, running triangles, dividers, a bounce as an app starts and the genie for minimising; on a phone it scrolls, its edges fading where there is more.",
       "registryDependencies": ["https://patina.md/r/theme.json"],
       "files": [
         {

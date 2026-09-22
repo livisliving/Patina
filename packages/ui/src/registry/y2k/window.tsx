@@ -240,7 +240,7 @@ function WindowToolbarItem({
 function WindowToolbarControl({ className, label, children, ...props }: React.ComponentProps<"div"> & { label: React.ReactNode }) {
   return (
     <div data-slot="window-toolbar-control" className={cn(toolbarSlot, className)} {...props}>
-      <span className="flex h-8 items-center justify-center">{children}</span>
+      <span className="flex h-8 items-center justify-center self-stretch">{children}</span>
       <span className={toolbarLabel}>{label}</span>
     </div>
   )

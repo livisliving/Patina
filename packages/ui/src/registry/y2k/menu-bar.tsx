@@ -16,7 +16,7 @@ import { Slider } from "@/components/ui/forms"
  * is the front app's, its name in bold; the last is Help; the clock is at the
  * right. On a phone only the logo, the app's menu and Help stay.
  *
- * A title lights faintly under the pointer. Click one and its menu opens;
+ * A title lights up under the pointer. Click one and its menu opens;
  * while a menu is open, the others open as the pointer crosses their titles,
  * the clock and the volume included, as the real bar does.
  *
@@ -115,8 +115,8 @@ function MenuRows({ items }: { items: MenuRow[] }) {
   )
 }
 
-/** A title in the bar: the tone highlight while its menu is open, a faint
- *  wash of it under the pointer. */
+/** A title in the bar: the tone highlight and white ink under the pointer
+ *  and while its menu is open. */
 function MenuBarTitle({ className, ...props }: React.ComponentProps<typeof Menu.Trigger>) {
   return (
     <Menu.Trigger
@@ -124,7 +124,7 @@ function MenuBarTitle({ className, ...props }: React.ComponentProps<typeof Menu.
       className={cn(
         "relative isolate flex h-full shrink-0 cursor-default items-center rounded-[3px] px-2 whitespace-nowrap outline-none select-none",
         "before:absolute before:inset-0 before:-z-10 before:rounded-[3px] before:bg-(image:--y2k-tone-highlight) before:opacity-0",
-        "hover:before:opacity-25 data-[state=open]:before:opacity-100 data-[state=open]:text-(--y2k-tone-highlight-text)",
+        "hover:before:opacity-100 hover:text-(--y2k-tone-highlight-text) data-[state=open]:before:opacity-100 data-[state=open]:text-(--y2k-tone-highlight-text)",
         className
       )}
       {...props}
@@ -174,7 +174,17 @@ function ClockGlyph({ date }: { date: Date }) {
 /** The clock at the right: the weekday and the time, as text or as a little
  *  face. Its menu shows the whole date, switches between the two, and opens
  *  Date & Time when there is one to open. */
-function MenuBarClock({ locale, onOpenDateTime }: { locale?: string; onOpenDateTime?: () => void }) {
+function MenuBarClock({
+  locale,
+  year,
+  onOpenDateTime,
+}: {
+  locale?: string
+  /** A year to show in the menu's date in place of the real one; the day,
+   *  the month and the time stay as they are. */
+  year?: number
+  onOpenDateTime?: () => void
+}) {
   const now = useNow()
   const [view, setView] = React.useState<"text" | "icon">("text")
   const menu = useBarMenu("clock")
@@ -182,7 +192,12 @@ function MenuBarClock({ locale, onOpenDateTime }: { locale?: string; onOpenDateT
   const h24 = /h2[34]/.test(new Intl.DateTimeFormat(locale, { hour: "numeric" }).resolvedOptions().hourCycle ?? "")
   const day = now?.toLocaleDateString(locale, { weekday: "short" }) ?? ""
   const time = now?.toLocaleTimeString(locale, { hour: h24 ? "2-digit" : "numeric", minute: "2-digit" }) ?? ""
-  const date = now?.toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" }) ?? ""
+  const date = now
+    ? new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" })
+        .formatToParts(now)
+        .map((part) => (part.type === "year" && year !== undefined ? String(year) : part.value))
+        .join("")
+    : ""
   return (
     <Menu.Root modal={false} {...menu.root}>
       <MenuBarTitle aria-label={now ? `${date}, ${time}` : "Clock"} suppressHydrationWarning {...menu.trigger}>
@@ -269,6 +284,7 @@ function MenuBar({
   menus,
   clock = true,
   locale,
+  clockYear,
   onOpenDateTime,
   className,
   children,
@@ -280,6 +296,8 @@ function MenuBar({
   clock?: boolean
   /** The clock's locale; the browser's by default. */
   locale?: string
+  /** A year for the clock menu's date in place of the real one. */
+  clockYear?: number
   /** Makes the clock menu's Open Date & Time… do something. */
   onOpenDateTime?: () => void
   className?: string
@@ -330,7 +348,7 @@ function MenuBar({
       {(clock || children) && (
         <div className="ml-auto flex h-full shrink-0 items-stretch whitespace-nowrap select-none">
           {children}
-          {clock && <MenuBarClock locale={locale} onOpenDateTime={onOpenDateTime} />}
+          {clock && <MenuBarClock locale={locale} year={clockYear} onOpenDateTime={onOpenDateTime} />}
         </div>
       )}
     </header>

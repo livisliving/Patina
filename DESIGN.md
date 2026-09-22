@@ -787,7 +787,10 @@ hover magnification; the hovered icon's name floats 4px above it in 14px
 bold white with a dark shadow (no pill); black triangle under running apps;
 minimized windows parked after a divider — a white hairline (78%) the
 shelf's full height — and Trash at the far right behind another. Finder
-sits leftmost, as the Aqua smiley.
+sits leftmost, as the Aqua smiley. An app that isn't running bounces its
+icon twice (half its height) as it starts; a window being minimised pours
+into its tile through the genie's funnel, and out again when it comes back
+(`genie`).
 
 **Scroll bar** — 15px: one 17px arrow at each end (the 10.0 default), a
 grooved trough curving into cups under them, the tone gel thumb. A vertical
@@ -862,7 +865,7 @@ line icon.
   Pink's white-ink selection (3.7:1) and sidebar (2.5:1) are the known
   exceptions still open.
 - Do respect `prefers-reduced-motion`: no pulse, no window zoom, no Dock
-  magnification.
+  magnification, no bounce, no genie.
 
 **Don't** (the anti-rules; `/check-y2k` fails on any of them)
 - Don't use Inter, Geist, Roboto, Helvetica or Arial, and don't *name*
