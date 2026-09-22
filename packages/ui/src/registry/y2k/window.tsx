@@ -31,7 +31,7 @@ function TrafficLight({
   active = true,
   disabled = false,
   onClick,
-  wrapper,
+  as,
 }: {
   kind: LightKind
   active?: boolean
@@ -39,22 +39,26 @@ function TrafficLight({
    *  window, and no glyph. */
   disabled?: boolean
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
-  wrapper?: (button: React.ReactElement) => React.ReactNode
+  /** What renders the hit area: a button, or the Dialog's Close (which
+   *  renders one and closes the dialog). A component rather than asChild,
+   *  which shadcn rewrites for Base UI projects. */
+  as?: React.ElementType
 }) {
   const light = LIGHTS[kind]
   const lit = active && !disabled
+  const Hit = as ?? "button"
   const hit = (
-    <button
+    <Hit
       type="button"
       aria-label={light.label}
       data-slot="window-light"
       disabled={disabled}
       className="absolute -inset-2 z-10 cursor-default opacity-0 outline-none"
-      onClick={(e) => {
+      onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation()
         onClick?.(e)
       }}
-      onPointerDown={(e) => e.stopPropagation()}
+      onPointerDown={(e: React.PointerEvent) => e.stopPropagation()}
     />
   )
   return (
@@ -79,7 +83,7 @@ function TrafficLight({
           </svg>
         )}
       </div>
-      {wrapper ? wrapper(hit) : hit}
+      {hit}
     </div>
   )
 }
@@ -93,14 +97,14 @@ type WindowLightsProps = {
    *  turn to the plain gel and do nothing. */
   minimizable?: boolean
   zoomable?: boolean
-  /** Wrap the close hit-area (the Dialog variant wraps it in DialogPrimitive.Close). */
-  closeWrapper?: (button: React.ReactElement) => React.ReactNode
+  /** What renders the close light's hit area (the Dialog variant passes DialogPrimitive.Close). */
+  closeAs?: React.ElementType
 }
 
-function WindowLights({ active = true, onClose, onMinimize, onZoom, minimizable = true, zoomable = true, closeWrapper }: WindowLightsProps) {
+function WindowLights({ active = true, onClose, onMinimize, onZoom, minimizable = true, zoomable = true, closeAs }: WindowLightsProps) {
   return (
     <div data-slot="window-lights" className="group/lights relative flex items-center gap-(--y2k-light-gap)">
-      <TrafficLight kind="close" active={active} onClick={onClose} wrapper={closeWrapper} />
+      <TrafficLight kind="close" active={active} onClick={onClose} as={closeAs} />
       <TrafficLight kind="minimize" active={active} disabled={!minimizable} onClick={onMinimize} />
       <TrafficLight kind="zoom" active={active} disabled={!zoomable} onClick={onZoom} />
     </div>
@@ -643,7 +647,7 @@ function WindowFrame({
   onZoom,
   minimizable,
   zoomable,
-  closeWrapper,
+  closeAs,
   titleBarProps,
   resizeGripProps,
   onToolbarToggle,
@@ -687,7 +691,7 @@ function WindowFrame({
           onZoom={onZoom}
           minimizable={minimizable}
           zoomable={zoomable}
-          closeWrapper={closeWrapper}
+          closeAs={closeAs}
         />
         <WindowTitleText as={titleAs} active={active}>
           {title}
@@ -779,7 +783,7 @@ function WindowContent({
           material={material}
           toolbar={toolbar}
           status={status}
-          closeWrapper={showClose ? (button) => <DialogPrimitive.Close asChild>{button}</DialogPrimitive.Close> : undefined}
+          closeAs={showClose ? DialogPrimitive.Close : undefined}
         >
           {description && (
             <DialogPrimitive.Description className="sr-only">{description}</DialogPrimitive.Description>

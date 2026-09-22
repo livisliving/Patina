@@ -52,33 +52,33 @@ function PopupButton({
 }) {
   return (
     <Menu.Root modal={false}>
-      <Menu.Trigger asChild>
-        <button
-          type="button"
-          data-slot="popup-button"
-          aria-label={ariaLabel}
+      {/* The trigger is the button itself — no asChild, which shadcn rewrites
+          for Base UI projects. */}
+      <Menu.Trigger
+        type="button"
+        data-slot="popup-button"
+        aria-label={ariaLabel}
+        className={cn(
+          "relative inline-flex h-(--y2k-popup-h) min-w-[60px] cursor-default items-center rounded-[4px] pr-[calc(var(--y2k-popup-gem)+2px)] pl-[10px] text-left",
+          "font-(family-name:--y2k-font-ui) text-[13px] text-black outline-none",
+          "bg-(image:--y2k-popup-white) shadow-[inset_1px_0_0_rgba(0,0,0,0.15),0_1px_1px_rgba(0,0,0,0.14)]",
+          "focus-visible:outline-3 focus-visible:outline-(--y2k-tone-focus) data-[state=open]:brightness-95",
+          className
+        )}
+      >
+        <span className="relative z-[1] truncate">{value}</span>
+        <span
+          aria-hidden
           className={cn(
-            "relative inline-flex h-(--y2k-popup-h) min-w-[60px] cursor-default items-center rounded-[4px] pr-[calc(var(--y2k-popup-gem)+2px)] pl-[10px] text-left",
-            "font-(family-name:--y2k-font-ui) text-[13px] text-black outline-none",
-            "bg-(image:--y2k-popup-white) shadow-[inset_1px_0_0_rgba(0,0,0,0.15),0_1px_1px_rgba(0,0,0,0.14)]",
-            "focus-visible:outline-3 focus-visible:outline-(--y2k-tone-focus) data-[state=open]:brightness-95",
-            className
+            "absolute inset-y-0 right-0 w-(--y2k-popup-gem) rounded-r-[4px]",
+            "bg-[image:var(--y2k-tone-popup),var(--y2k-tone-control)] bg-[length:1px_100%,100%_100%] bg-no-repeat",
+            "shadow-[inset_-3px_0_3px_-1px_color-mix(in_srgb,var(--y2k-tone-control-edge)_45%,transparent)]"
           )}
         >
-          <span className="relative z-[1] truncate">{value}</span>
-          <span
-            aria-hidden
-            className={cn(
-              "absolute inset-y-0 right-0 w-(--y2k-popup-gem) rounded-r-[4px]",
-              "bg-[image:var(--y2k-tone-popup),var(--y2k-tone-control)] bg-[length:1px_100%,100%_100%] bg-no-repeat",
-              "shadow-[inset_-3px_0_3px_-1px_color-mix(in_srgb,var(--y2k-tone-control-edge)_45%,transparent)]"
-            )}
-          >
-            <svg viewBox="0 0 21 20" className="absolute inset-0 size-full">
-              <path d="M10.5 4.6L13 9H8zM8 11h5l-2.5 4.4z" fill="#fff" />
-            </svg>
-          </span>
-        </button>
+          <svg viewBox="0 0 21 20" className="absolute inset-0 size-full">
+            <path d="M10.5 4.6L13 9H8zM8 11h5l-2.5 4.4z" fill="#fff" />
+          </svg>
+        </span>
       </Menu.Trigger>
       <Menu.Portal>
         <Menu.Content align="start" sideOffset={4} className={cn(menuContentClass, "min-w-[var(--radix-dropdown-menu-trigger-width)]")}>

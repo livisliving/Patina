@@ -662,8 +662,11 @@ cards.
   - **Brushed metal** (`--y2k-metal`, `.y2k-metal`) — textured windows.
   All are 1px rows on a 4px period. The **shaders** (chrome reflection,
   translucent plastic) are a separate, animated layer for hero surfaces.
-- **The wallpaper** is a deep-to-light diagonal of the tone with two wide,
-  blurred white ribbons sweeping up to the right — Aqua's swoosh, recolored.
+- **The wallpaper** is Olivia's photo collage for the tone: a 16:9 one on
+  the desktop and a portrait one (1247×2796) below md, both in
+  `/wallpapers/`. The tone-reactive abstract — a deep-to-light diagonal
+  with two blurred white ribbons, Aqua's swoosh recoloured — is the
+  fallback for a tone without one.
 - **Toolbar buttons and group boxes** sit *on* the pinstripes with a 1px
   hairline and a 1–2px shadow. No card floats above another card.
 

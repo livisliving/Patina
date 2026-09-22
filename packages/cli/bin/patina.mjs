@@ -25,6 +25,7 @@ What init does
   1. Writes DESIGN.md to the project root — the spec your coding agent reads.
   2. Installs the Y2K theme + components from the registry (via shadcn).
   3. Installs the agent skills into .claude/skills/ and the /check-y2k scanner.
+  4. Leaves a note in CLAUDE.md so your agent reads DESIGN.md before building UI.
 `
 
 const argv = process.argv.slice(2)

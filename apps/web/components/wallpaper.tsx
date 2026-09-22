@@ -1,34 +1,32 @@
 "use client"
 
+import type * as React from "react"
+
 import type { Tone } from "./tones"
 import { useTone } from "./use-tone"
 
 /**
  * The desktop wallpaper. Every tone ships a Y2K photo-collage wallpaper
- * (Olivia's artwork in /public/wallpapers). The tone-reactive SVG abstract is
- * kept only as a safety net for any tone without a photo. The active tone is
- * read from `data-tone` on <html> via the shared `useTone` subscription.
+ * (Olivia's artwork in /public/wallpapers): a 16:9 one for the desktop and a
+ * portrait one for phones, picked by the md breakpoint in CSS. The
+ * tone-reactive SVG abstract is kept only as a safety net for any tone without
+ * a photo. The active tone is read from `data-tone` on <html> via the shared
+ * `useTone` subscription.
  */
 
-/** Photo wallpaper per tone. All five tones have one. */
-const PHOTO_BY_TONE: Partial<Record<Tone, string>> = {
-  pink: "/wallpapers/pink.webp",
-  aqua: "/wallpapers/aqua.webp",
-  lime: "/wallpapers/lime.webp",
-  tangerine: "/wallpapers/tangerine.webp",
-  grape: "/wallpapers/grape.webp",
-}
+/** Photo wallpapers per tone: /wallpapers/<tone>.webp (1920×1080) and
+ *  /wallpapers/<tone>-mobile.webp (1247×2796). All five tones have both. */
+const PHOTO_TONES: readonly Tone[] = ["pink", "aqua", "lime", "tangerine", "grape"]
 
 export function Wallpaper() {
   const tone = useTone()
-  const photo = PHOTO_BY_TONE[tone]
 
-  if (photo) {
+  if (PHOTO_TONES.includes(tone)) {
     return (
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-0 -z-10 size-full bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${photo})` }}
+        className="pointer-events-none fixed inset-0 -z-10 size-full bg-(image:--wallpaper-mobile) bg-cover bg-center bg-no-repeat md:bg-(image:--wallpaper)"
+        style={{ "--wallpaper": `url(/wallpapers/${tone}.webp)`, "--wallpaper-mobile": `url(/wallpapers/${tone}-mobile.webp)` } as React.CSSProperties}
       />
     )
   }

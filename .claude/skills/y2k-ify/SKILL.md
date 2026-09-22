@@ -82,6 +82,11 @@ yet. If you believe an error is wrong, say so to the human and propose the
 DESIGN.md wording; never loosen the checker, and never silently leave a
 violation in.
 
+Then run it on the whole project once (`node scripts/check-y2k.mjs .`): the
+shadcn components the page no longer imports — `card.tsx`, `badge.tsx`,
+`input.tsx` and their like — still fail it. Delete them; dead default-styled
+code is the look the pack exists to remove.
+
 The checker only reads what a regex can see. It cannot tell you the page still
 *reads* as a landing page, that two tones ended up on one screen, or that the
 window is 900px wide because you kept the old container. Look at the result.
