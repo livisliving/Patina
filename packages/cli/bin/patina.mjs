@@ -15,7 +15,7 @@ Usage
 
 Options
   --tone <name>      pink, aqua, lime, tangerine or grape (asked when not given)
-  --registry <url>   Component registry base URL (default: https://patina.md/r)
+  --registry <url>   Component registry base URL (default: https://livisliving.github.io/Patina/r)
   --no-components    Write DESIGN.md and the skills, skip the shadcn components
   --force            Overwrite files that already exist
   --dry-run          Print what would happen, write nothing
@@ -53,7 +53,7 @@ if (cmd !== "init") {
 try {
   const code = await init({
     cwd: process.cwd(),
-    registry: value("registry", "https://patina.md/r"),
+    registry: value("registry", "https://livisliving.github.io/Patina/r"),
     components: !flag("no-components"),
     force: flag("force"),
     dryRun: flag("dry-run"),

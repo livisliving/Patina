@@ -53,11 +53,12 @@ GITHUB_PAGES=true PAGES_BASE_PATH=/Patina PAGES_BASE_URL=https://example.com/Pat
 ## Consuming the registry
 
 ```bash
-npx shadcn@latest add https://patina-one.vercel.app/r/window.json
+npx shadcn@latest add https://livisliving.github.io/Patina/r/window.json
 ```
 
-The built registry points at the Vercel deployment (set by `PATINA_REGISTRY` at build
-time). `registry.json` itself keeps `https://patina.md/r`, for when that domain is live.
+The registry lives on GitHub Pages, at `https://livisliving.github.io/Patina/r` — the base `registry.json`
+names and `npx @patina/cli init` installs from. The Vercel deployment serves the same files
+(https://patina-one.vercel.app/r); `PATINA_REGISTRY` at build time points a copy elsewhere.
 
 Adding `window` also brings in `button` and `theme` (the CSS variables).
 

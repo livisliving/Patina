@@ -4,7 +4,7 @@
   "title": "Visitor counter",
   "description": "The millennium hit counter — glowing tone odometer digits on a dark LCD panel.",
   "registryDependencies": [
-    "https://patina-one.vercel.app/r/theme.json"
+    "https://livisliving.github.io/Patina/r/theme.json"
   ],
   "files": [
     {

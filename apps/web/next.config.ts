@@ -7,7 +7,8 @@ import type { NextConfig } from "next";
 const pages = process.env.GITHUB_PAGES === "true";
 const basePath = pages ? (process.env.PAGES_BASE_PATH ?? "") : "";
 // Where this copy of the site serves the component registry (public/r).
-const registry = pages ? `${process.env.PAGES_BASE_URL ?? ""}/r` : "https://patina-one.vercel.app/r";
+// Elsewhere (Vercel, localhost) Help names the canonical one, on GitHub Pages.
+const registry = pages ? `${process.env.PAGES_BASE_URL ?? ""}/r` : "https://livisliving.github.io/Patina/r";
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@patina/ui", "@patina/shaders"],

@@ -7,9 +7,9 @@
     "radix-ui"
   ],
   "registryDependencies": [
-    "https://patina-one.vercel.app/r/theme.json",
-    "https://patina-one.vercel.app/r/popup.json",
-    "https://patina-one.vercel.app/r/forms.json"
+    "https://livisliving.github.io/Patina/r/theme.json",
+    "https://livisliving.github.io/Patina/r/popup.json",
+    "https://livisliving.github.io/Patina/r/forms.json"
   ],
   "files": [
     {

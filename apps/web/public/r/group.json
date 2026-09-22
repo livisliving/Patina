@@ -4,7 +4,7 @@
   "title": "Group box",
   "description": "The Aqua group box — a faint sunken well with a bold 11px caption. Patina's answer to a Card (no neutral grey cards).",
   "registryDependencies": [
-    "https://patina-one.vercel.app/r/theme.json"
+    "https://livisliving.github.io/Patina/r/theme.json"
   ],
   "files": [
     {

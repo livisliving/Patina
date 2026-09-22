@@ -4,8 +4,8 @@
   "title": "Window Sidebar (Source list)",
   "description": "The Aqua source list: a recessed white column with full-bleed, tone-tinted selected rows and bold group headers. Sits inside a window.",
   "registryDependencies": [
-    "https://patina-one.vercel.app/r/theme.json",
-    "https://patina-one.vercel.app/r/window.json"
+    "https://livisliving.github.io/Patina/r/theme.json",
+    "https://livisliving.github.io/Patina/r/window.json"
   ],
   "files": [
     {

@@ -4,7 +4,7 @@
   "title": "Segmented control",
   "description": "22px Aqua segmented control: white segments, the selected one in the light tone gel with a black glyph.",
   "registryDependencies": [
-    "https://patina-one.vercel.app/r/theme.json"
+    "https://livisliving.github.io/Patina/r/theme.json"
   ],
   "files": [
     {

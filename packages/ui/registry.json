@@ -1,7 +1,7 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry.json",
   "name": "patina",
-  "homepage": "https://patina.md",
+  "homepage": "https://livisliving.github.io/Patina",
   "items": [
     {
       "name": "theme",
@@ -25,7 +25,7 @@
       "title": "Aqua Button",
       "description": "The Aqua 10.0 push button at the original's metrics: white or tone gel, the default button's pulse, round icon buttons, bevel buttons and brushed-metal discs.",
       "dependencies": ["class-variance-authority", "radix-ui"],
-      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "registryDependencies": ["https://livisliving.github.io/Patina/r/theme.json"],
       "files": [
         {
           "path": "src/registry/y2k/button.tsx",
@@ -40,7 +40,7 @@
       "title": "Window (Dialog)",
       "description": "The Dialog is an Aqua window: pinstriped (or brushed-metal) title bar, traffic lights, toolbar, status bar. Static frame + Radix Dialog.",
       "dependencies": ["radix-ui"],
-      "registryDependencies": ["https://patina.md/r/theme.json", "https://patina.md/r/button.json"],
+      "registryDependencies": ["https://livisliving.github.io/Patina/r/theme.json", "https://livisliving.github.io/Patina/r/button.json"],
       "files": [
         {
           "path": "src/registry/y2k/window.tsx",
@@ -54,7 +54,7 @@
       "type": "registry:ui",
       "title": "Window Sidebar (Source list)",
       "description": "The Aqua source list: a recessed white column with full-bleed, tone-tinted selected rows and bold group headers. Sits inside a window.",
-      "registryDependencies": ["https://patina.md/r/theme.json", "https://patina.md/r/window.json"],
+      "registryDependencies": ["https://livisliving.github.io/Patina/r/theme.json", "https://livisliving.github.io/Patina/r/window.json"],
       "files": [
         {
           "path": "src/registry/y2k/sidebar.tsx",
@@ -68,7 +68,7 @@
       "type": "registry:ui",
       "title": "Group box",
       "description": "The Aqua group box — a faint sunken well with a bold 11px caption. Patina's answer to a Card (no neutral grey cards).",
-      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "registryDependencies": ["https://livisliving.github.io/Patina/r/theme.json"],
       "files": [
         { "path": "src/registry/y2k/group.tsx", "type": "registry:ui", "target": "components/ui/group.tsx" }
       ]
@@ -79,7 +79,7 @@
       "title": "Progress",
       "description": "A tone gel progress bar in a sunken white track; omit value for the Aqua barber-pole indeterminate state.",
       "dependencies": ["radix-ui"],
-      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "registryDependencies": ["https://livisliving.github.io/Patina/r/theme.json"],
       "files": [
         { "path": "src/registry/y2k/progress.tsx", "type": "registry:ui", "target": "components/ui/progress.tsx" }
       ]
@@ -90,7 +90,7 @@
       "title": "Tabs",
       "description": "A white gel segmented control; the selected segment is filled with the tone gel. Radix Tabs.",
       "dependencies": ["radix-ui"],
-      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "registryDependencies": ["https://livisliving.github.io/Patina/r/theme.json"],
       "files": [
         { "path": "src/registry/y2k/tabs.tsx", "type": "registry:ui", "target": "components/ui/tabs.tsx" }
       ]
@@ -101,7 +101,7 @@
       "title": "Toast (Nudge)",
       "description": "The MSN 'Nudge' — a mini Aqua window that slides up from the Dock and shakes once. Radix Toast.",
       "dependencies": ["radix-ui"],
-      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "registryDependencies": ["https://livisliving.github.io/Patina/r/theme.json"],
       "files": [
         { "path": "src/registry/y2k/toast.tsx", "type": "registry:ui", "target": "components/ui/toast.tsx" }
       ]
@@ -111,7 +111,7 @@
       "type": "registry:ui",
       "title": "Marquee",
       "description": "The old-web scrolling marquee, done right: seamless loop, pauses on hover, respects reduced-motion.",
-      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "registryDependencies": ["https://livisliving.github.io/Patina/r/theme.json"],
       "files": [
         { "path": "src/registry/y2k/marquee.tsx", "type": "registry:ui", "target": "components/ui/marquee.tsx" }
       ]
@@ -121,7 +121,7 @@
       "type": "registry:ui",
       "title": "Visitor counter",
       "description": "The millennium hit counter — glowing tone odometer digits on a dark LCD panel.",
-      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "registryDependencies": ["https://livisliving.github.io/Patina/r/theme.json"],
       "files": [
         { "path": "src/registry/y2k/visitor-counter.tsx", "type": "registry:ui", "target": "components/ui/visitor-counter.tsx" }
       ]
@@ -131,7 +131,7 @@
       "type": "registry:ui",
       "title": "Form controls",
       "description": "Aqua 10.0 checkbox, radio, text field, search field, slider and stepper, at the original's metrics.",
-      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "registryDependencies": ["https://livisliving.github.io/Patina/r/theme.json"],
       "files": [
         { "path": "src/registry/y2k/forms.tsx", "type": "registry:ui", "target": "components/ui/forms.tsx" }
       ]
@@ -141,7 +141,7 @@
       "type": "registry:ui",
       "title": "Table and tree view",
       "description": "The Aqua list view — list-header row, pale-blue alternate rows, tone selection — and a disclosure tree.",
-      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "registryDependencies": ["https://livisliving.github.io/Patina/r/theme.json"],
       "files": [
         { "path": "src/registry/y2k/table.tsx", "type": "registry:ui", "target": "components/ui/table.tsx" }
       ]
@@ -152,7 +152,7 @@
       "title": "Pop-up button and menus",
       "description": "The Aqua pop-up button (white body, tone gem) and the menu styles it opens — pinstriped sheet, 19px rows, tone highlight.",
       "dependencies": ["radix-ui"],
-      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "registryDependencies": ["https://livisliving.github.io/Patina/r/theme.json"],
       "files": [
         { "path": "src/registry/y2k/popup.tsx", "type": "registry:ui", "target": "components/ui/popup.tsx" }
       ]
@@ -162,7 +162,7 @@
       "type": "registry:ui",
       "title": "Segmented control",
       "description": "22px Aqua segmented control: white segments, the selected one in the light tone gel with a black glyph.",
-      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "registryDependencies": ["https://livisliving.github.io/Patina/r/theme.json"],
       "files": [
         { "path": "src/registry/y2k/segmented.tsx", "type": "registry:ui", "target": "components/ui/segmented.tsx" }
       ]
@@ -173,7 +173,7 @@
       "title": "Menu bar",
       "description": "Aqua's menu bar pinned to the top: 22px of light pinstripe, the logo menu where the Apple menu sits, the front app's name in bold, the volume and the clock with their menus. Menus are data, with the original's shortcuts bound.",
       "dependencies": ["radix-ui"],
-      "registryDependencies": ["https://patina.md/r/theme.json", "https://patina.md/r/popup.json", "https://patina.md/r/forms.json"],
+      "registryDependencies": ["https://livisliving.github.io/Patina/r/theme.json", "https://livisliving.github.io/Patina/r/popup.json", "https://livisliving.github.io/Patina/r/forms.json"],
       "files": [
         {
           "path": "src/registry/y2k/menu-bar.tsx",
@@ -187,7 +187,7 @@
       "type": "registry:ui",
       "title": "Dock",
       "description": "The 10.1 Dock: a translucent pinstriped shelf, icons edge to edge that magnify under the cursor, name labels, running triangles, dividers, a bounce as an app starts and the genie for minimising; on a phone it scrolls, its edges fading where there is more.",
-      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "registryDependencies": ["https://livisliving.github.io/Patina/r/theme.json"],
       "files": [
         {
           "path": "src/registry/y2k/dock.tsx",
@@ -201,7 +201,7 @@
       "type": "registry:ui",
       "title": "Wallpaper",
       "description": "The desktop behind every window: Aqua's swoosh in the current tone, or your own photos per tone (desktop and phone).",
-      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "registryDependencies": ["https://livisliving.github.io/Patina/r/theme.json"],
       "files": [
         {
           "path": "src/registry/y2k/wallpaper.tsx",
@@ -215,7 +215,7 @@
       "type": "registry:ui",
       "title": "Icons",
       "description": "24 glossy Aqua-style icons drawn for the pack (computer, home, folder, document, mail, chart, lock…), the same in every tone except Folder, Heart and Star; `lucideToPack` names the one to use for a lucide-react icon.",
-      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "registryDependencies": ["https://livisliving.github.io/Patina/r/theme.json"],
       "files": [
         {
           "path": "src/registry/y2k/icons.tsx",

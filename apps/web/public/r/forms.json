@@ -4,7 +4,7 @@
   "title": "Form controls",
   "description": "Aqua 10.0 checkbox, radio, text field, search field, slider and stepper, at the original's metrics.",
   "registryDependencies": [
-    "https://patina-one.vercel.app/r/theme.json"
+    "https://livisliving.github.io/Patina/r/theme.json"
   ],
   "files": [
     {
