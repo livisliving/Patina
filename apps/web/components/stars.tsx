@@ -10,9 +10,8 @@ import * as React from "react"
  * wallpaper and below icons/windows. Honours prefers-reduced-motion (the
  * keyframe is disabled in the theme, so the glints sit still). Stars only.
  *
- * All randomness runs client-side (after mount / on each iteration), never at
- * render time, so there is no SSR/hydration mismatch — the layer renders empty
- * on the server and populates once mounted.
+ * The layer renders nothing on the server or while the page hydrates, so its
+ * random positions can never mismatch the server's HTML.
  */
 
 const COUNT = 14
@@ -37,15 +36,13 @@ const spawn = (): Spark => ({
   delay: -rand(0, MAX_DUR),
 })
 
+const noSubscription = () => () => {}
+
 export function Stars() {
-  const [sparks, setSparks] = React.useState<Spark[] | null>(null)
+  const hydrated = React.useSyncExternalStore(noSubscription, () => true, () => false)
+  const [sparks, setSparks] = React.useState<Spark[]>(() => Array.from({ length: COUNT }, spawn))
 
-  // Seed positions on the client only (avoids hydration mismatch).
-  React.useEffect(() => {
-    setSparks(Array.from({ length: COUNT }, spawn))
-  }, [])
-
-  if (!sparks) return null
+  if (!hydrated) return null
 
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-[9] hidden overflow-hidden md:block">
@@ -72,7 +69,6 @@ export function Stars() {
           // props would restart it and fire iteration again in a tight loop).
           onAnimationIteration={() =>
             setSparks((prev) => {
-              if (!prev) return prev
               const next = prev.slice()
               next[i] = { ...prev[i], ...place() }
               return next

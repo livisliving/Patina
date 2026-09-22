@@ -229,7 +229,7 @@ function WindowToolbarItem({
       {...props}
     >
       <span className="flex size-8 items-center justify-center [&_svg]:size-8">{icon}</span>
-      {children}
+      <span className="max-sm:sr-only">{children}</span>
     </button>
   )
 }
@@ -241,7 +241,7 @@ function WindowToolbarControl({ className, label, children, ...props }: React.Co
   return (
     <div data-slot="window-toolbar-control" className={cn(toolbarSlot, className)} {...props}>
       <span className="flex h-8 items-center justify-center self-stretch">{children}</span>
-      <span className={toolbarLabel}>{label}</span>
+      <span className={cn(toolbarLabel, "max-sm:sr-only")}>{label}</span>
     </div>
   )
 }

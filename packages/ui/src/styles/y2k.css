@@ -193,11 +193,11 @@
   --y2k-tone-listheader-sorted: linear-gradient(to bottom, #ac0066 0px 1px, #dc6ba0 1px 2px, #f09fc1 2px 3px, #f6abca 3px 4px, #ffa7cc 4px 5px, #ff97c5 5px 6px, #f87ab5 6px 7px, #ff82bd 7px 8px, #ff8fc6 8px 9px, #ff97ce 9px 10px, #ffaddd 10px 11px, #ffb9e3 11px 12px, #ffc2e7 12px 13px, #ffcbec 13px 15px, #ffd3f1 15px 16px, #999999 16px 17px);
   --y2k-tone-highlight: linear-gradient(to bottom, #c80078 0px 1px, #d21884 1px 2px, #d62c8a 2px 3px, #d01183 3px 4px, #c80078 4px 5px, #d01183 5px 6px, #d42888 6px 7px, #d01183 7px 8px, #c80078 8px 9px, #d01183 9px 10px, #d62c8a 10px 11px, #d01183 11px 12px, #c80078 12px 13px, #d01183 13px 14px, #d62c8a 14px 15px, #d01183 15px 16px, #c80078 16px 17px, #d01183 17px 18px, #d62c8a 18px 19px, #d01183 19px 20px, #c40074 20px 21px, #b80066 21px 22px);
   --y2k-tone-highlight-text: #ffffff;
-  --y2k-tone-selection: rgba(232, 68, 154, 0.88);
+  --y2k-tone-selection: rgba(181, 53, 120, 0.88);
   --y2k-tone-selection-text: #ffffff;
   --y2k-tone-glow: rgba(232, 68, 154, 0.5);
   --y2k-tone-focus: rgba(255, 119, 199, 0.55);
-  --y2k-tone-list: linear-gradient(180deg, rgb(241, 143, 194) 0%, rgb(235, 96, 169) 50%, rgb(232, 68, 154) 100%);
+  --y2k-tone-list: linear-gradient(180deg, rgb(177, 88, 135) 0%, rgb(163, 57, 112) 50%, rgb(158, 46, 105) 100%);
   --y2k-wall-hi: rgb(242, 152, 199);
   --y2k-wall-mid: rgb(232, 68, 154);
   --y2k-wall-lo: rgb(104, 31, 69);
@@ -341,7 +341,7 @@
   --y2k-tone-selection-text: #ffffff;
   --y2k-tone-glow: rgba(122, 58, 186, 0.5);
   --y2k-tone-focus: rgba(164, 105, 233, 0.55);
-  --y2k-tone-list: linear-gradient(180deg, rgb(149, 97, 200) 0%, rgb(129, 68, 189) 50%, rgb(122, 58, 186) 100%);
+  --y2k-tone-list: linear-gradient(180deg, rgb(145, 96, 194) 0%, rgb(124, 66, 182) 50%, rgb(117, 56, 179) 100%);
   --y2k-wall-hi: rgb(182, 147, 217);
   --y2k-wall-mid: rgb(122, 58, 186);
   --y2k-wall-lo: rgb(55, 26, 84);

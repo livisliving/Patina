@@ -14,6 +14,8 @@ colors:
   primary-bright: "#ED6DB0"
   primary-container: "#A7316F"
   primary-tint: "#FFE3F1"
+  primary-selection: "#B53578"   # the selection, deepened until white ink reads (AA)
+  primary-list: "#B15887"        # the sidebar's selected row at its lightest (top)
   # ── Aqua constants (never toned) ───────────────────────────────────
   secondary: "#2765CA"
   on-secondary: "#FFFFFF"
@@ -365,10 +367,10 @@ components:
     width: 20px
     height: 12px
   selection:
-    backgroundColor: "{colors.primary}"
+    backgroundColor: "{colors.primary-selection}"
     textColor: "{colors.on-secondary}"
   sidebar-selected:
-    backgroundColor: "{colors.primary-bright}"
+    backgroundColor: "{colors.primary-list}"
     textColor: "{colors.on-secondary}"
   focus-ring:
     backgroundColor: "{colors.primary-tint}"
@@ -494,9 +496,12 @@ colors everything gel. Both are always present.
   state.
 - **Primary-tint (#FFE3F1):** the tinted focus glow. The live focus ring is
   the base at 25% alpha; selection is the base at 88%, with white ink in
-  pink / aqua / grape and black ink in lime / tangerine. Aqua is the one
-  exception: its rows select in the deeper highlight blue #336ABD, because the
-  original's lighter #4D83D2 row gives white text only 3.8:1.
+  pink / aqua / grape and black ink in lime / tangerine. Where white ink
+  would miss AA, the colour is deepened in its own hue until it reads:
+  pink selects in #B53578 (**Primary-selection**), and its sidebar row runs
+  #B15887 → #9E2E69 (**Primary-list** at the top). Aqua takes the deeper
+  highlight blue #336ABD, because the original's lighter #4D83D2 row gives
+  white text only 3.8:1.
 - **The gels are measured, not guessed.** Every gel, tab, control, progress
   and menu-highlight gradient is the Aqua 10.0 lighting curve (see
   `scripts/tones.mjs`): Aqua takes it as measured, the other tones keep the
@@ -862,8 +867,9 @@ line icon.
   black on the default button is 8.6:1 in pink, 8.1:1 in aqua, 13.3:1 in lime,
   11.5:1 in tangerine and 4.9:1 in grape (its darkest tenth, on the measured
   rows); black on the pinstripe about 15:1.
-  Pink's white-ink selection (3.7:1) and sidebar (2.5:1) are the known
-  exceptions still open.
+  White ink on a selected row and on the sidebar's selected row is at least
+  4.5:1 in every tone: `scripts/tones.mjs` deepens a tone in its own hue
+  until it is (pink's selection 4.6:1, its sidebar 4.6:1 at the lightest).
 - Do respect `prefers-reduced-motion`: no pulse, no window zoom, no Dock
   magnification, no bounce, no genie.
 

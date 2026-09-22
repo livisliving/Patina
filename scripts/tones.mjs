@@ -200,6 +200,16 @@ function inkFor(list, base, exact) {
   return worst([255, 255, 255]) >= worst([0, 0, 0]) ? "#ffffff" : "#000000"
 }
 
+/** Does white ink read (WCAG AA, 4.5:1) on a colour — laid over white at
+ *  `alpha` when it is translucent, as a selection is on a list? */
+const reads = (c, alpha = 1) => contrast([255, 255, 255], c.map((v) => v * alpha + 255 * (1 - alpha))) >= 4.5
+/** The colour darkened in its own hue, a step at a time, until `ok` holds. */
+function deepen(c, ok) {
+  let k = 0
+  while (!ok(c.map((v) => v * (1 - k))) && k < 0.7) k += 0.01
+  return c.map((v) => v * (1 - k))
+}
+
 /* ── The five tones ──────────────────────────────────────────────── */
 
 /** A tone base, read from DESIGN.md's front matter — declared there once. */
@@ -222,9 +232,8 @@ const TONES = [
     face: "hue-rotate(-130deg) saturate(1.05)", star: "hue-rotate(116deg) saturate(1.1) brightness(1.05)" },
   { id: "tangerine", base: base("tone-tangerine"), ink: "#000000",
     face: "hue-rotate(-170deg) saturate(1.2)", star: "hue-rotate(64deg) saturate(1.05)" },
-  // Grape: darkened to #7a3aba and a shallower list gradient (20/5) so white
-  // ink passes AA on the selection and the sidebar — measured, not assumed.
-  { id: "grape", base: base("tone-grape"), ink: "#ffffff", listMix: [0.2, 0.05],
+  // Grape: darkened to #7a3aba so white ink reads on its selection.
+  { id: "grape", base: base("tone-grape"), ink: "#ffffff",
     face: "hue-rotate(55deg) saturate(1.05)", star: "hue-rotate(-59deg) saturate(0.82)" },
 ]
 
@@ -233,7 +242,17 @@ function block(t) {
   const x = !!t.exact
   const one = (s) => toned(s, b, x)
   const tone = (list, opts) => rows(list, { map: one, ...opts })
-  const [light, dark] = t.listMix ?? [0.4, 0.15]
+  // White ink has to read on the selection and down the whole sidebar
+  // gradient. Where the tone's own colours miss AA, they are deepened in
+  // their hue just enough, and the sidebar takes the shallow gradient.
+  const white = t.ink === "#ffffff"
+  const selection = white ? deepen(b, (c) => reads(c, 0.88)) : b
+  let [light, dark] = [0.4, 0.15]
+  let listBase = b
+  if (white && !reads(mix(b, light))) {
+    ;[light, dark] = [0.2, 0.05]
+    listBase = deepen(b, (c) => reads(mix(c, light)))
+  }
   const barber = `repeating-linear-gradient(45deg, ${BARBER.map(([c, p]) => `${one(c)} ${p}px`).join(", ")})`
   const lines = [
     `--y2k-tone: ${rgbStr(b)};`,
@@ -261,12 +280,12 @@ function block(t) {
     `--y2k-tone-listheader-sorted: ${tone(TONED.listheaderSorted)};`,
     `--y2k-tone-highlight: ${tone(TONED.highlight)};`,
     `--y2k-tone-highlight-text: ${inkFor(TONED.highlight, b, x)};`,
-    `--y2k-tone-selection: ${t.selection ?? fmt([b, 0.88])};`,
+    `--y2k-tone-selection: ${t.selection ?? fmt([selection, 0.88])};`,
     `--y2k-tone-selection-text: ${t.ink};`,
     `--y2k-tone-glow: ${fmt([b, 0.5])};`,
     // aqua-ui's focus ring: the light accent #6db3ff at 55%.
     `--y2k-tone-focus: ${fmt([parse(one("#6db3ff"))[0], 0.55])};`,
-    `--y2k-tone-list: ${t.list ?? `linear-gradient(180deg, ${rgbStr(mix(b, light))} 0%, ${rgbStr(mix(b, dark))} 50%, ${rgbStr(b)} 100%)`};`,
+    `--y2k-tone-list: ${t.list ?? `linear-gradient(180deg, ${rgbStr(mix(listBase, light))} 0%, ${rgbStr(mix(listBase, dark))} 50%, ${rgbStr(listBase)} 100%)`};`,
     `--y2k-wall-hi: ${rgbStr(mix(b, 0.45))};`,
     `--y2k-wall-mid: ${rgbStr(b)};`,
     `--y2k-wall-lo: ${rgbStr(b.map((v) => v * 0.45))};`,

@@ -357,10 +357,10 @@ function ColumnRow({
  *  — the reference prints them as running text, not as a label grid. */
 function ColumnInspector({ item }: { item: FinderItem }) {
   return (
-    <div className="flex w-44 shrink-0 flex-col items-center overflow-y-auto px-3 pt-6 pb-3">
+    <div data-finder-column className="flex w-44 shrink-0 flex-col items-center overflow-y-auto px-3 pt-6 pb-3">
       <span className="size-32 shrink-0 [&_svg]:size-full">{item.icon}</span>
       <div className="mt-4 w-full space-y-1 text-[12px] leading-[1.35]">
-        <p className="truncate">Name: {item.label}</p>
+        <p className="break-words">Name: {item.label}</p>
         <p>Kind: {item.kind}</p>
         <p>Size: {item.size}</p>
         <p>Created: {item.created}</p>
@@ -722,41 +722,41 @@ const TONE_IDS = TONES.map((t) => t.id)
 const FIXED_NAMES: string[] = [...FIXED_TOKENS, ...LIGHT_TOKENS].map((t) => t.token)
 const TONE_NAMES: string[] = TONE_TOKENS.map((t) => t.token)
 
+type TokenValues = { fixed: Record<string, string>; byTone: Record<string, Record<string, string>> }
+const NO_TOKENS: TokenValues = { fixed: {}, byTone: {} }
+let tokenValues: TokenValues | null = null
+
+/** Every token's declared value, read out of the stylesheet the first time
+ *  it is asked for and kept: the fixed tokens off <html>, the five tones via a
+ *  hidden `data-tone` probe. */
+function readTokens(): TokenValues {
+  if (tokenValues) return tokenValues
+  const read = (el: Element, names: readonly string[]) => {
+    const cs = getComputedStyle(el)
+    return Object.fromEntries(names.map((n) => [n, cs.getPropertyValue(n).trim()]))
+  }
+  const probe = document.createElement("div")
+  probe.style.display = "none"
+  document.body.appendChild(probe)
+  const byTone: TokenValues["byTone"] = {}
+  for (const id of TONE_IDS) {
+    probe.dataset.tone = id
+    byTone[id] = read(probe, TONE_NAMES)
+  }
+  probe.remove()
+  return (tokenValues = { fixed: read(document.documentElement, FIXED_NAMES), byTone })
+}
+
+const noSubscription = () => () => {}
+
 /**
- * Reads the declared value of each token straight out of the stylesheet, once,
- * on mount — for the five tones via a hidden `data-tone` probe, and for the
- * fixed tokens off <html>. Printing measured values (instead of a hand-copied
- * table) means the palette in the Design System can never drift from y2k.css.
- * Values are empty until the effect runs, so rows render "—" during SSR.
- *
- * Reading costs a style recalc plus a probe element in the document, so it
- * waits until the window that shows the palette is actually open.
+ * The palette the Design System prints: measured values rather than a
+ * hand-copied table, so it can never drift from y2k.css. Reading costs a
+ * style recalc, so it waits until the window showing the palette is open;
+ * until then, and on the server, rows render "—".
  */
 function useTokenValues(enabled: boolean) {
-  const [fixed, setFixed] = React.useState<Record<string, string>>({})
-  const [byTone, setByTone] = React.useState<Record<string, Record<string, string>>>({})
-
-  React.useEffect(() => {
-    if (!enabled) return
-    const read = (el: Element, names: readonly string[]) => {
-      const cs = getComputedStyle(el)
-      return Object.fromEntries(names.map((n) => [n, cs.getPropertyValue(n).trim()]))
-    }
-    setFixed(read(document.documentElement, FIXED_NAMES))
-
-    const probe = document.createElement("div")
-    probe.style.display = "none"
-    document.body.appendChild(probe)
-    const next: Record<string, Record<string, string>> = {}
-    for (const id of TONE_IDS) {
-      probe.dataset.tone = id
-      next[id] = read(probe, TONE_NAMES)
-    }
-    probe.remove()
-    setByTone(next)
-  }, [enabled])
-
-  return { fixed, byTone }
+  return React.useSyncExternalStore(noSubscription, () => (enabled ? readTokens() : NO_TOKENS), () => NO_TOKENS)
 }
 
 /** The middle `rgb(...)`/hex stop of a gradient, what a gradient token's
@@ -892,12 +892,16 @@ export function Desktop() {
       }),
     []
   )
-  // Opening a folder pushes a column past the window's width; the Finder always
-  // scrolls the strip to show the newest one, so this does too.
+  // Opening a folder pushes a column past the window's width; the Finder
+  // scrolls the strip so the newest one shows whole, at the right. Not to the
+  // very end: the empty column after it would push the first one off a phone.
   const finderViewportRef = React.useRef<HTMLDivElement>(null)
   React.useEffect(() => {
     const el = finderViewportRef.current
-    if (el && finderView === "columns") el.scrollLeft = el.scrollWidth
+    const newest = el?.querySelectorAll("[data-finder-column]")
+    const last = newest?.[newest.length - 1]
+    if (!el || finderView !== "columns" || !last) return
+    el.scrollLeft = Math.max(0, last.getBoundingClientRect().right - el.getBoundingClientRect().left + el.scrollLeft - el.clientWidth)
   }, [finderView, finderPath])
   // The "Controls" demo group has its own (independent) popup + search field.
   const [dsControlsWhere, setDsControlsWhere] = React.useState("Documents")
@@ -923,10 +927,11 @@ export function Desktop() {
   const [trashOpen, setTrashOpen] = React.useState(false)
   // Literal token values for the Design System's "Colours" group.
   const { fixed: fixedColors, byTone: toneColors } = useTokenValues(wins.buttons.open)
-  // Which tone the "Colours" group is showing. Follows the active tone, but can
-  // be tabbed away from to read another family's values.
-  const [colorTab, setColorTab] = React.useState<Tone>(tone)
-  React.useEffect(() => setColorTab(tone), [tone])
+  // Which tone the "Colours" group is showing: the active tone, unless another
+  // family's tab was picked since the tone last changed.
+  const [picked, setPicked] = React.useState<{ under: Tone; tab: Tone } | null>(null)
+  const colorTab = picked?.under === tone ? picked.tab : tone
+  const setColorTab = (tab: Tone) => setPicked({ under: tone, tab })
 
   // `kind` / `size` / `modified` feed the column view's inspector pane, the way
   // the 10.2 Finder's third column describes the selected file.
@@ -1278,7 +1283,7 @@ export function Desktop() {
                 <div className="flex min-h-full w-max min-w-full">
                   {columns.map((col, depth) => (
                     <React.Fragment key={depth}>
-                      <div className="shrink-0 overflow-y-auto py-1" style={{ width: columnWidths[depth] ?? 176 }}>
+                      <div data-finder-column className="shrink-0 overflow-y-auto py-1" style={{ width: columnWidths[depth] ?? 176 }}>
                         {col.items.map((it) => (
                           <ColumnRow
                             key={it.label}
@@ -1310,7 +1315,8 @@ export function Desktop() {
                         <TableHead sorted="ascending">Name</TableHead>
                         <TableHead>Date Modified</TableHead>
                         <TableHead>Size</TableHead>
-                        <TableHead>Kind</TableHead>
+                        {/* A phone has room for three columns; Kind goes. */}
+                        <TableHead className="max-sm:hidden">Kind</TableHead>
                       </tr>
                     </TableHeader>
                     <TableBody>
@@ -1328,7 +1334,7 @@ export function Desktop() {
                           >
                             <TableCell>{it.modified}</TableCell>
                             <TableCell>{it.size}</TableCell>
-                            <TableCell>{it.kind}</TableCell>
+                            <TableCell className="max-sm:hidden">{it.kind}</TableCell>
                           </FileRow>
                         )
                       })}
