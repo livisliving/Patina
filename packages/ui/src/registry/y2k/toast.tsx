@@ -49,7 +49,7 @@ function Nudge({
       className={cn(
         // A mini Aqua window: pinstripe frame, rounded top, deep shadow.
         "relative overflow-hidden rounded-(--y2k-window-radius) border-[0.5px] border-(--y2k-window-border)",
-        "bg-(image:--y2k-pinstripe) text-(--y2k-ink) shadow-(--y2k-shadow-window)",
+        "bg-(image:--y2k-pinstripe) font-(family-name:--y2k-font-ui) text-(--y2k-ink) shadow-(--y2k-shadow-window)",
         "data-[state=open]:animate-[y2k-nudge-in_600ms_var(--y2k-ease-aqua)]",
         "data-[state=closed]:animate-[y2k-nudge-out_180ms_ease-in]",
         "data-[swipe=move]:translate-x-(--radix-toast-swipe-move-x) data-[swipe=cancel]:translate-x-0 data-[swipe=cancel]:transition-transform",

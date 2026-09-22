@@ -38,7 +38,7 @@ function VisitorCounter({
           key={i}
           className={cn(
             "flex h-6 w-4 items-center justify-center rounded-[1px] tabular-nums",
-            "bg-[linear-gradient(#2a2a2a,#151515)] font-mono text-[13px] leading-none font-bold",
+            "bg-[linear-gradient(#2a2a2a,#151515)] font-(family-name:--y2k-font-mono) text-[13px] leading-none font-bold",
             // Glowing tone digits, like a lit segment display.
             "text-(--y2k-tone) [text-shadow:0_0_4px_var(--y2k-tone-glow)]",
             "shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"

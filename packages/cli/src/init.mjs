@@ -103,13 +103,15 @@ function uiDir(cwd) {
   return candidates.find((d) => fs.existsSync(d)) ?? (fs.existsSync(path.join(cwd, "src")) ? candidates[1] : candidates[0])
 }
 
-async function confirm(question, { yes }) {
+/** Ask at a terminal; `--yes` answers yes, and a script (no TTY) gets the
+ *  fallback — yes for "go ahead?", no for "replace your files?". */
+async function confirm(question, { yes, fallback = true }) {
   if (yes) return true
-  if (!process.stdin.isTTY) return true
+  if (!process.stdin.isTTY) return fallback
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
-  const answer = (await rl.question(`${question} [Y/n] `)).trim().toLowerCase()
+  const answer = (await rl.question(`${question} ${fallback ? "[Y/n]" : "[y/N]"} `)).trim().toLowerCase()
   rl.close()
-  return answer === "" || answer === "y" || answer === "yes"
+  return fallback ? answer === "" || answer === "y" || answer === "yes" : answer === "y" || answer === "yes"
 }
 
 /** Every y2k.css under the project (shallow: root, styles/, src/…, app/). */
@@ -272,11 +274,15 @@ export async function init({ cwd, registry, components, force, dryRun, yes }) {
       // leave half a pack behind. `bootstrapped` means shadcn's own init
       // wrote its stubs seconds ago — replacing those clobbers nothing.
       const dir = uiDir(cwd)
-      const taken = Object.values(COMPONENTS).filter((f) => fs.existsSync(path.join(dir, f)))
+      const taken = [
+        ...findThemes(cwd).map((t) => path.relative(cwd, t)),
+        ...Object.values(COMPONENTS).filter((f) => fs.existsSync(path.join(dir, f))).map((f) => path.relative(cwd, path.join(dir, f))),
+      ]
       let overwrite = force || bootstrapped
       if (taken.length && !overwrite) {
-        console.log(`  ${taken.length} of the pack's files already exist in ${path.relative(cwd, dir)}/: ${taken.join(", ")}`)
-        overwrite = await confirm("  replace them with the pack's?", { yes: false })
+        console.log(`  ${taken.length} of the pack's files already exist: ${taken.join(", ")}`)
+        // Only a person at a terminal can say yes here; --yes and a script cannot.
+        overwrite = !yes && (await confirm("  replace them with the pack's?", { yes: false, fallback: false }))
         if (!overwrite) {
           console.log(stop("components not installed — re-run with --force to replace them, or move yours aside first."))
           return 1
@@ -286,18 +292,15 @@ export async function init({ cwd, registry, components, force, dryRun, yes }) {
       // component, and an unanswered prompt in a non-interactive shell just
       // stalls the install.
       const flags = [...(yes ? ["--yes"] : []), ...(overwrite ? ["--overwrite"] : [])]
-      const started = Date.now()
       const res = spawnSync("npx", ["shadcn@latest", "add", ...flags, ...urls], { cwd, stdio: "inherit", shell: false, env: childEnv() })
-      // Then check the files are really there, and really new: shadcn's exit
-      // code says nothing about a prompt it answered for itself.
+      // Then check every file is really there: shadcn's exit code says
+      // nothing about a prompt it answered for itself.
       const missing = Object.entries(COMPONENTS)
-        .filter(([, f]) => {
-          const at = path.join(uiDir(cwd), f)
-          return !fs.existsSync(at) || fs.statSync(at).mtimeMs < started - 1000
-        })
+        .filter(([, f]) => !fs.existsSync(path.join(uiDir(cwd), f)))
         .map(([item]) => item)
+      if (!findThemes(cwd).length) missing.unshift("theme")
       if (res.status !== 0 || missing.length) {
-        const why = res.status !== 0 ? `shadcn exited ${res.status ?? "with an error"}` : `shadcn left ${missing.join(", ")} as they were`
+        const why = res.status !== 0 ? `shadcn exited ${res.status ?? "with an error"}` : `shadcn did not write ${missing.join(", ")}`
         console.log(stop(`${why} — the files above are still in place.`))
         console.log(`    retry: npx shadcn@latest add --overwrite ${urls.join(" ")}`)
         return 1

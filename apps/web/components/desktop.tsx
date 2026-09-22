@@ -1471,7 +1471,8 @@ export function Desktop() {
                 <div className="flex flex-wrap items-center gap-3">
                   <Button disabled>Disabled (white)</Button>
                   <Button variant="tone" disabled>Disabled (tone)</Button>
-                  <Button autoFocus>Focused</Button>
+                  {/* The ring drawn, not focus taken: autoFocus scrolled the window to it. */}
+                  <Button className="outline-3 outline-offset-1 outline-(--y2k-tone-focus)">Focused</Button>
                 </div>
               </WindowGroup>
               )}

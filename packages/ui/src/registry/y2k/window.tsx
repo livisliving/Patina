@@ -661,7 +661,10 @@ function WindowFrame({
       data-active={active}
       data-material={material}
       className={cn(
-        "relative flex flex-col overflow-hidden border text-(--y2k-ink)",
+        // The system face on the frame itself, so text set straight into a
+        // window (a toolbar's, a status bar's) is Aqua's without the app
+        // having to set a body font.
+        "relative flex flex-col overflow-hidden border font-(family-name:--y2k-font-ui) text-(--y2k-ink)",
         // Aqua 10.0 rounds the top corners 8px and the bottom 6px, on
         // pinstripe and metal alike. Focus changes only the chrome inside
         // (title bar, lights, title); the rim and the drop stay.
