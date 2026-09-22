@@ -48,5 +48,5 @@ not get to pick silently:
 Anything that needs judgment about intent: whether a shadow sits on a window,
 whether a 20px value is an HIG button or a coincidence, whether the layout
 *reads* as a desktop. Those belong in review, not in a regex. The checker is
-deliberately biased toward under-reporting — one false positive and people
+deliberately biased towards under-reporting — one false positive and people
 stop running it.

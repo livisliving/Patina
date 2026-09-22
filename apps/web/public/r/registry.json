@@ -171,9 +171,9 @@
       "name": "menu-bar",
       "type": "registry:ui",
       "title": "Menu bar",
-      "description": "Aqua's menu bar pinned to the top: 22px of light pinstripe, the logo menu where the Apple menu sits, the front app's name in bold, a clock. Menus are data, with the original's shortcuts bound.",
+      "description": "Aqua's menu bar pinned to the top: 22px of light pinstripe, the logo menu where the Apple menu sits, the front app's name in bold, the volume and the clock with their menus. Menus are data, with the original's shortcuts bound.",
       "dependencies": ["radix-ui"],
-      "registryDependencies": ["https://patina-one.vercel.app/r/theme.json", "https://patina-one.vercel.app/r/popup.json"],
+      "registryDependencies": ["https://patina-one.vercel.app/r/theme.json", "https://patina-one.vercel.app/r/popup.json", "https://patina-one.vercel.app/r/forms.json"],
       "files": [
         {
           "path": "src/registry/y2k/menu-bar.tsx",

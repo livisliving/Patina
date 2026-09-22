@@ -27,6 +27,7 @@ import { useId } from "react"
 import { cn } from "@patina/ui"
 
 import type { Tone } from "./tones"
+import { asset } from "./asset"
 import { useTone } from "./use-tone"
 
 type IconProps = React.ComponentProps<"svg">
@@ -51,7 +52,7 @@ function PngIcon({ src, alt, className, style, ...props }: ImgProps & { src: str
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={src}
+      src={asset(src)}
       alt={alt}
       draggable={false}
       className={className}

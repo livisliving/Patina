@@ -21,11 +21,10 @@
   --y2k-title-ink: #2f2f2f;
   --y2k-title-ink-inactive: #8a8a8a;
   --y2k-title-lift: 0 1px 0 rgba(255, 255, 255, 0.7);
-  --y2k-ink-dim: #7f7f7f;
   --y2k-window-border: #7f7f7f;
+  /* The one hairline: separators, a sidebar's edge, a sunken well's rim. */
   --y2k-separator: rgba(0, 0, 0, 0.2);
   --y2k-input-bg: #ffffff;
-  --y2k-input-border: rgba(0, 0, 0, 0.2);
 
   /* ── Type ─────────────────────────────────────────────────────── */
   --y2k-font-ui: "Lucida Grande", "LucidaGrande", "AquaKana", var(--font-lato, "Lato"), "Lucida Sans Unicode", "Hiragino Sans", "Hiragino Sans GB", ui-sans-serif, system-ui, -apple-system, sans-serif;

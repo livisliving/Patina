@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils"
 
 const LIGHTS = {
   close: { color: "red", glyph: "M2.5 2.5l5 5M7.5 2.5l-5 5", label: "Close" },
-  minimize: { color: "yellow", glyph: "M2 5h6", label: "Minimize" },
+  minimize: { color: "yellow", glyph: "M2 5h6", label: "Minimise" },
   zoom: { color: "green", glyph: "M5 2v6M2 5h6", label: "Zoom" },
 } as const
 
@@ -293,7 +293,7 @@ function WindowWell({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="window-well"
       className={cn(
-        "bg-(--y2k-input-bg) shadow-[inset_0_1px_2px_rgba(0,0,0,0.25),0_0_0_1px_var(--y2k-input-border)]",
+        "bg-(--y2k-input-bg) shadow-[inset_0_1px_2px_rgba(0,0,0,0.25),0_0_0_1px_var(--y2k-separator)]",
         className
       )}
       {...props}

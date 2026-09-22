@@ -31,14 +31,14 @@ Installing the pack for someone works the same way: ask first, then run
 
 ## Order of work
 
-Structure before colour. A page with a hero, a centered column and three
+Structure before colour. A page with a hero, a centred column and three
 feature cards is still a page after you paint it pink — fixing that is most of
 the job, and doing it last means redoing the paint.
 
 1. **Structure.** The viewport is a desktop, not a document: a `Wallpaper`,
    a `MenuBar` pinned to the top, content in windows that sit on it, and a
    `Dock` along the foot when the page has places to go. Replace the
-   centered `max-w-*` column, the hero and the footer. One `WindowFrame` per
+   centred `max-w-*` column, the hero and the footer. One `WindowFrame` per
    thing the page is about.
    A `<section>` inside a window becomes a `WindowGroup`; a sunken area (a
    list, a preview, a field's background) becomes a `WindowWell`.
@@ -62,7 +62,7 @@ the job, and doing it last means redoing the paint.
 | `Card` / a bordered panel | `WindowFrame` (standalone) or `WindowGroup` (inside a window) |
 | `Dialog` / `Sheet` / modal | `Window` + `WindowTrigger` + `WindowContent`; a confirm → `WindowAlert` inside it |
 | `AlertDialog` | `WindowAlert` (64px icon, bold message, informative text, button row) |
-| `Button` | `Button` — `variant="white"` normally, `isDefault` for the one default action per window (`pulsing` for the dialog throb); `BevelButton` for a `Choose…`. shadcn's `variant`/`size` names still compile after install — replace them anyway: they are a bridge |
+| `Button` | `Button` — `variant="white"` normally, `isDefault` for the one default action per window (`pulsing` for the dialogue throb); `BevelButton` for a `Choose…`. shadcn's `variant`/`size` names still compile after install — replace them anyway: they are a bridge |
 | A text link / `variant="link"` | a plain `<a>` in `text-(--y2k-link) underline`, or `Button variant="link"` |
 | `Checkbox` | `Checkbox` (supports `"mixed"`) |
 | `RadioGroup` | `RadioGroup` + `Radio` |

@@ -23,6 +23,7 @@ import {
 import { ChromeReflection } from "@patina/shaders"
 
 import { STATIONS, TRACKS, createPlayer, duration, type Player, type Track } from "./ipod-synth"
+import { asset } from "./asset"
 import { useTone } from "./use-tone"
 
 /**
@@ -269,7 +270,7 @@ function Display({
         // At rest, the Patina star where iTunes has its logo: flat in the
         // display's ink, with the logo's faint drop down and to the right.
         <span className="drop-shadow-[1px_2px_3px_rgba(0,0,0,0.35)]">
-          <span aria-hidden className="block size-9 bg-current [mask:url(/icons/star.webp)_center/contain_no-repeat]" />
+          <span aria-hidden className="block size-9 bg-current [mask:var(--star)_center/contain_no-repeat]" style={{ "--star": `url(${asset("/icons/star.webp")})` } as React.CSSProperties} />
         </span>
       ) : (
         <div className="flex w-full flex-col items-center text-[11px] leading-[13px]">
@@ -299,7 +300,16 @@ function Display({
 /** The iPod's window content. `hidden` while minimized: the music plays on,
  *  but the clock and the visualizer rest. Memoised, as it sits open on the
  *  desktop through every desktop update. */
-export const IPod = React.memo(function IPod({ onEject, hidden }: { onEject: () => void; hidden?: boolean }) {
+export const IPod = React.memo(function IPod({
+  onEject,
+  hidden,
+  level = 1,
+}: {
+  onEject: () => void
+  hidden?: boolean
+  /** The system volume, 0–1, from the menu bar: the iPod's own volume is scaled by it. */
+  level?: number
+}) {
   const wellId = React.useId()
   const tone = useTone()
   const player = React.useRef<Player | null>(null)
@@ -330,7 +340,7 @@ export const IPod = React.memo(function IPod({ onEject, hidden }: { onEject: () 
   const [genre, setGenre] = React.useState<string | null>(null)
   const [visuals, setVisuals] = React.useState(false)
 
-  React.useEffect(() => player.current?.setVolume(volume / 100), [volume])
+  React.useEffect(() => player.current?.setVolume((volume / 100) * level), [volume, level])
 
   // Striped empty rows fill the list to its foot, as the reference's do.
   const viewport = React.useRef<HTMLDivElement>(null)
@@ -652,7 +662,7 @@ export const IPod = React.memo(function IPod({ onEject, hidden }: { onEject: () 
           </BevelButton>
         </div>
         <div className="flex gap-3">
-          <BevelButton aria-label="Visualizer" pressed={visuals} onClick={() => setVisuals((v) => !v)} className={foot}>
+          <BevelButton aria-label="Visualiser" pressed={visuals} onClick={() => setVisuals((v) => !v)} className={foot}>
             <FootGlyph name="visuals" />
           </BevelButton>
           <BevelButton

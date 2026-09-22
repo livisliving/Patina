@@ -59,10 +59,11 @@ import { useMarqueeSelect } from "./use-marquee-select"
 import { useMediaQuery } from "./use-media-query"
 import { useResize } from "./use-resize"
 import { Stars } from "./stars"
+import { asset } from "./asset"
 
 /** Olivia's photo wallpapers, a 16:9 one and a phone one per tone. */
 const WALLPAPERS = Object.fromEntries(
-  TONES.map((t) => [t.id, { desktop: `/wallpapers/${t.id}.webp`, mobile: `/wallpapers/${t.id}-mobile.webp` }])
+  TONES.map((t) => [t.id, { desktop: asset(`/wallpapers/${t.id}.webp`), mobile: asset(`/wallpapers/${t.id}-mobile.webp`) }])
 )
 
 /* ── Window manager ───────────────────────────────────────────────── */
@@ -663,23 +664,21 @@ function Band({ rect, z }: { rect: { x: number; y: number; w: number; h: number 
 
 /* ── Design System: colour + type documentation ───────────────────── */
 
-/** Fixed (never toned) tokens documented in the "Colors" group. */
+/** Fixed (never toned) tokens documented in the "Colours" group. */
 const FIXED_TOKENS = [
-  { token: "--y2k-ink", role: "Primary text" },
+  { token: "--y2k-ink", role: "Text" },
   { token: "--y2k-ink-secondary", role: "Secondary text" },
-  { token: "--y2k-ink-dim", role: "Dimmed text" },
   { token: "--y2k-ink-disabled", role: "Disabled text" },
-  { token: "--y2k-input-bg", role: "Field surface" },
-  { token: "--y2k-window-border", role: "Window hairline" },
-  { token: "--y2k-separator", role: "Separator" },
-  { token: "--y2k-input-border", role: "Field hairline" },
+  { token: "--y2k-window-border", role: "Window rim" },
+  { token: "--y2k-separator", role: "Hairline" },
+  { token: "--y2k-input-bg", role: "Field" },
 ] as const
 
 /** Traffic lights: the measured gem rows. The swatch paints the real
  *  gradient; the printed value is its middle row. */
 const LIGHT_TOKENS = [
   { token: "--y2k-light-red", role: "Close" },
-  { token: "--y2k-light-yellow", role: "Minimize" },
+  { token: "--y2k-light-yellow", role: "Minimise" },
   { token: "--y2k-light-green", role: "Zoom" },
 ] as const
 
@@ -693,27 +692,31 @@ const TONE_TOKENS = [
   { token: "--y2k-wall-lo", role: "Wallpaper lo" },
 ] as const
 
-/** The UI type scale. Sizes are native Aqua values and are NEVER snapped to the
- *  4px grid — only layout is. */
+/** Aqua's type scale. Each line is set at its own size and says where the
+ *  size is used. Font sizes are never snapped to the 4px grid. */
 const TYPE_SCALE = [
-  { px: 11, role: "Small: status bars, placards, segments, toolbar labels, bevel buttons", weight: "Regular" },
-  { px: 12, role: "Legend: group-box captions (bold); list and table rows", weight: "Bold / Regular" },
-  { px: 13, role: "System: body, buttons, menus, fields; window titles in bold", weight: "Regular / Bold" },
-  { px: 14, role: "The Dock's name label (10.1), white on a dark shadow", weight: "Bold" },
-  { px: 44, role: "About wordmark (EB Garamond)", weight: "Regular" },
+  { px: 11, name: "Small", use: "status bars, placards, segmented controls, toolbar labels, bevel buttons" },
+  { px: 12, name: "Legend", use: "group box captions in bold, list and table rows" },
+  { px: 13, name: "System", use: "buttons, menus, fields and body text; window titles and headings in bold" },
+  { px: 14, name: "Dock label", use: "the name over a Dock icon, bold and white on a dark shadow" },
 ] as const
 
+/** The three faces, each shown in itself at the size it is used, with what
+ *  stands in where it is not installed. */
 const TYPE_FACES = [
-  { token: "--y2k-font-ui", role: "UI", sample: "Lucida Grande 13" },
-  { token: "--y2k-font-wordmark", role: "Wordmark", sample: "Patina" },
-  { token: "--y2k-font-mono", role: "Mono", sample: "npx @patina/cli init" },
+  {
+    token: "--y2k-font-ui",
+    role: "Interface",
+    sample: "Lucida Grande",
+    px: 13,
+    fallback: "Lucida Grande on a Mac. Elsewhere Lato, which is open source and loads with the page, then the system sans. Japanese and Chinese fall back to AquaKana and Hiragino.",
+  },
+  { token: "--y2k-font-wordmark", role: "Wordmark", sample: "Patina", px: 44, fallback: "EB Garamond, loaded with the page. Only for the wordmark." },
+  { token: "--y2k-font-mono", role: "Code", sample: "npx @patina/cli init", px: 11, fallback: "Monaco on a Mac, then the system monospace." },
 ] as const
 
 const TONE_IDS = TONES.map((t) => t.id)
-const FIXED_NAMES: string[] = [
-  ...[...FIXED_TOKENS, ...LIGHT_TOKENS].map((t) => t.token),
-  ...TYPE_FACES.map((f) => f.token),
-]
+const FIXED_NAMES: string[] = [...FIXED_TOKENS, ...LIGHT_TOKENS].map((t) => t.token)
 const TONE_NAMES: string[] = TONE_TOKENS.map((t) => t.token)
 
 /**
@@ -753,12 +756,12 @@ function useTokenValues(enabled: boolean) {
   return { fixed, byTone }
 }
 
-/** The first `rgb(...)`/hex stop inside a gradient — what a gradient token's
+/** The middle `rgb(...)`/hex stop of a gradient, what a gradient token's
  *  swatch is labelled with, since the whole gradient string is unreadable. */
 function midStop(value: string) {
   const stops = value.match(/rgba?\([^)]*\)|#[0-9a-f]{3,8}/gi)
   if (!stops) return value
-  return stops[Math.min(1, stops.length - 1)]
+  return stops[Math.floor(stops.length / 2)]
 }
 
 /** Normalise a colour token to "#rrggbb · rgb(r, g, b)" (plus its alpha when
@@ -807,7 +810,7 @@ function ColorRow({ token, role, value }: { token: string; role: string; value?:
       <Swatch background={`var(${token})`} />
       <span className="min-w-[132px] flex-1">
         <span className="block text-[11px]">{role}</span>
-        <Mono className="block truncate text-(--y2k-ink-dim)">{token}</Mono>
+        <Mono className="block truncate text-(--y2k-ink-secondary)">{token}</Mono>
       </span>
       <Mono className="shrink-0 text-(--y2k-ink-secondary)">
         {value ? formatColor(value) : "—"}
@@ -839,6 +842,8 @@ export function Desktop() {
   })
   // Stable, so the iPod (memoised) doesn't redraw on every desktop update.
   const ejectIPod = React.useCallback(() => close("ipod"), [close])
+  // The system volume in the menu bar; the iPod plays at its own volume times this.
+  const [volume, setVolume] = React.useState(75)
 
   // Finder / Design System / Tone search queries, and the icon selection set
   // (populated by single-click or the desktop marquee drag-select).
@@ -898,9 +903,9 @@ export function Desktop() {
   const [savedNote, setSavedNote] = React.useState<string | null>(null)
   // Trash is empty — clicking it in the Dock says so.
   const [trashOpen, setTrashOpen] = React.useState(false)
-  // Literal token values for the Design System's "Colors" group.
+  // Literal token values for the Design System's "Colours" group.
   const { fixed: fixedColors, byTone: toneColors } = useTokenValues(wins.buttons.open)
-  // Which tone the "Colors" group is showing. Follows the active tone, but can
+  // Which tone the "Colours" group is showing. Follows the active tone, but can
   // be tabbed away from to read another family's values.
   const [colorTab, setColorTab] = React.useState<Tone>(tone)
   React.useEffect(() => setColorTab(tone), [tone])
@@ -989,7 +994,7 @@ export function Desktop() {
     "Buttons", "Variants", "Sizes", "Icon buttons", "States", "Form controls",
     "Checkbox & radio", "Text fields", "Slider & stepper", "Progress", "Tabs",
     "Tree & table", "Alert", "Icons", "Marquee & counter", "Materials", "Tone",
-    "Colors", "Type",
+    "Colours", "Type",
   ]
   const dsq = dsQuery.trim().toLowerCase()
   const dsMatch = (label: string) => !dsq || label.toLowerCase().includes(dsq)
@@ -1124,7 +1129,7 @@ export function Desktop() {
       label: "Window",
       items: [
         { label: "Zoom Window", disabled: frontFixed, onSelect: () => frontId && zoom(frontId) },
-        { label: "Minimize Window", shortcut: "⌘M", disabled: frontFixed, onSelect: () => frontId && minimize(frontId) },
+        { label: "Minimise Window", shortcut: "⌘M", disabled: frontFixed, onSelect: () => frontId && minimize(frontId) },
         "-",
         // The front app's windows, over everything else in the order they stand.
         {
@@ -1144,7 +1149,7 @@ export function Desktop() {
     <div className="min-h-dvh overflow-x-hidden font-(family-name:--y2k-font-ui) text-(--y2k-ink)">
       <Wallpaper photos={WALLPAPERS} />
       <Stars />
-      <MenuBar tone={tone} onToneChange={setTone} onOpen={open} menus={menus} />
+      <MenuBar tone={tone} onToneChange={setTone} onOpen={open} menus={menus} volume={volume} onVolumeChange={setVolume} />
 
       {/* Desktop surface: catches marquee drag-select on empty space (desktop
           only). Sits above the wallpaper, below the icons and windows. */}
@@ -1466,7 +1471,7 @@ export function Desktop() {
                 </p>
                 <p>If you only want one component, shadcn can fetch it on its own:</p>
                 <Mono className="y2k-field block px-[6px] py-1 break-all">
-                  npx shadcn@latest add https://patina-one.vercel.app/r/window.json
+                  npx shadcn@latest add {process.env.NEXT_PUBLIC_REGISTRY}/window.json
                 </Mono>
 
                 <h3 className="mt-1 font-bold">Build something</h3>
@@ -1501,7 +1506,7 @@ export function Desktop() {
                 <h3 className="mt-1 font-bold">Using this desktop</h3>
                 <p>
                   Double-click an icon to open it and drag a window by its title bar. The three lights at the top left
-                  close, minimize and zoom. Everything else is in the Dock. The Design System app shows the pack&apos;s
+                  close, minimise and zoom. Everything else is in the Dock. The Design System app shows the pack&apos;s
                   components, colours and type, and{" "}
                   <button type="button" onClick={openWin("design")} className="cursor-pointer text-(--y2k-link) underline underline-offset-2">
                     DESIGN.md
@@ -1541,7 +1546,7 @@ export function Desktop() {
                   <Button>Cancel</Button>
                   <Button isDefault>Save</Button>
                   <Button isDefault pulsing>Save</Button>
-                  <span className="text-[11px] text-(--y2k-ink-secondary)">The default button, at rest and with the dialog throb.</span>
+                  <span className="text-[11px] text-(--y2k-ink-secondary)">The default button, at rest and with the dialogue throb.</span>
                 </div>
               </WindowGroup>
               )}
@@ -1757,8 +1762,8 @@ export function Desktop() {
                 </div>
               </WindowGroup>
               )}
-              {dsMatch("Colors") && (
-              <WindowGroup label="Colors">
+              {dsMatch("Colours") && (
+              <WindowGroup label="Colours">
                 <div className="flex flex-col gap-4">
                   <section className="flex flex-col gap-2">
                     <p className="text-[11px] font-bold">Neutrals and surfaces, the same in every tone</p>
@@ -1786,9 +1791,9 @@ export function Desktop() {
                         documents; the panel below is scoped the same way, which
                         is what makes the swatches resolve to that tone. */}
                     <Tabs value={colorTab} onValueChange={(v) => setColorTab(v as Tone)}>
-                      <TabsList className="flex w-full pl-0">
+                      <TabsList className="flex w-full overflow-x-auto pl-0">
                         {TONES.map((t) => (
-                          <TabsTrigger key={t.id} value={t.id} data-tone={t.id} className="min-w-0 flex-1 truncate px-2">
+                          <TabsTrigger key={t.id} value={t.id} data-tone={t.id} className="flex-1 px-1 whitespace-nowrap sm:px-2">
                             {t.label}
                           </TabsTrigger>
                         ))}
@@ -1826,41 +1831,32 @@ export function Desktop() {
               {dsMatch("Type") && (
               <WindowGroup label="Type">
                 <div className="flex flex-col gap-4">
-                  <section className="flex flex-col gap-2">
+                  <section className="flex flex-col gap-3">
                     <p className="text-[11px] font-bold">Faces</p>
                     {TYPE_FACES.map((f) => (
-                      <div key={f.token} className="flex min-w-0 flex-col">
-                        <div className="flex min-w-0 items-baseline gap-2">
-                          <span className="shrink-0 text-[13px]" style={{ fontFamily: `var(${f.token})` }}>
-                            {f.sample}
-                          </span>
-                          <Mono className="shrink-0">{f.token}</Mono>
-                          <span className="shrink-0 text-[11px] text-(--y2k-ink-dim)">{f.role}</span>
-                        </div>
-                        {/* The whole stack, in fallback order — truncated, full text on hover. */}
-                        <Mono className="min-w-0 truncate text-(--y2k-ink-secondary)" title={fixedColors[f.token] ?? ""}>
-                          {fixedColors[f.token] ?? "—"}
-                        </Mono>
+                      <div key={f.token} className="flex flex-col gap-1">
+                        <span className="leading-none break-words" style={{ fontFamily: `var(${f.token})`, fontSize: `${f.px}px` }}>
+                          {f.sample}
+                        </span>
+                        <span className="text-[11px]">
+                          <strong>{f.role}</strong>, {f.px}px · <Mono>{f.token}</Mono>
+                        </span>
+                        <span className="text-[11px] leading-[1.45] text-(--y2k-ink-secondary)">{f.fallback}</span>
                       </div>
                     ))}
                   </section>
 
-                  <section className="flex flex-col gap-2">
-                    <p className="text-[11px] font-bold">Sizes, Aqua&apos;s own and not snapped to the 4px grid</p>
+                  <section className="flex flex-col gap-3 border-t border-(--y2k-separator) pt-3">
+                    <p className="text-[11px] font-bold">Sizes</p>
                     {TYPE_SCALE.map((s) => (
-                      <div key={s.px} className="flex min-w-0 items-baseline gap-2">
-                        <span
-                          className="w-[64px] shrink-0 leading-none"
-                          style={{ fontSize: `${s.px}px` }}
-                        >
-                          Aa
-                        </span>
-                        <Mono className="w-[40px] shrink-0">{s.px}px</Mono>
-                        <span className="w-[88px] shrink-0 text-[11px] text-(--y2k-ink-secondary)">{s.weight}</span>
-                        <span className="min-w-0 flex-1 truncate text-[11px]">{s.role}</span>
+                      <div key={s.px} className="grid grid-cols-[40px_minmax(0,1fr)] items-baseline gap-x-3">
+                        <Mono className="text-(--y2k-ink-secondary)">{s.px}px</Mono>
+                        <p className="leading-[1.45]" style={{ fontSize: `${s.px}px` }}>
+                          <strong>{s.name}:</strong> {s.use}
+                        </p>
                       </div>
                     ))}
-                    <p className="text-[11px] text-(--y2k-ink-secondary)">
+                    <p className="text-[11px] leading-[1.45] text-(--y2k-ink-secondary)">
                       Line height is 1.45 to 1.6 for text and 1.0 for chrome. Sentence case everywhere.
                     </p>
                   </section>
@@ -1873,7 +1869,7 @@ export function Desktop() {
             </WindowBody>
             </WindowScrollArea>
             <WindowFooter>
-              <Button onClick={openWin("window")}>Show Dialog…</Button>
+              <Button onClick={openWin("window")}>Show Dialogue…</Button>
               <Button isDefault onClick={() => close("buttons")}>OK</Button>
             </WindowFooter>
           </DesktopWindow>
@@ -1953,7 +1949,7 @@ export function Desktop() {
                   Some colours never change: ink <Mono>#000000</Mono>, secondary ink{" "}
                   <Mono>#4b4b4b</Mono>, disabled <Mono>#8d8d8d</Mono>, window pinstripe{" "}
                   <Mono>#dedede</Mono>, field <Mono>#ffffff</Mono> and window rim <Mono>#7f7f7f</Mono>. The traffic
-                  lights are red, yellow and green in every tone. The full table is in the Colors group of the Design
+                  lights are red, yellow and green in every tone. The full table is in the Colours group of the Design
                   System app.
                 </p>
 
@@ -1986,9 +1982,9 @@ export function Desktop() {
                 <h3 className="mt-1 font-bold"># Components</h3>
                 <p>
                   Push buttons are 20px tall and at least 68px wide, with a 13px regular label in black on gel and a
-                  deep, soft shadow. Each window has one default button, in the tone gel; the throb it does in dialogs
+                  deep, soft shadow. Each window has one default button, in the tone gel; the throb it does in dialogues
                   is optional. Tabs are folder tabs on a panel, the selected one in light tone gel with black text.
-                  Group boxes set their bold 12px caption into the top border. Dialogs <em>are</em> windows, with
+                  Group boxes set their bold 12px caption into the top border. Dialogues <em>are</em> windows, with
                   right-aligned labels, Cancel to the left of the default button and the button row at the bottom
                   right. Status bars are left-aligned. A window that loses focus keeps its shadow and its title bar
                   turns translucent grey. Scroll bars have an arrow at each end, and a second bar runs along the bottom
@@ -2028,7 +2024,7 @@ export function Desktop() {
                     <li>A photo wallpaper for each tone, and stars that twinkle on the desktop.</li>
                     <li>The Design System window, with the components and the full palette.</li>
                     <li>Layout snaps to a 4px grid. Font sizes stay at Aqua&apos;s own.</li>
-                    <li>Windows drag and minimize to the Dock, and you can drag a box in the Finder to select.</li>
+                    <li>Windows drag and minimise to the Dock, and you can drag a box in the Finder to select.</li>
                   </ul>
                 </div>
               </div>
@@ -2131,7 +2127,7 @@ export function Desktop() {
             }}
             className={cn("md:h-[400px] md:w-[600px]", wins.ipod.minimized && "hidden")}
           >
-            <IPod onEject={ejectIPod} hidden={wins.ipod.minimized} />
+            <IPod onEject={ejectIPod} hidden={wins.ipod.minimized} level={volume / 100} />
           </DesktopWindow>
         )}
       </main>
