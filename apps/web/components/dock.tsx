@@ -23,10 +23,12 @@ const MAX_SCALE = 2.0
 const RANGE = 140 // px of influence on either side of the cursor
 
 /**
- * The Aqua Dock: a pinstriped translucent shelf; icons magnify with the
- * cursor (falloff over 140px, spring-ish via CSS transitions), a label pill
- * above the hovered icon, a black triangle under running apps, Trash after a
- * divider on the right.
+ * The Aqua Dock, as 10.1 draws it (Olivia's screenshot): the pinstripe at
+ * 55% so the desktop shows through, a 1px white rim along the top and ends,
+ * icons edge to edge; they magnify with the cursor (falloff over 140px,
+ * spring-ish via CSS transitions). The hovered icon's name floats above it
+ * in bold white with a dark shadow; a black triangle marks running apps;
+ * Trash sits after a white hairline divider on the right.
  */
 export function Dock({ items, className }: { items: DockItem[]; className?: string }) {
   const listRef = React.useRef<HTMLUListElement>(null)
@@ -61,17 +63,19 @@ export function Dock({ items, className }: { items: DockItem[]; className?: stri
         onPointerMove={onMove}
         onPointerLeave={reset}
         className={cn(
-          "pointer-events-auto flex h-(--y2k-dock-h) max-w-[min(92vw,980px)] items-end gap-1 overflow-x-auto px-2 pt-1 pb-[3px] md:overflow-visible",
-          "bg-(--y2k-dock-surface) bg-(image:--y2k-pinstripe-menubar) shadow-(--y2k-shadow-dock)"
+          "pointer-events-auto flex h-(--y2k-dock-h) max-w-[min(92vw,980px)] items-end overflow-x-auto px-1 pb-[3px] md:overflow-visible",
+          // The rim lies straight on the desktop, so the stripe stops inside it.
+          "border-x border-t border-white/77 bg-(image:--y2k-pinstripe-dock) bg-clip-padding shadow-(--y2k-shadow-dock)"
         )}
         style={{ scrollbarWidth: "none" }}
       >
         {items.map((item, i) => {
           const size = sizes[i] ?? BASE
           return (
-            <li key={item.id} className="group relative flex shrink-0 items-end" style={{ margin: "0 2px" }}>
+            <li key={item.id} className="group relative flex shrink-0 items-end">
+              {/* The divider: a white hairline the shelf's full height. */}
               {item.dividerBefore && (
-                <span aria-hidden className="mr-3 mb-1 h-10 w-px self-end bg-black/30 shadow-[1px_0_0_rgba(255,255,255,0.5)]" />
+                <span aria-hidden className="mx-3 -mb-[3px] h-[calc(var(--y2k-dock-h)-1px)] w-px shrink-0 bg-white/78" />
               )}
               <div className="relative flex flex-col items-center">
                 <button
@@ -96,20 +100,17 @@ export function Dock({ items, className }: { items: DockItem[]; className?: stri
                   >
                     {item.icon}
                   </span>
-                  {/* Label pill above the icon */}
+                  {/* The name above the icon: 14px bold white on a dark shadow. */}
                   <span
                     role="tooltip"
                     className={cn(
-                      "pointer-events-none absolute bottom-full left-1/2 mb-3 -translate-x-1/2 whitespace-nowrap rounded-full bg-neutral-800 px-3 py-1",
-                      "font-(family-name:--y2k-font-ui) text-[13px] font-medium text-white/90 opacity-0 shadow-xl transition-opacity",
+                      "pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 whitespace-nowrap",
+                      "font-(family-name:--y2k-font-ui) text-[14px] leading-none font-bold text-white opacity-0 transition-opacity",
+                      "[text-shadow:0_1px_2px_#000,0_0_1px_#000]",
                       "group-hover:opacity-100 group-focus-within:opacity-100"
                     )}
                   >
                     {item.label}
-                    <span
-                      aria-hidden
-                      className="absolute top-full left-1/2 -translate-x-1/2 border-x-[5px] border-t-[5px] border-x-transparent border-t-neutral-800"
-                    />
                   </span>
                 </button>
                 <span

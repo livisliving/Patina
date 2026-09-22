@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "segmented",
+  "title": "Segmented control",
+  "description": "22px Aqua segmented control: white segments, the selected one in the light tone gel with a black glyph.",
+  "registryDependencies": [
+    "https://patina-one.vercel.app/r/theme.json"
+  ],
+  "files": [
+    {
+      "path": "src/registry/y2k/segmented.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\n\nimport { cn } from \"@/lib/utils\"\n\n/**\n * Patina segmented control — DESIGN.md › Components › Segmented control.\n *\n * Aqua 10.0 (Finder's View control): 20px of face with 4px round ends and a\n * soft shadow hanging 4px below; segments 9px either side of 11px text, at\n * least 25px (an icon segment is exactly 25), parted by a 1px divider that\n * fades dark → light down its height. Unselected = the white rows; selected =\n * the tone control rows, its glyph staying black.\n *\n * Each item is independent (aria-pressed), so the same control serves a\n * one-of-many choice (Finder's View) and free toggles (Bold / Italic): the\n * caller decides which items are `active`.\n */\n\ntype Segment = {\n  /** Accessible name; also the visible text when there is no `icon`. */\n  label: string\n  icon?: React.ReactNode\n  active?: boolean\n  disabled?: boolean\n  onClick?: () => void\n}\n\nfunction SegmentedControl({ items, className, ...props }: Omit<React.ComponentProps<\"div\">, \"children\"> & { items: Segment[] }) {\n  return (\n    <div\n      role=\"group\"\n      data-slot=\"segmented-control\"\n      className={cn(\n        \"inline-flex h-(--y2k-segment-h) overflow-hidden rounded-[4px]\",\n        \"shadow-[0_1px_0.5px_rgba(0,0,0,0.5),0_2px_1.5px_rgba(0,0,0,0.2),0_-1px_1px_rgba(0,0,0,0.05)]\",\n        className\n      )}\n      {...props}\n    >\n      {items.map((it) => (\n          <button\n            key={it.label}\n            type=\"button\"\n            aria-label={it.icon ? it.label : undefined}\n            aria-pressed={it.active}\n            disabled={it.disabled}\n            onClick={it.onClick}\n            className={cn(\n              \"relative flex h-full cursor-default items-center justify-center gap-1 outline-none\",\n              it.icon ? \"w-(--y2k-segment-w) px-0\" : \"min-w-(--y2k-segment-w) px-[9px]\",\n              \"font-(family-name:--y2k-font-ui) text-[11px] text-black\",\n              // The fill; the round ends' rim; the divider down all but the last.\n              it.active\n                ? \"bg-(image:--y2k-tone-control) active:bg-[image:var(--y2k-gel-pressed),var(--y2k-tone-control)] [--rim:color-mix(in_srgb,var(--y2k-tone-control-edge)_70%,transparent)]\"\n                : \"bg-(image:--y2k-segment-white) active:bg-(image:--y2k-segment-pressed) [--rim:rgba(0,0,0,0.16)]\",\n              \"first:shadow-[inset_1px_0_0_var(--rim)] last:shadow-[inset_-1px_0_0_var(--rim)]\",\n              \"not-last:after:absolute not-last:after:inset-y-0 not-last:after:right-0 not-last:after:w-px not-last:after:bg-(image:--y2k-segment-divider) not-last:after:content-['']\",\n              \"disabled:text-(--y2k-ink-disabled) disabled:[&_svg]:opacity-50\",\n              \"focus-visible:z-[2] focus-visible:outline-3 focus-visible:outline-(--y2k-tone-focus)\",\n              \"[&_svg]:h-2.5 [&_svg]:w-auto [&_svg]:text-black\"\n            )}\n          >\n            <span className=\"relative z-[1]\">{it.icon ?? it.label}</span>\n          </button>\n      ))}\n    </div>\n  )\n}\n\nexport { SegmentedControl, type Segment }\n",
+      "type": "registry:ui",
+      "target": "components/ui/segmented.tsx"
+    }
+  ],
+  "type": "registry:ui"
+}

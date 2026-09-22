@@ -4,7 +4,7 @@
   "title": "Marquee",
   "description": "The old-web scrolling marquee, done right: seamless loop, pauses on hover, respects reduced-motion.",
   "registryDependencies": [
-    "https://patina.md/r/theme.json"
+    "https://patina-one.vercel.app/r/theme.json"
   ],
   "files": [
     {

@@ -97,7 +97,7 @@ function WindowSidebarItem({
           ? // Full-bleed 3-stop tone gradient + white ink w/ dark 1px shadow.
             "bg-(image:--y2k-tone-list) text-(--y2k-tone-selection-text) [text-shadow:0_1px_1px_rgba(0,0,0,0.3)]"
           : "text-(--y2k-ink) hover:bg-black/[0.05]",
-        "focus-visible:ring-2 focus-visible:ring-(--y2k-tone-focus)",
+        "outline-none focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-(--y2k-tone-focus)",
         className
       )}
       {...props}

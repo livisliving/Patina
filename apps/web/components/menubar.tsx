@@ -2,10 +2,9 @@
 
 import * as React from "react"
 import { DropdownMenu as Menu } from "radix-ui"
-import { cn } from "@patina/ui"
+import { cn, menuContentClass, menuItemClass, menuSeparatorClass, menuTickClass } from "@patina/ui"
 
 import { StarIcon } from "./aqua-icons"
-import { menuContent, menuItem, menuSep } from "./menu-styles"
 import { TONES, type Tone } from "./tones"
 
 function Clock() {
@@ -24,16 +23,13 @@ function Clock() {
   return <span suppressHydrationWarning>{time ?? ""}</span>
 }
 
-/* Pinstriped menu sheet, 92% opaque, soft drop shadow.
-   The menu styles now live in ./menu-styles so pop-up buttons share them. */
-
 function MenuTrigger({ className, ...props }: React.ComponentProps<"button">) {
   return (
     <button
       type="button"
       className={cn(
-        "relative z-[2] flex h-full shrink-0 cursor-default items-center px-2.5 whitespace-nowrap outline-none select-none",
-        "data-[state=open]:bg-(--y2k-tone-selection) data-[state=open]:text-(--y2k-tone-selection-text) data-[state=open]:[text-shadow:none]",
+        "flex h-full shrink-0 cursor-default items-center rounded-[3px] px-2 whitespace-nowrap outline-none select-none",
+        "data-[state=open]:bg-(image:--y2k-tone-highlight) data-[state=open]:text-(--y2k-tone-highlight-text)",
         className
       )}
       {...props}
@@ -41,24 +37,90 @@ function MenuTrigger({ className, ...props }: React.ComponentProps<"button">) {
   )
 }
 
-type MenuBarProps = {
-  tone: Tone
-  appName: string
-  onToneChange: (t: Tone) => void
-  onOpen: (id: "about" | "readme" | "buttons" | "finder" | "tone") => void
+/** One row of a menu: its label, the original's shortcut (shown as 10.1
+ *  shows it, and bound when the browser lets it through), and a tick or a
+ *  diamond at the left. A row with nothing to do is greyed. */
+export type MenuRow =
+  | { label: string; shortcut?: string; disabled?: boolean; checked?: boolean; mark?: string; onSelect?: () => void }
+  | "-"
+export type MenuSpec = { label: string; items: MenuRow[] }
+
+/** The key a shortcut names, as KeyboardEvent.code. */
+const CODE: Record<string, string> = { "[": "BracketLeft", "?": "Slash", "⌫": "Backspace" }
+
+function pressed(e: KeyboardEvent, shortcut: string, mac: boolean) {
+  const key = shortcut.replace(/[⌘⇧⌥]/g, "")
+  return (
+    e.code === (CODE[key] ?? `Key${key}`) &&
+    (mac ? e.metaKey : e.ctrlKey) &&
+    e.altKey === shortcut.includes("⌥") &&
+    e.shiftKey === (shortcut.includes("⇧") || key === "?")
+  )
 }
 
-export function MenuBar({ tone, appName, onToneChange, onOpen }: MenuBarProps) {
+function Rows({ items }: { items: MenuRow[] }) {
+  return items.map((row, i) =>
+    row === "-" ? (
+      <Menu.Separator key={i} className={menuSeparatorClass} />
+    ) : row.checked !== undefined ? (
+      <Menu.CheckboxItem key={i} className={menuItemClass} checked={row.checked} disabled={row.disabled || !row.onSelect} onSelect={row.onSelect}>
+        <Menu.ItemIndicator className={menuTickClass}>✓</Menu.ItemIndicator>
+        {row.label}
+        {row.shortcut && <span>{row.shortcut}</span>}
+      </Menu.CheckboxItem>
+    ) : (
+      <Menu.Item key={i} className={menuItemClass} disabled={row.disabled || !row.onSelect} onSelect={row.onSelect}>
+        {row.mark && (
+          <span aria-hidden className={menuTickClass}>
+            {row.mark}
+          </span>
+        )}
+        {row.label}
+        {row.shortcut && <span>{row.shortcut}</span>}
+      </Menu.Item>
+    )
+  )
+}
+
+type MenuBarProps = {
+  tone: Tone
+  onToneChange: (t: Tone) => void
+  onOpen: (id: "about" | "readme" | "buttons" | "finder" | "tone") => void
+  /** After the ★: the front app's menu (its name in bold), then File, Edit,
+   *  View, Go, Window and Help. */
+  menus: MenuSpec[]
+}
+
+export function MenuBar({ tone, onToneChange, onOpen, menus }: MenuBarProps) {
+  // Shortcuts: the menus' own, read at the moment of the key press. ⌘N, ⌘W,
+  // ⌘M, ⌘Q and the like never arrive — the browser keeps them.
+  const latest = React.useRef(menus)
+  React.useEffect(() => {
+    latest.current = menus
+  })
+  React.useEffect(() => {
+    const mac = /Mac|iPhone|iPad/.test(navigator.platform)
+    const onKey = (e: KeyboardEvent) => {
+      for (const menu of latest.current)
+        for (const row of menu.items)
+          if (row !== "-" && row.shortcut && row.onSelect && !row.disabled && pressed(e, row.shortcut, mac)) {
+            e.preventDefault()
+            row.onSelect()
+            return
+          }
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [])
+
   return (
     <header
       className={cn(
-        "fixed inset-x-0 top-0 z-[90] flex h-(--y2k-menubar-h) min-w-0 flex-nowrap items-stretch",
-        "border-b border-black/[0.44] font-(family-name:--y2k-font-ui) text-[14px] font-medium text-(--y2k-ink)",
-        "[text-shadow:0_1px_2px_rgba(0,0,0,0.3)] shadow-[inset_0_1px_0_rgba(255,255,255,0.5),inset_0_-1px_0_rgba(0,0,0,0.1)]",
-        // gloss across the top half
-        "before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:z-[1] before:h-1/2 before:bg-[linear-gradient(to_bottom,rgba(255,255,255,0.3),rgba(255,255,255,0.1))] before:content-['']"
+        // Aqua 10.0 menu bar: 22px of menu pinstripe over a #a0a0a0 rule,
+        // 13px items 8px in from the edge, the app name in bold.
+        "fixed inset-x-0 top-0 z-[90] flex h-(--y2k-menubar-h) min-w-0 flex-nowrap items-stretch gap-[2px] px-2",
+        "border-b border-(--y2k-menubar-border) bg-(image:--y2k-pinstripe-light) font-(family-name:--y2k-font-ui) text-[13px] text-(--y2k-ink)"
       )}
-      style={{ backgroundImage: "var(--y2k-pinstripe-menubar), var(--y2k-menubar-bg)" }}
     >
       <Menu.Root modal={false}>
         <Menu.Trigger asChild>
@@ -67,46 +129,15 @@ export function MenuBar({ tone, appName, onToneChange, onOpen }: MenuBarProps) {
           </MenuTrigger>
         </Menu.Trigger>
         <Menu.Portal>
-          <Menu.Content align="start" sideOffset={0} className={menuContent}>
-            <Menu.Item className={menuItem} onSelect={() => onOpen("about")}>About Patina</Menu.Item>
-            <Menu.Separator className={menuSep} />
-            <Menu.Item className={menuItem} onSelect={() => onOpen("tone")}>Tone Preferences…</Menu.Item>
-            <Menu.Separator className={menuSep} />
-            <Menu.Item className={menuItem} onSelect={() => onOpen("readme")}>Read Me</Menu.Item>
-            <Menu.Item className={menuItem} onSelect={() => onOpen("finder")}>Patina</Menu.Item>
-            <Menu.Item className={menuItem} onSelect={() => onOpen("buttons")}>Design System</Menu.Item>
-            <Menu.Separator className={menuSep} />
-            <Menu.Item className={menuItem} disabled>Install… <span className="text-[11px]">Day 2</span></Menu.Item>
-            <Menu.Item className={menuItem} disabled>Y2K-ify a Page… <span className="text-[11px]">Day 2</span></Menu.Item>
-          </Menu.Content>
-        </Menu.Portal>
-      </Menu.Root>
-
-      <Menu.Root modal={false}>
-        <Menu.Trigger asChild>
-          <MenuTrigger className="font-bold">{appName}</MenuTrigger>
-        </Menu.Trigger>
-        <Menu.Portal>
-          <Menu.Content align="start" sideOffset={0} className={menuContent}>
-            <Menu.Item className={menuItem} onSelect={() => onOpen("about")}>About {appName}</Menu.Item>
-            <Menu.Separator className={menuSep} />
-            <Menu.Item className={menuItem} disabled>Hide {appName} <span className="text-[11px]">⌘H</span></Menu.Item>
-            <Menu.Item className={menuItem} disabled>Quit {appName} <span className="text-[11px]">⌘Q</span></Menu.Item>
-          </Menu.Content>
-        </Menu.Portal>
-      </Menu.Root>
-
-      <Menu.Root modal={false}>
-        <Menu.Trigger asChild>
-          <MenuTrigger>Tone</MenuTrigger>
-        </Menu.Trigger>
-        <Menu.Portal>
-          <Menu.Content align="start" sideOffset={0} className={menuContent}>
+          <Menu.Content align="start" sideOffset={0} className={menuContentClass}>
+            <Menu.Item className={menuItemClass} onSelect={() => onOpen("about")}>About Patina</Menu.Item>
+            <Menu.Separator className={menuSeparatorClass} />
+            {/* The tones, where 10.1 keeps its system-wide settings. */}
             <Menu.RadioGroup value={tone} onValueChange={(v) => onToneChange(v as Tone)}>
               {TONES.map((t) => (
-                <Menu.RadioItem key={t.id} value={t.id} className={cn(menuItem, "pl-6")}>
+                <Menu.RadioItem key={t.id} value={t.id} className={menuItemClass}>
                   <span className="flex items-center gap-2">
-                    <Menu.ItemIndicator className="absolute left-1.5 text-[11px]">✓</Menu.ItemIndicator>
+                    <Menu.ItemIndicator className={menuTickClass}>✓</Menu.ItemIndicator>
                     <span
                       data-tone={t.id}
                       className="inline-block size-3 rounded-full bg-(--y2k-tone) shadow-[inset_0_1px_1px_rgba(255,255,255,0.6),0_0_0_0.5px_rgba(0,0,0,0.35)]"
@@ -117,16 +148,34 @@ export function MenuBar({ tone, appName, onToneChange, onOpen }: MenuBarProps) {
                 </Menu.RadioItem>
               ))}
             </Menu.RadioGroup>
-            <Menu.Separator className={menuSep} />
-            <Menu.Item className={menuItem} onSelect={() => onOpen("tone")}>Tone Preferences…</Menu.Item>
+            <Menu.Item className={menuItemClass} onSelect={() => onOpen("tone")}>Tone Preferences…</Menu.Item>
+            <Menu.Separator className={menuSeparatorClass} />
+            <Menu.Item className={menuItemClass} onSelect={() => onOpen("readme")}>Read Me</Menu.Item>
+            <Menu.Item className={menuItemClass} onSelect={() => onOpen("finder")}>Patina</Menu.Item>
+            <Menu.Item className={menuItemClass} onSelect={() => onOpen("buttons")}>Design System</Menu.Item>
+            <Menu.Separator className={menuSeparatorClass} />
+            <Menu.Item className={menuItemClass} disabled>Install… <span className="text-[11px]">Day 2</span></Menu.Item>
+            <Menu.Item className={menuItemClass} disabled>Y2K-ify a Page… <span className="text-[11px]">Day 2</span></Menu.Item>
           </Menu.Content>
         </Menu.Portal>
       </Menu.Root>
 
-      <div className="relative z-[2] ml-auto flex shrink-0 items-center gap-2 px-3 select-none sm:gap-4">
-        <span className="whitespace-nowrap">
-          <Clock />
-        </span>
+      {menus.map((menu, i) => (
+        <Menu.Root key={i} modal={false}>
+          <Menu.Trigger asChild>
+            {/* On a phone the bar keeps the app's menu and Help. */}
+            <MenuTrigger className={cn(i === 0 && "font-bold", i > 0 && i < menus.length - 1 && "hidden sm:flex")}>{menu.label}</MenuTrigger>
+          </Menu.Trigger>
+          <Menu.Portal>
+            <Menu.Content align="start" sideOffset={0} className={menuContentClass}>
+              <Rows items={menu.items} />
+            </Menu.Content>
+          </Menu.Portal>
+        </Menu.Root>
+      ))}
+
+      <div className="ml-auto flex shrink-0 items-center px-3 whitespace-nowrap select-none">
+        <Clock />
       </div>
     </header>
   )

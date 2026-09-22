@@ -3,10 +3,11 @@
  * /check-y2k — does this code follow the Y2K pack?
  *
  * The rules are NOT invented here. They are the anti-rules DESIGN.md already
- * states ("Don't" under Do's and Don'ts) plus the 4px grid rule under Layout,
- * and the grid's three exceptions are PARSED OUT of DESIGN.md at run time so
- * the numbers live in exactly one place. Every finding cites the DESIGN.md
- * line it comes from.
+ * states ("Don't" under Do's and Don'ts) plus its grid, and the grid's numbers
+ * — the unit, the off-grid metrics, the radius scale — are READ from
+ * DESIGN.md's front matter (`spacing:` and `rounded:`) at run time, so they
+ * live in exactly one place. Every finding cites the DESIGN.md line it comes
+ * from.
  *
  * Usage:
  *   node scripts/check-y2k.mjs [paths...] [--design <DESIGN.md>] [--json] [--strict]
@@ -41,54 +42,56 @@ function lineOf(text, re) {
 }
 
 /**
- * The grid exceptions, read out of DESIGN.md's Layout section: the 1px
- * hairline, the 2–3px gel highlights, and the HIG metrics Apple measured.
- * Parsed rather than copied, so editing DESIGN.md moves the checker with it.
+ * A flat `name: <number>px` map from DESIGN.md's front matter — `spacing:` or
+ * `rounded:`. The front matter is the machine-readable half of the spec (the
+ * design.md format defines it, and `design.md export` emits it as tokens), so
+ * the grid and the radius scale are read from there rather than scraped out
+ * of the prose. Anything in the map that is not `<number>px` stops the run:
+ * the checker reads the spec, it does not guess at it.
  */
-function readGridExceptions(design) {
-  const start = design.indexOf("exactly three exceptions")
-  const end = design.indexOf("Font sizes are", start)
-  if (start === -1 || end === -1) {
-    throw new Error(
-      "check-y2k: could not find the 4px grid exceptions in DESIGN.md " +
-        "(looked for “exactly three exceptions” … “Font sizes are”). " +
-        "The checker reads its exception list from DESIGN.md and will not guess."
-    )
+function readPxMap(design, key) {
+  const fm = design.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/)
+  if (!fm) throw new Error("check-y2k: DESIGN.md has no front matter (--- … ---); the grid and radius rules are read from it.")
+  const lines = fm[1].split(/\r?\n/)
+  const start = lines.findIndex((l) => l.trimEnd() === `${key}:`)
+  if (start === -1) throw new Error(`check-y2k: DESIGN.md front matter has no \`${key}:\` map.`)
+
+  const map = new Map()
+  for (const line of lines.slice(start + 1)) {
+    if (/^\S/.test(line)) break // the next top-level key
+    const entry = line.replace(/\s+#.*$/, "").trim()
+    if (!entry) continue
+    const kv = entry.match(/^([\w-]+):\s*(\d+(?:\.\d+)?)px$/)
+    if (!kv) throw new Error(`check-y2k: can't read \`${key}\` entry "${entry}" in DESIGN.md — expected \`name: <number>px\`.`)
+    map.set(kv[1], Number(kv[2]))
   }
-  const block = design.slice(start, end)
-  const allowed = new Set([0])
-  // "1px", "15px" …
-  for (const m of block.matchAll(/(\d+)\s*px/g)) allowed.add(Number(m[1]))
-  // "2–3px" / "2-3px" — both ends and everything between.
-  for (const m of block.matchAll(/(\d+)\s*[–-]\s*(\d+)\s*px/g)) {
-    for (let v = Number(m[1]); v <= Number(m[2]); v++) allowed.add(v)
-  }
-  // "small 17px", "traffic light 14px" sit in prose after their metric name.
-  for (const m of block.matchAll(/\b(\d{2})\b(?!\s*px)/g)) {
-    const v = Number(m[1])
-    if (v >= 14 && v <= 25) allowed.add(v)
-  }
-  if (allowed.size < 4) {
-    throw new Error("check-y2k: DESIGN.md's grid exceptions parsed to nothing usable.")
-  }
-  return allowed
+  if (!map.size) throw new Error(`check-y2k: DESIGN.md's \`${key}:\` map is empty.`)
+  return map
 }
 
 /**
- * The radius scale, read out of DESIGN.md's Shapes section (`window` 7.2px,
- * `control` 8px, `check` 3px, `pill` 9999px). A radius on that scale is
- * sanctioned by the spec even when it is not a multiple of 4 — 7.2px window
- * tops are the whole point — so the grid check accepts it for `rounded-*`.
+ * What the grid accepts, straight from the tokens:
+ *   unit      — `spacing.unit`, the grid itself;
+ *   offGrid   — every other spacing token that is NOT a multiple of the unit
+ *               (the Aqua 10.0 metrics: title bar, menu bar, scroll bar …),
+ *               value → token names, so a finding can say what IS allowed;
+ *   radii     — the `rounded:` scale (window tops, buttons, group boxes …),
+ *               accepted for `rounded-*` whatever the unit says.
  */
-function readRadiusScale(design) {
-  const start = design.indexOf("## Shapes")
-  const end = design.indexOf("## Components", start)
-  const scale = new Set([0])
-  if (start === -1) return scale
-  for (const m of design.slice(start, end === -1 ? undefined : end).matchAll(/`[a-z]+`\s*\((\d+(?:\.\d+)?)px\)/g)) {
-    scale.add(Number(m[1]))
+function readGrid(design) {
+  const spacing = readPxMap(design, "spacing")
+  const rounded = readPxMap(design, "rounded")
+  const unit = spacing.get("unit")
+  if (!unit) throw new Error("check-y2k: DESIGN.md's `spacing:` map has no `unit` — the grid is defined by it.")
+
+  const offGrid = new Map()
+  for (const [name, v] of spacing) {
+    if (name === "unit" || v % unit === 0) continue
+    offGrid.set(v, [...(offGrid.get(v) ?? []), name])
   }
-  return scale
+  const radii = new Map()
+  for (const [name, v] of rounded) radii.set(v, [...(radii.get(v) ?? []), name])
+  return { unit, offGrid, radii }
 }
 
 
@@ -201,7 +204,7 @@ const RULES = [
     test(line) {
       const m = line.match(/\brounded-(xl|2xl|3xl)\b/)
       if (!m) return null
-      return { col: m.index + 1, msg: `${m[0]} is a card radius. Pills for controls, 7.2px window tops, 8px wells and group boxes.` }
+      return { col: m.index + 1, msg: `${m[0]} is a card radius. Use the DESIGN.md \`rounded:\` scale — pills for controls, the named radii for windows, wells and group boxes.` }
     },
   },
   {
@@ -281,18 +284,25 @@ function tokenFindings(line, tokens, designLine) {
   return out
 }
 
-/* ── The 4px grid ─────────────────────────────────────────────────── */
+/* ── The grid ─────────────────────────────────────────────────────── */
 
-function gridFindings(line, allowed, radii, designLine) {
+/** "26px titlebar, 22px menubar" — the named exceptions, for a message. */
+const describe = (m) =>
+  [...m].sort(([a], [b]) => a - b).map(([v, names]) => `${v}px ${names.join("/")}`).join(", ")
+
+function gridFindings(line, grid, designLine) {
+  const { unit, offGrid, radii } = grid
   const out = []
   const ok = (v, prefix) =>
-    allowed.has(v) || v % 4 === 0 || (prefix.startsWith("rounded") && radii.has(v))
-  const flag = (col, value, where) =>
+    v % unit === 0 || offGrid.has(v) || (prefix.startsWith("rounded") && radii.has(v))
+  const flag = (col, value, where, isRadius) =>
     out.push({
-      rule: "grid-4px",
+      rule: "grid",
       severity: "error",
       col,
-      msg: `${value}px in ${where} is off the 4px grid (allowed off-grid: ${[...allowed].filter((v) => v).sort((a, b) => a - b).join(", ")}px).`,
+      msg:
+        `${value}px in ${where} is off the ${unit}px grid and is not a named token ` +
+        `(${isRadius ? `rounded: ${describe(radii)}` : `off-grid spacing: ${describe(offGrid)}`}).`,
       designLine,
     })
 
@@ -305,7 +315,7 @@ function gridFindings(line, allowed, radii, designLine) {
     for (const px of value.matchAll(/(\d+(?:\.\d+)?)px/g)) {
       const v = Number(px[1])
       if (ok(v, prefix)) continue
-      flag(m.index + 1, px[1], `${prefix}-[…]`)
+      flag(m.index + 1, px[1], `${prefix}-[…]`, prefix.startsWith("rounded"))
     }
   }
 
@@ -315,8 +325,9 @@ function gridFindings(line, allowed, radii, designLine) {
     if (/var\(|calc\(|%|rem|em|vh|vw/.test(value)) continue
     for (const px of value.matchAll(/(\d+(?:\.\d+)?)px/g)) {
       const v = Number(px[1])
-      if (ok(v, m[1] === "border-radius" ? "rounded" : m[1])) continue
-      flag(m.index + 1, px[1], m[1])
+      const isRadius = m[1] === "border-radius"
+      if (ok(v, isRadius ? "rounded" : m[1])) continue
+      flag(m.index + 1, px[1], m[1], isRadius)
     }
   }
 
@@ -354,9 +365,8 @@ function main(argv) {
     return 2
   }
   const design = fs.readFileSync(designPath, "utf8")
-  const allowed = readGridExceptions(design)
-  const radii = readRadiusScale(design)
-  const gridLine = lineOf(design, /Spacing unit: 4px/)
+  const grid = readGrid(design)
+  const gridLine = lineOf(design, /Spacing unit: \d+px/)
   const colorLine = lineOf(design, /^## Colors/)
   const themeTokens = readThemeTokens(roots.map((r) => path.resolve(r)))
   const ruleLine = new Map(RULES.map((r) => [r.id, lineOf(design, r.design)]))
@@ -380,7 +390,7 @@ function main(argv) {
             })
           }
         }
-        for (const g of gridFindings(line, allowed, radii, gridLine)) {
+        for (const g of gridFindings(line, grid, gridLine)) {
           findings.push({ file, line: i + 1, ...g })
         }
         for (const t of tokenFindings(line, themeTokens, colorLine)) {
@@ -404,7 +414,8 @@ function main(argv) {
   const warns = findings.filter((f) => f.severity === "warn")
 
   if (json) {
-    console.log(JSON.stringify({ design: designPath, allowedOffGrid: [...allowed].sort((a, b) => a - b), findings }, null, 2))
+    const plain = (m) => Object.fromEntries([...m].sort(([a], [b]) => a - b))
+    console.log(JSON.stringify({ design: designPath, grid: { unit: grid.unit, offGrid: plain(grid.offGrid), radii: plain(grid.radii) }, findings }, null, 2))
   } else {
     for (const f of findings) {
       const where = `${path.relative(process.cwd(), f.file)}:${f.line}:${f.col}`

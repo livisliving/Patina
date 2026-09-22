@@ -5,13 +5,12 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 /**
- * Patina Group — DESIGN.md › Components › group boxes.
+ * Patina Group — DESIGN.md › Components › Group box.
  *
- * The Aqua "group box": a faint rounded well with an inset hairline and a bold
- * 11px caption sitting on the top edge. This is Patina's answer to a Card —
- * there is NO neutral grey card; content is grouped in a sunken pinstripe-safe
- * well. (WindowGroup in window.tsx is the same box scoped to a dialog; this is
- * the standalone registry component for use anywhere.)
+ * The Aqua 10.0 group box — the theme's `.y2k-group`, as WindowGroup draws
+ * it: a 1px #b6b6b6 rim with 5px corners around a faint grey well, and the
+ * bold 12px caption set into the top border 20px in. This is Patina's answer
+ * to a Card — there is NO neutral grey card. The caption is optional here.
  *
  *   <Group label="Appearance"> … </Group>
  */
@@ -24,18 +23,10 @@ function Group({
   return (
     <fieldset
       data-slot="group"
-      className={cn(
-        // control radius (5–6px), faint sunken fill, inset hairline + top rim.
-        "min-w-0 rounded-[8px] bg-black/[0.04] px-3 pt-2 pb-3",
-        "shadow-[inset_0_0_0_1px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.6)]",
-        "font-(family-name:--y2k-font-ui) text-[13px] leading-[1.45] text-(--y2k-ink)",
-        className
-      )}
+      className={cn("y2k-group font-(family-name:--y2k-font-ui) text-[13px] text-(--y2k-ink)", className)}
       {...props}
     >
-      {label != null && (
-        <legend className="px-1 text-[11px] font-bold text-(--y2k-ink)">{label}</legend>
-      )}
+      {label != null && <legend>{label}</legend>}
       {children}
     </fieldset>
   )

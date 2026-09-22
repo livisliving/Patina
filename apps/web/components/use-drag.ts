@@ -7,7 +7,7 @@ import * as React from "react"
  * pointer handlers to spread onto the handle. Positions are only meaningful
  * when the window is absolutely positioned (md+); on mobile they're ignored.
  */
-export function useDrag(initial: { x: number; y: number }, onStart?: () => void) {
+export function useDrag(initial: { x: number; y: number } | (() => { x: number; y: number }), onStart?: () => void) {
   const [pos, setPos] = React.useState(initial)
   const drag = React.useRef<{ dx: number; dy: number } | null>(null)
 

@@ -17,15 +17,16 @@ colors:
   # ── Aqua constants (never toned) ───────────────────────────────────
   secondary: "#2765CA"
   on-secondary: "#FFFFFF"
-  tertiary: "#999999"
+  tertiary: "#8D8D8D"
   on-tertiary: "#000000"
-  neutral: "#ECECEC"
+  neutral: "#DEDEDE"
   on-neutral: "#000000"
   neutral-bright: "#FFFFFF"
   neutral-dim: "#D4D4D4"
   neutral-tint: "#F8F8F8"
   neutral-variant: "#7F7F7F"
-  neutral-glass: "rgba(248, 248, 248, 0.75)"
+  neutral-glass: "rgba(236, 236, 236, 0.55)"
+  neutral-veil: "rgba(250, 250, 250, 0.9)"
   surface: "#E8449A"
   surface-bright: "#F298C7"
   surface-dim: "#681F45"
@@ -36,18 +37,26 @@ colors:
   traffic-yellow: "#F4B01E"
   traffic-green: "#46BE2D"
   # ── Other tones (swap into primary / primary-bright / primary-container)
-  tone-aqua: "#2765CA"
-  tone-aqua-bright: "#5787D6"
-  tone-aqua-container: "#1C4991"
+  tone-aqua: "#4D83D2"
+  tone-aqua-bright: "#749EDC"
+  tone-aqua-container: "#375E97"
   tone-lime: "#7FC31C"
   tone-lime-bright: "#9BD04E"
   tone-lime-container: "#5B8C14"
   tone-tangerine: "#E8891A"
   tone-tangerine-bright: "#EDA34C"
   tone-tangerine-container: "#A76313"
-  tone-grape: "#8344C4"
-  tone-grape-bright: "#9E6DD1"
-  tone-grape-container: "#5E318D"
+  tone-grape: "#7A3ABA"
+  tone-grape-bright: "#9765C9"
+  tone-grape-container: "#582A86"
+  # ── Gel body under a button label (the darkest stop the text sits on) and
+  #    the light control gel (checkbox, radio, selected segment, pop-up gem)
+  primary-gel: "#EC7BAF"
+  primary-control: "#FF8AC1"
+  tone-aqua-gel: "#6E9FD3"
+  tone-lime-gel: "#A6D776"
+  tone-tangerine-gel: "#EFAC6F"
+  tone-grape-gel: "#8963BA"
 typography:
   display-wordmark:
     fontFamily: EB Garamond
@@ -55,28 +64,28 @@ typography:
     fontWeight: 400
     lineHeight: 1
     letterSpacing: 0em
-  headline-lg:
+  heading:
     fontFamily: Lucida Grande
-    fontSize: 18px
-    fontWeight: 700
-    lineHeight: 1.2
-    letterSpacing: 0em
-  headline-md:
-    fontFamily: Lucida Grande
-    fontSize: 15px
+    fontSize: 13px
     fontWeight: 700
     lineHeight: 1.3
+    letterSpacing: 0em
+  legend:
+    fontFamily: Lucida Grande
+    fontSize: 12px
+    fontWeight: 700
+    lineHeight: 1.2
     letterSpacing: 0em
   title-window:
     fontFamily: Lucida Grande
     fontSize: 13px
-    fontWeight: 500
+    fontWeight: 700
     lineHeight: 1
     letterSpacing: 0em
   menu:
     fontFamily: Lucida Grande
-    fontSize: 14px
-    fontWeight: 500
+    fontSize: 13px
+    fontWeight: 400
     lineHeight: 1
     letterSpacing: 0em
   body-md:
@@ -94,7 +103,7 @@ typography:
   label-button:
     fontFamily: Lucida Grande
     fontSize: 13px
-    fontWeight: 500
+    fontWeight: 400
     lineHeight: 1
     letterSpacing: 0em
   label-small:
@@ -103,9 +112,15 @@ typography:
     fontWeight: 400
     lineHeight: 1
     letterSpacing: 0em
+  label-dock:
+    fontFamily: Lucida Grande
+    fontSize: 14px
+    fontWeight: 700
+    lineHeight: 1
+    letterSpacing: 0em
   input:
     fontFamily: Lucida Grande
-    fontSize: 12px
+    fontSize: 13px
     fontWeight: 400
     lineHeight: 1.3
     letterSpacing: 0em
@@ -117,49 +132,69 @@ typography:
     letterSpacing: 0em
 rounded:
   none: 0px
-  check: 3px
+  field: 2px          # text fields, tree view, bevel button
+  check: 3px          # menu-bar highlight, the Dock shelf
+  segment: 4px        # segmented and pop-up ends, slider groove
+  group: 5px          # group box, tab panel, menu foot
+  toggle: 6px         # the title-bar toolbar oval
+  tab: 7px            # folder-tab top corners
+  window-bottom: 6px  # Aqua 10.0 window foot
   control: 8px
-  window: 7.2px
+  window: 8px         # Aqua 10.0 window top
+  search: 10px        # search field
   button: 14px
   pill: 9999px
 spacing:
   unit: 4px
+  hairline: 1px       # borders and separators — the only 1px the grid allows
   xs: 2px
+  gel-highlight: 3px  # Aqua gloss detail; dies if rounded to 4
   sm: 4px
+  legend-inset: 5px   # group-box caption inset; radio dot
+  field-inset: 6px    # text inside a text field; control-to-label gap
+  slider-track: 7px   # slider groove; disclosure triangle width
   md: 8px
+  disclosure: 9px     # disclosure triangle height
+  popup-inset: 10px   # pop-up / search / bevel text inset; tab-row indent
   lg: 12px
+  traffic-light: 13px # Aqua 10.0 title-bar button; stepper width
+  checkbox: 14px      # the radio's cell (a 12px ball inside)
   xl: 16px
+  bevel-h: 18px       # bevel button; menu shortcut gap
+  slider-pointer-h: 19px
+  stepper-h: 21px     # stepper pill; the pop-up's gem width
   2xl: 24px
-  menubar: 25px
-  titlebar: 22px
-  button-h: 20px      # Apple HIG 2002: push button height 20px fixed
-  button-h-small: 17px # Apple HIG 2002: small push button 17px
-  popup-h: 20px       # Apple HIG 2002: pop-up / combo 20px (small 17px)
-  scrollbar: 15px       # Aqua 10.x scroller width
+  menubar: 22px       # Aqua 10.0 menu bar
+  titlebar: 26px      # Aqua 10.0 document title bar
+  segment-h: 20px     # segment face; its shadow hangs 4px below
+  segment-w: 25px     # minimum segment; an icon segment exactly
+  button-h: 20px      # push button height, fixed
+  button-h-small: 17px # small push button
+  popup-h: 20px       # pop-up button
+  scrollbar: 15px     # scroller width; check-box cell; slider ball
   toolbar-item: 56px
   dock-icon: 64px
   dock-h: 70px
-  traffic-light: 14px # Figma Apple OS X design system: 14px (22px pitch)
-  traffic-gap: 8px
-  window-padding: 16px
+  traffic-gap: 5px
+  window-padding: 20px
 components:
   # ── Buttons (Aqua push buttons) ───────────────────────────────────
   button-white:
     backgroundColor: "{colors.neutral-bright}"
     textColor: "{colors.on-neutral}"
     typography: "{typography.label-button}"
-    rounded: "{rounded.button}"
+    rounded: "{rounded.pill}"
     height: "{spacing.button-h}"
-    padding: 16px
+    padding: 14px
   button-white-active:
     backgroundColor: "{colors.neutral-dim}"
   button-default:
-    backgroundColor: "{colors.primary}"
+    backgroundColor: "{colors.primary-gel}"
     textColor: "{colors.on-primary}"
     typography: "{typography.label-button}"
-    rounded: "{rounded.button}"
+    rounded: "{rounded.pill}"
     height: "{spacing.button-h}"
-    padding: 16px
+    padding: 14px
   button-default-hover:
     backgroundColor: "{colors.primary-bright}"
   button-default-active:
@@ -205,10 +240,10 @@ components:
     rounded: "{rounded.control}"
     width: "{spacing.toolbar-item}"
   window-statusbar:
-    backgroundColor: "{colors.neutral}"
+    backgroundColor: "{colors.neutral-tint}"
     textColor: "{colors.on-neutral}"
     typography: "{typography.body-sm}"
-    height: 20px
+    height: 24px
   window-document:
     backgroundColor: "{colors.neutral-bright}"
     textColor: "{colors.on-neutral}"
@@ -221,18 +256,19 @@ components:
     typography: "{typography.menu}"
     height: "{spacing.menubar}"
   menu:
-    backgroundColor: "{colors.neutral}"
+    backgroundColor: "{colors.neutral-veil}"
     textColor: "{colors.on-neutral}"
     typography: "{typography.body-md}"
-    height: 24px
-    padding: 16px
+    rounded: "{rounded.group}"
+    height: 19px
+    padding: 22px
   menu-item-highlighted:
     backgroundColor: "{colors.primary}"
   dock:
     backgroundColor: "{colors.neutral-glass}"
     size: "{spacing.dock-icon}"
     height: "{spacing.dock-h}"
-    padding: 8px
+    padding: 4px
   desktop:
     backgroundColor: "{colors.surface}"
   # ── Controls ─────────────────────────────────────────────────────
@@ -240,36 +276,94 @@ components:
     backgroundColor: "{colors.neutral-bright}"
     textColor: "{colors.on-neutral}"
     typography: "{typography.input}"
-    rounded: "{rounded.none}"
-    height: 22px
+    rounded: "{rounded.field}"
+    height: 24px
     padding: 6px
   search-field:
     backgroundColor: "{colors.neutral-bright}"
     textColor: "{colors.on-neutral}"
     typography: "{typography.input}"
-    rounded: "{rounded.pill}"
-    height: "{spacing.popup-h}"
-    padding: 8px
+    rounded: "{rounded.search}"
+    height: 24px
+    padding: 10px
   popup:
     backgroundColor: "{colors.neutral-bright}"
     textColor: "{colors.on-neutral}"
     typography: "{typography.label-button}"
-    rounded: "{rounded.control}"
+    rounded: "{rounded.segment}"
     height: "{spacing.popup-h}"
-    padding: 8px
+    padding: 10px
   segmented:
     backgroundColor: "{colors.neutral-bright}"
     textColor: "{colors.on-neutral}"
-    rounded: "{rounded.control}"
-    height: "{spacing.popup-h}"
-    width: 28px
+    rounded: "{rounded.segment}"
+    height: "{spacing.segment-h}"
+    width: "{spacing.segment-w}"
   segmented-selected:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.on-secondary}"
+    backgroundColor: "{colors.primary-control}"
+    textColor: "{colors.on-primary}"
   checkbox-checked:
-    backgroundColor: "{colors.primary}"
-    rounded: "{rounded.check}"
-    size: 14px
+    backgroundColor: "{colors.primary-control}"
+    textColor: "{colors.on-primary}"
+    rounded: "{rounded.none}"
+    size: "{spacing.lg}"
+  radio-on:
+    backgroundColor: "{colors.primary-control}"
+    textColor: "{colors.on-primary}"
+    rounded: "{rounded.pill}"
+    size: "{spacing.lg}"
+  tab:
+    backgroundColor: "{colors.neutral-bright}"
+    textColor: "{colors.on-neutral}"
+    typography: "{typography.body-md}"
+    rounded: "{rounded.tab}"
+    height: 24px
+    padding: 16px
+  tab-selected:
+    backgroundColor: "{colors.primary-control}"
+    textColor: "{colors.on-primary}"
+  tab-panel:
+    backgroundColor: "{colors.neutral}"
+    rounded: "{rounded.group}"
+    padding: 12px
+  group-box:
+    backgroundColor: "{colors.neutral}"
+    textColor: "{colors.on-neutral}"
+    rounded: "{rounded.group}"
+    padding: 20px
+  bevel-button:
+    backgroundColor: "{colors.neutral-bright}"
+    textColor: "{colors.on-neutral}"
+    typography: "{typography.label-small}"
+    rounded: "{rounded.field}"
+    height: "{spacing.bevel-h}"
+    padding: 10px
+  slider-track:
+    backgroundColor: "{colors.neutral-variant}"
+    rounded: "{rounded.segment}"
+    height: "{spacing.slider-track}"
+  stepper:
+    backgroundColor: "{colors.neutral-bright}"
+    rounded: "{rounded.pill}"
+    width: "{spacing.traffic-light}"
+    height: "{spacing.stepper-h}"
+  table-header:
+    backgroundColor: "{colors.neutral-tint}"
+    textColor: "{colors.on-neutral}"
+    typography: "{typography.input}"
+    height: 17px
+  table-row-alt:
+    backgroundColor: "#EDF3FE"
+    textColor: "{colors.on-neutral}"
+  tree-view:
+    backgroundColor: "{colors.neutral-bright}"
+    textColor: "{colors.on-neutral}"
+    rounded: "{rounded.field}"
+  toolbar-toggle:
+    backgroundColor: "{colors.neutral-bright}"
+    rounded: "{rounded.toggle}"
+    width: 20px
+    height: 12px
   selection:
     backgroundColor: "{colors.primary}"
     textColor: "{colors.on-secondary}"
@@ -285,8 +379,8 @@ components:
     width: 15px
   progress-fill:
     backgroundColor: "{colors.primary}"
-    rounded: "{rounded.pill}"
-    height: 15px
+    rounded: "{rounded.none}"
+    height: 18px
   tooltip:
     backgroundColor: "{colors.neutral-tint}"
     textColor: "{colors.on-neutral}"
@@ -294,28 +388,49 @@ components:
     rounded: "{rounded.check}"
     padding: 4px
   dock-label:
-    backgroundColor: "#262626"
     textColor: "{colors.neutral-bright}"
-    typography: "{typography.body-md}"
-    rounded: "{rounded.pill}"
-    padding: 12px
+    typography: "{typography.label-dock}"
   # ── Tone mapping: the same button in each tone ──────────────────
   button-default-aqua:
+    backgroundColor: "{colors.tone-aqua-gel}"
+    textColor: "{colors.on-primary}"
+    rounded: "{rounded.pill}"
+  button-default-aqua-hover:
+    backgroundColor: "{colors.tone-aqua-bright}"
+  button-default-aqua-active:
+    backgroundColor: "{colors.tone-aqua-container}"
+  desktop-aqua:
     backgroundColor: "{colors.tone-aqua}"
-    textColor: "{colors.on-primary}"
-    rounded: "{rounded.button}"
   button-default-lime:
+    backgroundColor: "{colors.tone-lime-gel}"
+    textColor: "{colors.on-primary}"
+    rounded: "{rounded.pill}"
+  button-default-lime-hover:
+    backgroundColor: "{colors.tone-lime-bright}"
+  button-default-lime-active:
+    backgroundColor: "{colors.tone-lime-container}"
+  desktop-lime:
     backgroundColor: "{colors.tone-lime}"
-    textColor: "{colors.on-primary}"
-    rounded: "{rounded.button}"
   button-default-tangerine:
+    backgroundColor: "{colors.tone-tangerine-gel}"
+    textColor: "{colors.on-primary}"
+    rounded: "{rounded.pill}"
+  button-default-tangerine-hover:
+    backgroundColor: "{colors.tone-tangerine-bright}"
+  button-default-tangerine-active:
+    backgroundColor: "{colors.tone-tangerine-container}"
+  desktop-tangerine:
     backgroundColor: "{colors.tone-tangerine}"
-    textColor: "{colors.on-primary}"
-    rounded: "{rounded.button}"
   button-default-grape:
-    backgroundColor: "{colors.tone-grape}"
+    backgroundColor: "{colors.tone-grape-gel}"
     textColor: "{colors.on-primary}"
-    rounded: "{rounded.button}"
+    rounded: "{rounded.pill}"
+  button-default-grape-hover:
+    backgroundColor: "{colors.tone-grape-bright}"
+  button-default-grape-active:
+    backgroundColor: "{colors.tone-grape-container}"
+  desktop-grape:
+    backgroundColor: "{colors.tone-grape}"
 ---
 
 # Y2K — Aqua × Pink
@@ -376,7 +491,14 @@ colors everything gel. Both are always present.
   state.
 - **Primary-tint (#FFE3F1):** the tinted focus glow. The live focus ring is
   the base at 25% alpha; selection is the base at 88%, with white ink in
-  pink / aqua / grape and black ink in lime / tangerine.
+  pink / aqua / grape and black ink in lime / tangerine. Aqua is the one
+  exception: its rows select in the deeper highlight blue #336ABD, because the
+  original's lighter #4D83D2 row gives white text only 3.8:1.
+- **The gels are measured, not guessed.** Every gel, tab, control, progress
+  and menu-highlight gradient is the Aqua 10.0 lighting curve (see
+  `scripts/tones.mjs`): Aqua takes it as measured, the other tones keep the
+  same curve in their own hue. Menu highlights carry whichever ink passes on
+  every stop — white in pink / aqua / grape, black in lime / tangerine.
 - **Surface / surface-bright / surface-dim (#E8449A / #F298C7 / #681F45):**
   the wallpaper's mid, ribbon and shadow stops. Desktop icon labels are
   white (`on-surface`) with a black drop shadow (`0 1px 2px rgba(0,0,0,.8)`)
@@ -384,22 +506,27 @@ colors everything gel. Both are always present.
 
 **Aqua constants (never toned)**
 
-- **Neutral — pinstripe white (85% white) over neutral (#ECECEC):** the
-  window material — 1.5px of the base then 2.5px of white on a 4px period,
-  everywhere inside a window. Neutral-bright (#FFFFFF) is the field of an
-  input; neutral-dim (#D4D4D4) the bottom of the menu bar; neutral-tint
-  (#F8F8F8) its top. Neutral-variant (#7F7F7F) is dimmed text; #999999 is a
+- **Neutral — the 10.0 pinstripe (#DEDEDE):** the window material, 1px rows
+  on a 4px period — #DEDEDE, #EBEBEB, #DEDEDE, #D7D7D7 — everywhere inside a
+  window. Menus use a lighter stripe (#FAFAFA / #E9E9E9 / #FAFAFA / #FFFFFF),
+  status bars a placard stripe (#F1F1F1 / #FFFFFF / #F1F1F1 / #EAEAEA).
+  Neutral-bright (#FFFFFF) is the field of an input; neutral-tint (#F8F8F8)
+  the status bar. Neutral-variant (#7F7F7F) is dimmed text; #8D8D8D is a
   disabled label and #4B4B4B secondary text. Neutral-glass (white at 75%) is
   the Dock shelf.
 - **Secondary — OS blue (#2765CA):** focus rings and links. The one blue
   Aqua never lets go of, even in a pink tone.
-- **Tertiary — disabled grey (#999999):** disabled control labels.
+- **Tertiary — disabled grey (#8D8D8D):** disabled control labels; the
+  control itself fades to 55%.
 - **Traffic lights:** radial-gradient spheres, not flat discs — a bright core,
   a saturated middle and a deep rim. Their middles are close = #F04646,
   minimize = #F4B01E, zoom = #46BE2D. They stay red / yellow / green in every
-  tone; an inactive window shows all three as the plain white gel.
-- **Outline (black):** hairlines are alpha, not a grey — 40% around a window,
-  30% under a title bar, 20% for separators and field edges.
+  tone; an inactive window shows all three as the plain white gel. A light
+  a window can't use is that same plain gel and does nothing: an About box
+  only closes, so its yellow and green are off.
+- **Outline:** a window is ringed and its title bar footed by 1px #7F7F7F; a
+  text field's rim is #A9A9A9, darker (#949494) along the top; separators are
+  20% black.
 
 **The other tones** (swap into primary / primary-bright / primary-container;
 wallpaper stops follow):
@@ -407,10 +534,10 @@ wallpaper stops follow):
 | Tone | Years · scene | Primary | Bright | Container |
 |:--|:--|:--|:--|:--|
 | Y2K pink (default) | 2001–06 · McBling — Juicy, pink Razr, Bratz | #E8449A | #ED6DB0 | #A7316F |
-| Aqua | 1998–01 · Bondi Blue iMac, Mac OS X Aqua | #2765CA | #5787D6 | #1C4991 |
+| Aqua | 1998–01 · Bondi Blue iMac, Mac OS X Aqua | #4D83D2 | #749EDC | #375E97 |
 | Lime | 1999–02 · iMac Lime, Nickelodeon slime, Matrix | #7FC31C | #9BD04E | #5B8C14 |
 | Tangerine | 1999–03 · iMac Tangerine, Fanta, inflatable chairs | #E8891A | #EDA34C | #A76313 |
-| Grape | 2000–04 · iMac Grape, MSN purple, Lisa Frank | #8344C4 | #9E6DD1 | #5E318D |
+| Grape | 2000–04 · iMac Grape, MSN purple, Lisa Frank | #7A3ABA | #9765C9 | #582A86 |
 
 Never mix tones on one screen. Never put a tone on text.
 
@@ -418,11 +545,14 @@ Never mix tones on one screen. Never put a tone on text.
 
 One family does almost everything, because that is what Aqua did.
 
-- **Lucida Grande** — the system face. The whole native scale, in px:
-  **10** status bars, **11** captions, group-box labels and small buttons,
-  **12** document body and list rows, **13** default UI text (buttons, menus,
-  fields, window titles in bold), **14** the menu bar and the large push
-  button, **15** document headings in bold. **Font sizes are never snapped to
+- **Lucida Grande** — the system face. Aqua 10.0 uses exactly three sizes:
+  **11** small (status bars, placards, segments, toolbar labels, bevel
+  buttons, small push buttons), **12** legend (group-box captions in bold;
+  list and table rows), **13** system (body, buttons, menus, fields, window
+  titles and document headings in bold). Nothing is 10, 14 or 15px — bar
+  one: the Dock's name label is **14** bold (`label-dock`), measured off
+  10.1.
+  **Font sizes are never snapped to
   the 4px grid** — they are Apple's own values and stay exactly as drawn. Stack: `"Lucida Grande", "Lucida Sans Unicode", "Lucida
   Sans Unicode", Lato, "Hiragino Sans", ui-sans-serif, system-ui,
   sans-serif` — **Lato** is the open-source stand-in on machines without
@@ -435,7 +565,7 @@ One family does almost everything, because that is what Aqua did.
   for the Apple Garamond of the "Mac OS X" wordmark in the About box.
   Rendered as gel text (tone gradient clipped to the glyphs). Never for
   headings or body.
-- **Monaco** (fallback Menlo, Courier New) — code, at 10–11px; on a black
+- **Monaco** (fallback Menlo, Courier New) — code, at 11px; on a black
   field in the Read Me, inline in documents.
 
 Case: sentence case everywhere. Buttons say `Save`, `Cancel`, `Don't Save`;
@@ -450,16 +580,21 @@ a 22px menu bar is pinned to the top and a Dock to the bottom; content lives
 in windows that float, overlap and can be dragged by their title bars. There
 is no hero section, no max-width container, no footer.
 
-- **Menu bar:** 25px, pinstriped, app name in bold on the left, menus at
-  14px, the clock on the right.
-- **Windows** are 300–520px wide and sized to content. Title bar 22px;
-  toolbar (when present) is a row of 62px white buttons with a 32px icon and
-  an 11px label; body padding 16px; status line 20px at 11px, centered.
+- **Menu bar:** 22px of menu pinstripe over a #A0A0A0 rule, 13px items 8px
+  in, the clock on the right. After the ★ (About, the tones, the pack's
+  windows) come 10.1's Finder menus in its order: the front window's app
+  in bold (the Finder when nothing else is in front), File, Edit, View, Go,
+  Window, Help. On a phone only ★, the app and Help stay.
+- **Windows** are 300–520px wide and sized to content. Title bar 26px;
+  toolbar (when present) is a strip falling from #FBFBFB to #DEDEDE over a
+  #9A9A9A foot, its items 10px apart (a 32px icon over an 11px label), shown
+  and hidden by the white oval at the title bar's right end; body padding
+  20px; status bar 24px at 11px, left-aligned 8px in, on the placard stripe.
   New windows open cascaded 24px right and down from the last.
 - **Inside a window,** lay out like a 2001 dialog: labels right-aligned in a
-  column, fields left-aligned beside them, group boxes with a bold 11px
-  caption, and the button row bottom-right with **Cancel to the left of the
-  default button** and 12px between them.
+  column, fields left-aligned beside them, group boxes with a bold 12px
+  caption set into their top border 20px in, and the button row bottom-right
+  with **Cancel to the left of the default button** and 12px between them.
 - **Spacing unit: 4px — and it is a hard rule, not a suggestion.** *Every*
   non-text value snaps to a multiple of 4: spacing, widths, heights, radii,
   positional offsets. Scale: 4 / 8 / 12 / 16 / 24. Controls are separated by
@@ -467,12 +602,18 @@ is no hero section, no max-width container, no footer.
   1. **1px hairlines** — borders and separators.
   2. **2–3px gel highlights** and their small radii — the Aqua gloss detail
      dies if you round it to 4.
-  3. **HIG-authentic OS metrics** — menu bar 25px, title bar 22px, scroll bar
-     15px, push button 20px (small 17px), traffic light 14px. Snapping these
-     distorts chrome Apple measured.
+  3. **Aqua 10.0 metrics** — menu bar 22px, title bar 26px, traffic light
+     13px 5px apart, scroll bar 15px with 17px arrows, push button 20px
+     (small 17px), bevel button 18px, pop-up gem 21px, check box cell 15 × 16px
+     around a 12px box, radio 14 × 15px around a 12px ball, stepper
+     13 × 21px, slider groove 7px under a 15px ball or 15 × 19px pointer, and
+     so on. Snapping these distorts chrome Apple measured. Each one is a named
+     `spacing:` or `rounded:` token in the front matter, and `/check-y2k`
+     allows an off-grid value only when a token names it.
   Font sizes are **not** snapped (see Typography).
-- **Dock:** bottom center, 64px icons on a 70px translucent white shelf
-  (white at 75%, pinstriped), hover magnifies to 2× with a 140px falloff, a
+- **Dock:** bottom center, 64px icons edge to edge (4px in from each end) on
+  a 70px translucent shelf (the Dock pinstripe at 55% under a 1px white
+  rim), hover magnifies to 2× with a 140px falloff, a
   black triangle marks running apps, minimized windows park to the right of a
   divider, Trash at the far right behind another.
 - **Desktop icons** sit top-right, 48px with a 12px white label.
@@ -484,23 +625,43 @@ is no hero section, no max-width container, no footer.
 Aqua is *all* depth — but it is the depth of glass and candy, not of paper
 cards.
 
-- **Windows** cast two stacked casts plus a rim light:
-  `inset 0 1px 0 rgba(255,255,255,.7), 0 4px 10px rgba(0,0,0,.3),
-  0 18px 40px rgba(0,0,0,.5)`. Inactive windows halve it. Nothing else casts
+- **Windows** cast `0 12px 28px rgba(0,0,0,.34), 0 2px 6px rgba(0,0,0,.2)`,
+  focused or not — focus changes only the chrome inside. Nothing else casts
   this shadow.
-- **Menus and tooltips**: `0 4px 16px rgba(0,0,0,.4)` on a white-at-93%
-  backdrop-blurred sheet. The Dock: `0 2px 8px rgba(0,0,0,.15)`.
-- **Gel** (every colored or white control): three highlights stacked —
-  `inset 0 1px 0 rgba(255,255,255,.85)` (top rim), a white-to-transparent
-  gloss cap over the top 48%, and `inset 0 -6px 7px -4px
-  rgba(255,255,255,.75)` (light coming back out of the bottom) — over
-  `0 1px 2px rgba(0,0,0,.35), 0 0 0 1px rgba(0,0,0,.3)`. Pressed: the gloss
-  fades to 40% and the shadow inverts to `inset 0 2px 4px rgba(0,0,0,.35)`.
-- **Traffic lights** are 14px spheres: a radial gradient lit from the top
-  third, a gloss cap, and a hairline. Glyphs (×, –, +) appear only on hover.
-- **Pinstripes** are the texture of every window surface, including the title
-  bar and the menu bar: `repeating-linear-gradient(180deg, #ECECEC 0 1px,
-  #FAFAFA 1px 2px)`. They are neutral in every tone.
+- **Menus**: `0 8px 20px rgba(0,0,0,.32)` under the menu pinstripe with a
+  1px #8A8A8A rim. The Dock: `0 2px 8px rgba(0,0,0,.15)`.
+- **Gel** (every colored or white control) is an opaque fill that carries
+  its own light, and it is **the original's own rows** — one colour per
+  pixel, read off the rendered 10.0 control and drawn back as a px-stop
+  gradient (`scripts/tones.mjs` generates every one into `y2k.css`). A push
+  button's 20 rows run #7C7C7C, #B4B4B4, #D2D2D2 … #D6D6D6 … white, #F8F8F8:
+  a dark rim, a pale cap, a dip, the glow. Other tones keep each row's
+  lightness offset and chroma ratio in their own hue. A push button's round
+  ends darken toward the rim, and it floats on
+  `0 5px 10px rgba(0,0,0,.42), 0 2px 4px rgba(0,0,0,.32), 0 1px 2px rgba(0,0,0,.24), 0 1px 0 rgba(255,255,255,.5)`.
+  Pressed lays the original's grey press over the fill and pulls the shadow
+  in to `0 1px 2px rgba(0,0,0,.28)`.
+- **Traffic lights** are 13px gems, 5px apart: the original's 13 rows each —
+  a near-black rim, a white glint, the colour, a glow at the foot — on a
+  layered drop. Unfocused, they turn graphite at 55%. Glyphs (×, –, +)
+  appear only on hover.
+- **An unfocused window's title bar** is 75% grey rows with nothing under
+  them, so the desktop shows faintly through it (brushed metal stays opaque).
+- **Surfaces** — the static textures Aqua is built from, neutral in every
+  tone, each a token and a plain class:
+  - **Light pinstripe** (`--y2k-pinstripe-light`, `.y2k-pinstripe-light`):
+    #FAFAFA / #E9E9E9 / #FAFAFA / #FFFFFF — the menu bar. An open menu wears
+    it at 90% (`--y2k-pinstripe-menu`), so the screen shows faintly through.
+  - **Dock pinstripe** (`--y2k-pinstripe-dock`): #ECECEC / #E8E8E8 /
+    #ECECEC / #F5F5F5 at 55% — the Dock shelf, the desktop showing through;
+    solved from 10.1's shelf over two wallpaper blues.
+  - **Pinstripe** (`--y2k-pinstripe`, `.y2k-pinstripe`): #DEDEDE / #EBEBEB /
+    #DEDEDE / #D7D7D7 — every window body and title bar.
+  - **Dark pinstripe** (`--y2k-pinstripe-dark`, `.y2k-pinstripe-dark`):
+    #CFCFCF / #D5D5D5 / #E3E3E3 / #D5D5D5 — sheets.
+  - **Brushed metal** (`--y2k-metal`, `.y2k-metal`) — textured windows.
+  All are 1px rows on a 4px period. The **shaders** (chrome reflection,
+  translucent plastic) are a separate, animated layer for hero surfaces.
 - **The wallpaper** is a deep-to-light diagonal of the tone with two wide,
   blurred white ribbons sweeping up to the right — Aqua's swoosh, recolored.
 - **Toolbar buttons and group boxes** sit *on* the pinstripes with a 1px
@@ -510,13 +671,19 @@ cards.
 
 Controls are candy; windows are sheets.
 
-- `pill` (9999px) — every gel button, popup, scroll thumb, progress bar,
-  tone swatch.
-- `window` (7.2px) — the two top corners of a window; the bottom corners are
-  square, as in 10.0.
-- `control` (8px) — toolbar buttons, group boxes, wells, menu bottoms.
-- `check` (3px) — checkboxes, the Dock shelf, code fields.
-- `none` — inputs (sunken white wells), status bars, menus' top edge.
+- `pill` (9999px) — every push button, scroll thumb, radio, stepper, tone
+  swatch.
+- `window` (8px) / `window-bottom` (6px) — a window's top and bottom corners,
+  on pinstripe and metal alike, as in 10.0.
+- `search` (10px) — the search field.
+- `control` (8px) — toolbar buttons and wells.
+- `tab` (7px) — a folder tab's top corners.
+- `toggle` (6px) — the title bar's toolbar oval.
+- `group` (5px) — group boxes, tab panels, a menu's bottom corners.
+- `segment` (4px) — segmented-control and pop-up ends, the slider groove.
+- `check` (3px) — the menu-bar highlight, the Dock shelf.
+- `field` (2px) — text fields, tree views, bevel buttons.
+- `none` — check boxes, progress bars, status bars, menus' top edge.
 
 Never an 8–16px rounded *card*. A rounded rectangle with an 8–12px radius
 floating on a flat background is the single strongest tell of a default
@@ -528,51 +695,120 @@ thin-line icon set.
 
 ## Components
 
-**Buttons** — gel pills, 20px tall (Apple HIG fixed height), 13px Lucida
-Grande, black label, fully rounded (capsule) ends, minimum 69px wide.
-- `button-white` — the regular button: white gel. `Cancel`, `Show All`,
+**Buttons** — the 10.0 push button: 20px tall (small 17px; there is no large
+size), 68px minimum,
+14px end caps, 13px Lucida Grande **regular**, black label, no text shadow.
+- `button-white` — the regular button: the white fill. `Cancel`, `Show All`,
   `Don't Save`.
-- `button-default` — the window's one default action: tone gel, and it
-  **pulses** (brightness 1 → 1.18, 1.4s, ease-in-out) exactly like Aqua's
-  blue `Save`. One per window. `Enter` triggers it.
-- `button-small` — 18px, 11px label, for toolbars and dense panels.
-- Icon buttons are 21px circles. Disabled buttons are flat light gray with
-  graphite (tertiary) text and 60% gloss — exempt from the contrast rule, as
-  disabled controls are. Focus is a 3px ring in primary-bright.
+- `button-default` — the window's one default action: the tone gel, at rest
+  (the throb's mid-phase, which is what every resting screenshot shows). The
+  dialog throb is opt-in (`pulsing`: brightness .94 → 1.22, 0.5s). One per
+  window. `Enter` triggers it.
+- `bevel-button` — `Choose…`: 18px, 11px, the original's light face with a
+  dark 1px foot and 2px corners. The face is nine-sliced, as the original's
+  is, so an icon bevel can stand taller (a player's 24px foot buttons).
+- Icon buttons are the 20px round button: a grey sphere, an 11px glyph. The
+  sphere scales with its box: a player's transport is 28px and 32px.
+  Disabled buttons fade to 55% with #8D8D8D text — exempt from the contrast
+  rule, as disabled controls are. Focus is a 3px ring in the light tone at
+  55%.
 
 **Window** — the Dialog *is* a window; there is no modal card.
-1. Title bar (22px): pinstripes, traffic lights at 8px from the left with
-   7px gaps, bold centered title. Inactive: gray lights, gray title. The
-   title bar is the drag handle.
-2. Toolbar (optional): white 62px buttons with a 32px icon.
-3. Body: pinstripes, 16px padding, 13px black text; group boxes and sunken
+1. Title bar (26px): the original's 26 rows ending in a 1px #7F7F7F foot,
+   13px traffic lights 8px from the left and 5px apart, a bold 13px #2F2F2F
+   title with a white 1px lift, centred with 66px kept clear either side
+   (an overlong title ends in an ellipsis). Unfocused: graphite lights,
+   #8A8A8A title, translucent grey rows. The title bar is the drag handle; a
+   toolbar window carries the white 20 × 12 oval at its right end.
+2. Toolbar (optional): the #FBFBFB → #DEDEDE strip, 32px icons over 11px
+   labels on one baseline; a dotted rule (1px, 2px on and 2px off in
+   #8F8F8F) parts the groups.
+3. Body: pinstripes, 20px padding, 13px black text; group boxes and sunken
    white wells inside.
 4. Button row: right-aligned, Cancel then the default.
-5. Status line (optional, 20px, 11px centered): `6 items, 56k available`.
+5. Status bar (optional, 24px, 11px #404040 left-aligned 8px in, on the
+   placard stripe under a #B4B4B4 rule): `6 items, 56k available`.
+6. Corners: 8px top, 6px bottom; a 1px #7F7F7F border.
+An **alert** lays out a 64px icon, a bold 13px message, 11px informative text
+and the button row, all 20px in.
 Modal windows open centered at 94% → 100% scale over a 20% black scrim with
 an ease-out overshoot (220ms); close is instant. Sheets are not attached to
 the parent yet — they are centered windows.
 
-**Popup menu** — a white gel pill whose right end cap is a tone gel with two
-stacked black arrows. **Checkbox** — a 14px 3px-radius gel square; checked =
-tone gel with a black check. **Input** — a square sunken white well, 22px.
+**Pop-up button** — 20px, the white rows with a 4px round left end and 13px
+text 10px in, ending in a 21px gem (the tone control rows behind a darker
+1px line, its round right end darkening) with two white 5 × 4 arrows.
+**Checkbox** — a 15 × 16px cell holding a square 12px box 3px down, its
+label 24px from the left edge; checked = the tone check rows and a black
+tick that overshoots the box's top-right corner; mixed = a 6 × 2px black
+bar. **Radio** — a 14 × 15px cell holding a 12px ball; on = the tone ball
+and a 4px black dot. Both sit on a 1px drop. **Text field** — 24px, white,
+13px text 6px in, a #A9A9A9 rim darker (#949494) on top, 2px corners, a short
+inner shadow; focused, the rim takes the tone and a 3px ring. **Search
+field** — the same with 10px corners, 10px in. **Slider** — a 7px groove
+(the original's rows, 4px ends); a 15px tone ball, or a 15 × 19px pointer
+with a 45° point over 1 × 5px #8A8A8A ticks. **Stepper** — a 13 × 21px pill
+with two little black arrows, 6px after its number field; the pressed half
+floods with the tone.
+**Segmented control** — 20px of face with 4px ends and a soft shadow 4px
+deep beneath; segments 9px either side of 11px text, at least 25px (an icon
+segment exactly 25), parted by a 1px divider that fades dark → light; the
+selected segment is the tone control rows, its glyph black.
 
-**Menu bar and menus** — pinstriped bar; open menu title inverts to the tone;
-menu sheet is white at 93% with a 5px bottom radius; highlighted item = tone
-background, black text; check marks for radio items.
+**Menu bar and menus** — the menu pinstripe, at 90% on an open menu so the
+screen shows through; an open menu title and a
+highlighted item take the tone highlight gradient with its ink (3px corners
+on the bar); the menu sheet has a 1px #8A8A8A rim, 5px bottom corners, a 4px
+inset and 19px rows 22px from the edge; radio items show a check. A
+shortcut sits at the row's right in the same 13px, greyed with the row;
+the Window menu lists the open windows, a check on the front one and a
+diamond on those in the Dock.
 
-**Dock** — translucent white shelf, 64px glossy icons, 2× hover
-magnification, tooltip label above, black triangle under running apps,
-minimized windows parked after a divider, Trash at the far right behind
-another. Finder sits leftmost, as the Aqua smiley.
+**Dock** — a translucent pinstriped shelf with a 1px white rim (77%) on
+the top and ends and no rounded corners; 64px glossy icons edge to edge, 2×
+hover magnification; the hovered icon's name floats 4px above it in 14px
+bold white with a dark shadow (no pill); black triangle under running apps;
+minimized windows parked after a divider — a white hairline (78%) the
+shelf's full height — and Trash at the far right behind another. Finder
+sits leftmost, as the Aqua smiley.
 
-**Scroll bar** — a tone gel thumb in a white sunken track, 15px.
+**Scroll bar** — 15px: one 17px arrow at each end (the 10.0 default), a
+grooved trough curving into cups under them, the tone gel thumb. A vertical
+bar when the content is too tall, a horizontal one along the foot when it is
+too wide, and the square between them when both.
 
-**Progress** — a tone gel bar; indeterminate = the Aqua barber pole (45°
-stripes scrolling left at 28px/s).
+**Progress** — square-ended: a 16px grooved track (the original's rows, a
+4px shadow beneath, the last 2px at each end a shade darker) under an 18px
+fill. Determinate = the tone progress rows with their ribs, a 16px
+light–dark–light wave sliding right a pixel a frame; at 100% the bar is done
+and still. Indeterminate = the barber pole: tone and white stripes at 45°,
+32px apart, stepping right under the gel's lighting.
+
+**Selection** — a selected row, a menu highlight and selected text all take
+the tone; the browser's own blue never shows.
+
+**Lists** — a **table** has a 17px list-header row (the sorted column in
+the tone, a 7×6 triangle 4px from its right edge pointing the way it sorts)
+with hairline column rules, 12px text in 2px / 8px cells, every
+other row the pale tone (#EDF3FE in aqua, the same lightness in every tone),
+the selected row in the tone selection. The Finder's list view is this
+table. A **tree view** is a sunken white panel of 18px
+rows with black disclosure triangles.
+
+**Brushed-metal controls** (the iPod, after iTunes 2) — white transport
+discs, 28px and 32px (`Button variant="metal"`, `--y2k-metal-button`: a
+white cap, a dip, white to a dark foot; the glyph #393939, greying to
+#9C9C9C when disabled while the disc stays), sunk in one well that is dark
+under its top edge and lit along its foot; a 6px volume groove with a 12px
+white ball (`Slider thumb="metal"`, `--y2k-metal-groove`, `--y2k-metal-knob`)
+between two speakers of one 6×10 body. Its status
+display keeps iTunes' #DEE7C6 in every tone, with #323931 ink.
 
 **Toast ("Nudge")** — a small window that slides up from the Dock and shakes
-once. **Tabs** — white gel segmented control, selected segment in tone.
+once. **Tabs** — 10.0 folder tabs: 24px with 7px top corners on a
+pinstriped panel (1px #9A9A9A rim, 5px corners, 12px padding); the selected
+tab is the light tone tab gel with **black** ink — the original's white
+label on that light gel fails AA, so the pack departs from it.
 
 **Icons** — 64px glossy objects with a gloss cap and a hairline; fills use
 the tone so they re-color with it.
@@ -587,13 +823,18 @@ the tone so they re-color with it.
 - Do make every control gel: gloss cap, tone middle, bright bottom, hairline.
 - Do keep pinstripes on every window surface, including title and menu bars.
 - Do put black text on gel; white text belongs only on the wallpaper.
-- Do give each window exactly one default button, and let it pulse.
+- Do give each window exactly one default button.
 - Do keep the traffic lights red / yellow / green in every tone.
-- Do use pills for controls, 7.2px for window tops and 8px for sunken wells
-  and group boxes; nothing else.
+- Do use pills for push buttons, 8px / 6px for window corners, 5px for group
+  boxes and menus, 4px for segmented and pop-up ends, 7px for tab tops;
+  nothing else.
 - Do lay out dialogs with right-aligned labels and Cancel left of the default.
-- Do keep WCAG AA: black on pink 6.4:1, black on pinstripe 20:1, black on
-  aqua 7.6:1, black on lime 13:1.
+- Do keep WCAG AA, measured on the rendered gel rather than a flat colour:
+  black on the default button is 8.6:1 in pink, 8.1:1 in aqua, 13.3:1 in lime,
+  11.5:1 in tangerine and 4.9:1 in grape (its darkest tenth, on the measured
+  rows); black on the pinstripe about 15:1.
+  Pink's white-ink selection (3.7:1) and sidebar (2.5:1) are the known
+  exceptions still open.
 - Do respect `prefers-reduced-motion`: no pulse, no window zoom, no Dock
   magnification.
 

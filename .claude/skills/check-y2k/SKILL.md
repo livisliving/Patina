@@ -37,9 +37,11 @@ not get to pick silently:
 
 1. The code is wrong → fix the code.
 2. **DESIGN.md is wrong or incomplete** → say so to the human and propose the
-   wording. The grid exceptions and the radius scale are parsed out of
-   DESIGN.md at run time, so widening an exception is an edit to the spec,
-   which is the human's call. Never loosen the checker to make a run go green.
+   change. The grid is read from DESIGN.md's front matter at run time: the
+   unit is `spacing.unit`, an off-grid value is allowed only when a `spacing:`
+   token names it, and a radius only when a `rounded:` token does. So widening
+   an exception means adding a named token there — an edit to the spec, which
+   is the human's call. Never loosen the checker to make a run go green.
 
 ## What it does not check
 

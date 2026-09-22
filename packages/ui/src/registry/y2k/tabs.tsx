@@ -8,9 +8,11 @@ import { cn } from "@/lib/utils"
 /**
  * Patina Tabs — DESIGN.md › Components › Tabs.
  *
- * A white gel segmented control: a pill-shaped track of segments, the selected
- * one filled with the tone gel (white ink), the rest white gel. Same visual
- * language as the toolbar segmented buttons.
+ * Aqua 10.0 folder tabs: 24px tabs with 7px top corners standing on a
+ * pinstriped panel (1px #9a9a9a rim, 5px corners, 12px padding). An
+ * unselected tab is the white push-button fill; the selected one is the light
+ * tone tab gel with a dark rim — and BLACK ink, which the original's white
+ * label on that light gel does not give (it fails WCAG AA).
  *
  *   <Tabs defaultValue="a">
  *     <TabsList><TabsTrigger value="a">A</TabsTrigger>…</TabsList>
@@ -19,19 +21,14 @@ import { cn } from "@/lib/utils"
  */
 
 function Tabs({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Root>) {
-  return <TabsPrimitive.Root data-slot="tabs" className={cn("flex flex-col gap-3", className)} {...props} />
+  return <TabsPrimitive.Root data-slot="tabs" className={cn("flex flex-col", className)} {...props} />
 }
 
 function TabsList({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.List>) {
   return (
     <TabsPrimitive.List
       data-slot="tabs-list"
-      className={cn(
-        // The segmented track: a white gel pill with a hairline + gloss.
-        "inline-flex h-[22px] items-stretch overflow-hidden rounded-full p-px",
-        "bg-(image:--y2k-gel-white) shadow-(--y2k-popup-shadow)",
-        className
-      )}
+      className={cn("relative z-[1] flex items-end pl-[10px]", className)}
       {...props}
     />
   )
@@ -42,13 +39,13 @@ function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPr
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
       className={cn(
-        "relative flex cursor-default items-center justify-center rounded-full px-3 outline-none",
-        "font-(family-name:--y2k-font-ui) text-[12px] text-(--y2k-ink) select-none",
-        // Selected segment: tone gel fill, white ink, gloss cap.
-        "data-[state=active]:bg-(image:--y2k-tone-button) data-[state=active]:text-white",
-        "data-[state=active]:shadow-[inset_0_1px_1px_rgba(255,255,255,0.5),0_0_0_0.5px_var(--y2k-tone-button-edge)]",
-        "data-[state=active]:[text-shadow:0_1px_1px_rgba(0,0,0,0.3)]",
-        "focus-visible:ring-2 focus-visible:ring-(--y2k-tone-focus) active:brightness-95",
+        "relative flex h-(--y2k-tab-h) cursor-default items-center justify-center rounded-t-[7px] px-4 outline-none",
+        "font-(family-name:--y2k-font-ui) text-[13px] whitespace-nowrap text-(--y2k-ink) select-none",
+        "bg-(image:--face) shadow-[inset_0_0_0_1px_var(--rim)] active:bg-[image:var(--y2k-gel-pressed),var(--face)]",
+        "[--face:var(--y2k-gel-white)] [--rim:#8a8a8a]",
+        "data-[state=active]:[--face:var(--y2k-tone-tab)] data-[state=active]:[--rim:var(--y2k-tone-tab-edge)]",
+        "disabled:text-(--y2k-ink-disabled)",
+        "focus-visible:outline-3 focus-visible:outline-(--y2k-tone-focus)",
         className
       )}
       {...props}
@@ -56,11 +53,16 @@ function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPr
   )
 }
 
+/** The panel the tabs stand on. */
 function TabsContent({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Content>) {
   return (
     <TabsPrimitive.Content
       data-slot="tabs-content"
-      className={cn("font-(family-name:--y2k-font-ui) text-[13px] text-(--y2k-ink) outline-none", className)}
+      className={cn(
+        "rounded-[5px] border border-[#9a9a9a] bg-(image:--y2k-pinstripe) p-3",
+        "font-(family-name:--y2k-font-ui) text-[13px] text-(--y2k-ink) outline-none",
+        className
+      )}
       {...props}
     />
   )

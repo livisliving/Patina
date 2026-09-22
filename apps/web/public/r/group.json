@@ -4,12 +4,12 @@
   "title": "Group box",
   "description": "The Aqua group box — a faint sunken well with a bold 11px caption. Patina's answer to a Card (no neutral grey cards).",
   "registryDependencies": [
-    "https://patina.md/r/theme.json"
+    "https://patina-one.vercel.app/r/theme.json"
   ],
   "files": [
     {
       "path": "src/registry/y2k/group.tsx",
-      "content": "\"use client\"\n\nimport * as React from \"react\"\n\nimport { cn } from \"@/lib/utils\"\n\n/**\n * Patina Group — DESIGN.md › Components › group boxes.\n *\n * The Aqua \"group box\": a faint rounded well with an inset hairline and a bold\n * 11px caption sitting on the top edge. This is Patina's answer to a Card —\n * there is NO neutral grey card; content is grouped in a sunken pinstripe-safe\n * well. (WindowGroup in window.tsx is the same box scoped to a dialog; this is\n * the standalone registry component for use anywhere.)\n *\n *   <Group label=\"Appearance\"> … </Group>\n */\nfunction Group({\n  className,\n  label,\n  children,\n  ...props\n}: React.ComponentProps<\"fieldset\"> & { label?: React.ReactNode }) {\n  return (\n    <fieldset\n      data-slot=\"group\"\n      className={cn(\n        // control radius (5–6px), faint sunken fill, inset hairline + top rim.\n        \"min-w-0 rounded-[8px] bg-black/[0.04] px-3 pt-2 pb-3\",\n        \"shadow-[inset_0_0_0_1px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.6)]\",\n        \"font-(family-name:--y2k-font-ui) text-[13px] leading-[1.45] text-(--y2k-ink)\",\n        className\n      )}\n      {...props}\n    >\n      {label != null && (\n        <legend className=\"px-1 text-[11px] font-bold text-(--y2k-ink)\">{label}</legend>\n      )}\n      {children}\n    </fieldset>\n  )\n}\n\nexport { Group }\n",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\n\nimport { cn } from \"@/lib/utils\"\n\n/**\n * Patina Group — DESIGN.md › Components › Group box.\n *\n * The Aqua 10.0 group box — the theme's `.y2k-group`, as WindowGroup draws\n * it: a 1px #b6b6b6 rim with 5px corners around a faint grey well, and the\n * bold 12px caption set into the top border 20px in. This is Patina's answer\n * to a Card — there is NO neutral grey card. The caption is optional here.\n *\n *   <Group label=\"Appearance\"> … </Group>\n */\nfunction Group({\n  className,\n  label,\n  children,\n  ...props\n}: React.ComponentProps<\"fieldset\"> & { label?: React.ReactNode }) {\n  return (\n    <fieldset\n      data-slot=\"group\"\n      className={cn(\"y2k-group font-(family-name:--y2k-font-ui) text-[13px] text-(--y2k-ink)\", className)}\n      {...props}\n    >\n      {label != null && <legend>{label}</legend>}\n      {children}\n    </fieldset>\n  )\n}\n\nexport { Group }\n",
       "type": "registry:ui",
       "target": "components/ui/group.tsx"
     }

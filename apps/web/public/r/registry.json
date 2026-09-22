@@ -7,7 +7,7 @@
       "name": "theme",
       "type": "registry:theme",
       "title": "Patina · Y2K theme",
-      "description": "Chrome / Bubblegum / Aero tokens, materials and motion. Mirrors DESIGN.md.",
+      "description": "Aqua × millennium tones: the tokens, materials (pinstripes, gel, brushed metal) and motion for all five tones. Mirrors DESIGN.md.",
       "files": [
         {
           "path": "src/styles/y2k.css",
@@ -22,10 +22,10 @@
     {
       "name": "button",
       "type": "registry:ui",
-      "title": "Chrome Button",
-      "description": "Bevelled chrome button with the horizon gradient. Variants: chrome, accent, pill.",
+      "title": "Aqua Button",
+      "description": "The Aqua 10.0 push button at the original's metrics: white or tone gel, the default button's pulse, round icon buttons, bevel buttons and brushed-metal discs.",
       "dependencies": ["class-variance-authority", "radix-ui"],
-      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "registryDependencies": ["https://patina-one.vercel.app/r/theme.json"],
       "files": [
         {
           "path": "src/registry/y2k/button.tsx",
@@ -38,9 +38,9 @@
       "name": "window",
       "type": "registry:ui",
       "title": "Window (Dialog)",
-      "description": "The Dialog is a window: pinstriped title bar, chrome controls, status bar. Static frame + Radix Dialog.",
+      "description": "The Dialog is an Aqua window: pinstriped (or brushed-metal) title bar, traffic lights, toolbar, status bar. Static frame + Radix Dialog.",
       "dependencies": ["radix-ui"],
-      "registryDependencies": ["https://patina.md/r/theme.json", "https://patina.md/r/button.json"],
+      "registryDependencies": ["https://patina-one.vercel.app/r/theme.json", "https://patina-one.vercel.app/r/button.json"],
       "files": [
         {
           "path": "src/registry/y2k/window.tsx",
@@ -54,7 +54,7 @@
       "type": "registry:ui",
       "title": "Window Sidebar (Source list)",
       "description": "The Aqua source list: a recessed white column with full-bleed, tone-tinted selected rows and bold group headers. Sits inside a window.",
-      "registryDependencies": ["https://patina.md/r/theme.json", "https://patina.md/r/window.json"],
+      "registryDependencies": ["https://patina-one.vercel.app/r/theme.json", "https://patina-one.vercel.app/r/window.json"],
       "files": [
         {
           "path": "src/registry/y2k/sidebar.tsx",
@@ -68,7 +68,7 @@
       "type": "registry:ui",
       "title": "Group box",
       "description": "The Aqua group box — a faint sunken well with a bold 11px caption. Patina's answer to a Card (no neutral grey cards).",
-      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "registryDependencies": ["https://patina-one.vercel.app/r/theme.json"],
       "files": [
         { "path": "src/registry/y2k/group.tsx", "type": "registry:ui", "target": "components/ui/group.tsx" }
       ]
@@ -79,7 +79,7 @@
       "title": "Progress",
       "description": "A tone gel progress bar in a sunken white track; omit value for the Aqua barber-pole indeterminate state.",
       "dependencies": ["radix-ui"],
-      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "registryDependencies": ["https://patina-one.vercel.app/r/theme.json"],
       "files": [
         { "path": "src/registry/y2k/progress.tsx", "type": "registry:ui", "target": "components/ui/progress.tsx" }
       ]
@@ -90,7 +90,7 @@
       "title": "Tabs",
       "description": "A white gel segmented control; the selected segment is filled with the tone gel. Radix Tabs.",
       "dependencies": ["radix-ui"],
-      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "registryDependencies": ["https://patina-one.vercel.app/r/theme.json"],
       "files": [
         { "path": "src/registry/y2k/tabs.tsx", "type": "registry:ui", "target": "components/ui/tabs.tsx" }
       ]
@@ -101,7 +101,7 @@
       "title": "Toast (Nudge)",
       "description": "The MSN 'Nudge' — a mini Aqua window that slides up from the Dock and shakes once. Radix Toast.",
       "dependencies": ["radix-ui"],
-      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "registryDependencies": ["https://patina-one.vercel.app/r/theme.json"],
       "files": [
         { "path": "src/registry/y2k/toast.tsx", "type": "registry:ui", "target": "components/ui/toast.tsx" }
       ]
@@ -111,7 +111,7 @@
       "type": "registry:ui",
       "title": "Marquee",
       "description": "The old-web scrolling marquee, done right: seamless loop, pauses on hover, respects reduced-motion.",
-      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "registryDependencies": ["https://patina-one.vercel.app/r/theme.json"],
       "files": [
         { "path": "src/registry/y2k/marquee.tsx", "type": "registry:ui", "target": "components/ui/marquee.tsx" }
       ]
@@ -121,9 +121,50 @@
       "type": "registry:ui",
       "title": "Visitor counter",
       "description": "The millennium hit counter — glowing tone odometer digits on a dark LCD panel.",
-      "registryDependencies": ["https://patina.md/r/theme.json"],
+      "registryDependencies": ["https://patina-one.vercel.app/r/theme.json"],
       "files": [
         { "path": "src/registry/y2k/visitor-counter.tsx", "type": "registry:ui", "target": "components/ui/visitor-counter.tsx" }
+      ]
+    },
+    {
+      "name": "forms",
+      "type": "registry:ui",
+      "title": "Form controls",
+      "description": "Aqua 10.0 checkbox, radio, text field, search field, slider and stepper, at the original's metrics.",
+      "registryDependencies": ["https://patina-one.vercel.app/r/theme.json"],
+      "files": [
+        { "path": "src/registry/y2k/forms.tsx", "type": "registry:ui", "target": "components/ui/forms.tsx" }
+      ]
+    },
+    {
+      "name": "table",
+      "type": "registry:ui",
+      "title": "Table and tree view",
+      "description": "The Aqua list view — list-header row, pale-blue alternate rows, tone selection — and a disclosure tree.",
+      "registryDependencies": ["https://patina-one.vercel.app/r/theme.json"],
+      "files": [
+        { "path": "src/registry/y2k/table.tsx", "type": "registry:ui", "target": "components/ui/table.tsx" }
+      ]
+    },
+    {
+      "name": "popup",
+      "type": "registry:ui",
+      "title": "Pop-up button and menus",
+      "description": "The Aqua pop-up button (white body, tone gem) and the menu styles it opens — pinstriped sheet, 19px rows, tone highlight.",
+      "dependencies": ["radix-ui"],
+      "registryDependencies": ["https://patina-one.vercel.app/r/theme.json"],
+      "files": [
+        { "path": "src/registry/y2k/popup.tsx", "type": "registry:ui", "target": "components/ui/popup.tsx" }
+      ]
+    },
+    {
+      "name": "segmented",
+      "type": "registry:ui",
+      "title": "Segmented control",
+      "description": "22px Aqua segmented control: white segments, the selected one in the light tone gel with a black glyph.",
+      "registryDependencies": ["https://patina-one.vercel.app/r/theme.json"],
+      "files": [
+        { "path": "src/registry/y2k/segmented.tsx", "type": "registry:ui", "target": "components/ui/segmented.tsx" }
       ]
     }
   ]

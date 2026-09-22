@@ -41,18 +41,29 @@ the job, and doing it last means redoing the paint.
 | Default | Pack |
 | --- | --- |
 | `Card` / a bordered panel | `WindowFrame` (standalone) or `WindowGroup` (inside a window) |
-| `Dialog` / `Sheet` / modal | `Window` + `WindowTrigger` + `WindowContent` |
-| `Button` | `Button` — `variant="white"` normally, `variant="tone"` + `isDefault` for the one default action per window |
+| `Dialog` / `Sheet` / modal | `Window` + `WindowTrigger` + `WindowContent`; a confirm → `WindowAlert` inside it |
+| `AlertDialog` | `WindowAlert` (64px icon, bold message, informative text, button row) |
+| `Button` | `Button` — `variant="white"` normally, `isDefault` for the one default action per window (`pulsing` for the dialog throb); `BevelButton` for a `Choose…` |
+| `Checkbox` | `Checkbox` (supports `"mixed"`) |
+| `RadioGroup` | `RadioGroup` + `Radio` |
+| `Input` | `TextField`; a search box → `SearchField` |
+| `Slider` | `Slider` (`thumb="round"`, or `"pointer"` with `ticks`) |
+| number input + ± buttons | `Stepper` |
+| `Select` / combobox | `PopupButton`; any other dropdown wears `menuContentClass` / `menuItemClass` |
+| `Table` | `Table` — same part names as shadcn's (`TableHeader`, `TableHead`, `TableRow`, `TableCell`…) |
+| nested list / file tree | `TreeView` |
+| File list, "list view" | `Table` (list header, zebra rows in the tone) |
 | Nav rail, file tree, settings list | `WindowSidebar` + `WindowSidebarGroup` + `WindowSidebarItem` |
-| `Tabs` | `Tabs` (segmented, the selected tab fills with the tone) |
+| `Tabs` | `Tabs` — folder tabs on a pinstriped panel; the selected tab in the light tone gel, black ink |
+| `ToggleGroup` / segmented buttons | `SegmentedControl` |
 | `Toast` / `Sonner` | `Nudge` (+ `NudgeProvider`, `NudgeViewport`) |
 | `Progress` / spinner | `Progress` (indeterminate = barber pole) |
 | Badge, pill, "New!" | `Marquee` or `VisitorCounter` where it fits; otherwise plain text |
-| Scroll container | `WindowScrollArea` (15px Aqua scrollbar) |
-| Status line, result count | `WindowStatusBar`, 11px, centered |
+| Scroll container | `WindowScrollArea` (15px Aqua scrollbars — vertical, and along the foot when content is too wide) |
+| Status line, result count | `WindowStatusBar`, 11px, left-aligned, on the placard stripe |
 | `text-muted-foreground` | `text-(--y2k-ink-secondary)` |
-| `bg-card` / `bg-background` | pinstripes (`--y2k-pinstripe`) or `--y2k-window-bg` |
-| Arbitrary accent colour | `var(--y2k-tone)` and its `--y2k-tone-*` variants |
+| `bg-card` / `bg-background` | pinstripes (`--y2k-pinstripe`) |
+| Arbitrary accent colour | `var(--y2k-tone)` and its `--y2k-tone-*` gradients |
 
 Dialog layout, when you build one: labels right-aligned in a column, fields
 beside them, the button row bottom-right, **Cancel to the left of the default

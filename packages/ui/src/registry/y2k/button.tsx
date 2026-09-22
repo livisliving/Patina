@@ -7,49 +7,70 @@ import { cn } from "@/lib/utils"
 /**
  * Patina Button — DESIGN.md › Components › Buttons.
  *
- * The Aqua push button: 28px tall, 14px radius, no border. Two materials:
- *   white  — translucent white gel (Cancel, Show All…). The default.
- *   tone   — the gel in the current tone. Pass `isDefault` to make it the
- *            window's default button: it pulses like Aqua's blue "Save".
+ * The Aqua 10.0 push button, at the original's measurements: 20px tall, a
+ * full 10px round end, 68px minimum, 14px end caps, 13px regular text. The
+ * body is the original's 20 rows (--y2k-gel-white / --y2k-tone-button); the
+ * round ends darken toward the rim; it floats on a deep, soft drop shadow.
+ *   white  — the neutral push button (Cancel, Show All…). The default.
+ *   tone   — the gel in the current tone. `isDefault` marks the window's
+ *            default action; `pulsing` adds the dialog throb.
+ *   metal  — brushed metal's white disc (iTunes' transport): the measured
+ *            rows, the sides shading in, a short drop onto the metal, the
+ *            glyph in the metal's #393939. Disabled, only the glyph greys,
+ *            to #9c9c9c; the disc stays.
+ * Pressed (held, or aria-pressed for a toggle) lays the original's grey press
+ * over the fill and pulls the shadow in. Disabled fades to 55% with #8d8d8d
+ * text and no shadow.
  *
- * Gloss is two pseudo-elements: a shine across the top third and a glow
- * rising from the bottom. Text sits above both with a soft drop shadow.
+ * size="icon" is the Aqua round button: a 20px grey sphere, 11px glyph.
  */
 const buttonVariants = cva(
   [
-    "relative inline-flex shrink-0 cursor-default select-none items-center justify-center gap-1.5 overflow-hidden whitespace-nowrap",
-    "border-0 font-(family-name:--y2k-font-ui) font-medium leading-none text-(--y2k-ink) antialiased outline-none",
-    "transition-[filter] duration-150",
-    // Top shine (Aqua gel cap: upper ~46%, pill-shaped, per HIG/aqua gloss)
-    "before:pointer-events-none before:absolute before:top-[2px] before:left-[7%] before:right-[7%] before:z-[2] before:h-[46%] before:rounded-full before:bg-(image:--y2k-gel-shine) before:blur-[0.4px] before:content-['']",
-    // Bottom glow
-    "after:pointer-events-none after:absolute after:bottom-0 after:left-1/2 after:h-[33%] after:w-[calc(100%-8px)] after:-translate-x-1/2 after:rounded-full after:bg-(image:--y2k-gel-glow) after:blur-[1px] after:content-['']",
-    "disabled:pointer-events-none disabled:text-(--y2k-ink-disabled) disabled:[text-shadow:none] disabled:before:opacity-40 disabled:after:opacity-40",
-    "data-[default=true]:animate-[y2k-pulse_1.5s_ease-in-out_infinite] data-[default=true]:active:animate-none",
+    "relative inline-flex shrink-0 cursor-default select-none items-center justify-center gap-1.5 whitespace-nowrap",
+    "border-0 font-(family-name:--y2k-font-ui) font-normal leading-none text-(--y2k-ink) antialiased outline-none",
+    "focus-visible:outline-3 focus-visible:outline-offset-1 focus-visible:outline-(--y2k-tone-focus)",
+    "disabled:pointer-events-none disabled:text-(--y2k-ink-disabled) disabled:opacity-55 disabled:shadow-(--rim)",
+    // The body is --face; a press lays the original's grey over it.
+    "bg-(image:--face) active:bg-[image:var(--y2k-gel-pressed),var(--face)] aria-pressed:bg-[image:var(--y2k-gel-pressed),var(--face)]",
+    "data-[pulsing=true]:motion-safe:animate-[y2k-pulse_0.5s_ease-in-out_infinite] data-[pulsing=true]:active:animate-none",
     "[&_svg]:pointer-events-none [&_svg]:relative [&_svg]:z-[1] [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   ],
   {
     variants: {
       variant: {
-        white: [
-          "bg-(image:--y2k-gel-white) shadow-(--y2k-gel-white-shadow) [text-shadow:0_2px_2px_rgba(0,0,0,0.25)]",
-          "focus-visible:shadow-(--y2k-gel-white-shadow-active) active:shadow-(--y2k-gel-white-shadow-active)",
-          "disabled:bg-[linear-gradient(rgba(200,200,200,0.5),rgba(255,255,255,0.5))]",
-        ],
-        tone: [
-          "bg-(image:--y2k-tone-button) shadow-(--y2k-gel-tone-shadow) [text-shadow:0_2px_2px_var(--y2k-tone-text-shadow)]",
-          "focus-visible:shadow-(--y2k-gel-tone-shadow-active) active:shadow-(--y2k-gel-tone-shadow-active)",
-          "disabled:bg-(image:--y2k-gel-white) disabled:shadow-(--y2k-gel-white-shadow)",
+        // --rim darkens the round ends toward the edge (inset, so it follows the radius).
+        white: "[--face:var(--y2k-gel-white)] [--rim:var(--y2k-button-rim-white)]",
+        tone: "[--face:var(--y2k-tone-button)] [--rim:var(--y2k-button-rim-tone)]",
+        metal: [
+          "[--face:var(--y2k-metal-button)] [--drop:0_0_0_1px_rgba(0,0,0,0.1),0_1px_1px_rgba(0,0,0,0.2),0_3px_3px_rgba(0,0,0,0.3)]",
+          "[--rim:inset_1px_0_0_rgba(0,0,0,0.25),inset_-1px_0_0_rgba(0,0,0,0.25),inset_4px_0_4px_-2px_rgba(0,0,0,0.25),inset_-4px_0_4px_-2px_rgba(0,0,0,0.25)]",
         ],
       },
       size: {
-        sm: "h-[17px] rounded-full px-3 text-[11px]",
-        md: "h-(--y2k-button-h) rounded-full px-4 text-[13px]",
-        lg: "h-[28px] rounded-full px-5 text-[14px]",
-        icon: "size-(--y2k-button-h) rounded-full px-0",
-        "icon-sm": "size-[17px] rounded-full px-0 [&_svg:not([class*='size-'])]:size-3",
+        sm: "h-[17px] min-w-[56px] rounded-full px-3 text-[11px] shadow-[var(--rim),var(--y2k-shadow-button-small)] active:shadow-[var(--rim),var(--y2k-shadow-button-active)]",
+        md: [
+          "h-(--y2k-button-h) min-w-[68px] rounded-full px-[14px] text-[13px]",
+          "shadow-[var(--rim),var(--y2k-shadow-button)] active:shadow-[var(--rim),var(--y2k-shadow-button-active)]",
+        ],
+        icon: [
+          "size-(--y2k-button-h) rounded-full px-0 text-[11px] text-[#262626]",
+          "shadow-[var(--rim),0_2px_3px_rgba(0,0,0,0.35)] [&_svg:not([class*='size-'])]:size-3",
+        ],
+        "icon-sm": "size-[17px] rounded-full px-0 shadow-[var(--rim),var(--y2k-shadow-button-small)] [&_svg:not([class*='size-'])]:size-3",
       },
     },
+    compoundVariants: [
+      // The round button is a grey sphere, not the push-button body.
+      { variant: "white", size: "icon", className: "[--face:var(--y2k-round-button)]" },
+      // Metal's ink and drop, over whatever the size sets.
+      {
+        variant: "metal",
+        className: [
+          "text-[#393939] shadow-[var(--rim),var(--drop)] active:shadow-[var(--rim),0_0_0_1px_rgba(0,0,0,0.1)]",
+          "disabled:text-[#9c9c9c] disabled:opacity-100 disabled:shadow-[var(--rim),var(--drop)]",
+        ],
+      },
+    ],
     defaultVariants: {
       variant: "white",
       size: "md",
@@ -62,13 +83,17 @@ function Button({
   variant = "white",
   size = "md",
   isDefault = false,
+  pulsing = false,
   asChild = false,
   children,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
-    /** The window's default action: tone gel + pulse. One per window. */
+    /** The window's default action: the tone gel. One per window. */
     isDefault?: boolean
+    /** The dialog throb of the default button (off by default, as in the
+     *  reference: every resting screenshot shows its mid-phase). */
+    pulsing?: boolean
     asChild?: boolean
   }) {
   const Comp = asChild ? Slot.Root : "button"
@@ -80,6 +105,7 @@ function Button({
       data-variant={resolvedVariant}
       data-size={size}
       data-default={isDefault || undefined}
+      data-pulsing={(isDefault && pulsing) || undefined}
       className={cn(buttonVariants({ variant: resolvedVariant, size, className }))}
       {...props}
     >
@@ -88,4 +114,26 @@ function Button({
   )
 }
 
-export { Button, buttonVariants }
+/** Aqua bevel button ("Choose…"): 18px, 11px black text, the original's 16
+ *  rows with a 1px drop; square shoulders. */
+function BevelButton({ className, pressed, ...props }: React.ComponentProps<"button"> & { pressed?: boolean }) {
+  return (
+    <button
+      type="button"
+      data-slot="bevel-button"
+      aria-pressed={pressed}
+      className={cn(
+        "relative inline-flex h-(--y2k-bevel-h) shrink-0 cursor-default items-center justify-center rounded-[2px] px-[10px] whitespace-nowrap outline-none",
+        "font-(family-name:--y2k-font-ui) text-[11px] text-black select-none",
+        "bg-(image:--y2k-bevel) shadow-[inset_1px_0_0_rgba(0,0,0,0.07),inset_-1px_0_0_rgba(0,0,0,0.07),0_1px_1px_rgba(0,0,0,0.3)]",
+        "active:bg-[image:var(--y2k-gel-pressed),var(--y2k-bevel)] aria-pressed:bg-[image:var(--y2k-gel-pressed),var(--y2k-bevel)]",
+        "disabled:bg-(image:--y2k-bevel-disabled) disabled:text-(--y2k-ink-disabled) disabled:shadow-none",
+        "focus-visible:outline-3 focus-visible:outline-offset-1 focus-visible:outline-(--y2k-tone-focus)",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+export { Button, BevelButton, buttonVariants }

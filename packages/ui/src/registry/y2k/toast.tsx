@@ -60,8 +60,7 @@ function Nudge({
     >
       {title != null && (
         <ToastPrimitive.Title
-          className="flex h-(--y2k-titlebar-h) items-center border-b border-(--y2k-titlebar-border) px-3 text-[13px] font-medium [text-shadow:0_1px_0_rgba(255,255,255,0.6)]"
-          style={{ backgroundImage: "var(--y2k-pinstripe-titlebar), var(--y2k-pinstripe)" }}
+          className="flex h-(--y2k-titlebar-h) items-center bg-(image:--y2k-titlebar) px-3 text-[13px] font-bold text-(--y2k-title-ink) [text-shadow:var(--y2k-title-lift)]"
         >
           {title}
         </ToastPrimitive.Title>
