@@ -22,14 +22,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
       - run: npm ci
       - id: pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
       # Pages answers https once it has a certificate; ask for it by name.
       - id: site
         run: |
@@ -44,7 +44,7 @@ jobs:
           GITHUB_PAGES: "true"
           PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
           PAGES_BASE_URL: ${{ steps.site.outputs.url }}
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: apps/web/out
 
@@ -56,4 +56,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

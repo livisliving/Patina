@@ -1568,8 +1568,8 @@ export function Desktop() {
                 <h3 className="mt-1 font-bold">Source</h3>
                 <p>
                   The code is on GitHub:{" "}
-                  <a href="https://github.com/livisliving/patina" target="_blank" rel="noopener noreferrer" className={LINK}>
-                    github.com/livisliving/patina
+                  <a href="https://github.com/livisliving/Patina" target="_blank" rel="noopener noreferrer" className={LINK}>
+                    github.com/livisliving/Patina
                   </a>
                 </p>
               </div>
