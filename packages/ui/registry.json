@@ -214,7 +214,7 @@
       "name": "icons",
       "type": "registry:ui",
       "title": "Icons",
-      "description": "24 glossy Aqua-style icons drawn for the pack (computer, home, folder, document, mail, chart, lock…), their colour parts in the tone; `lucideToPack` names the one to use for a lucide-react icon.",
+      "description": "24 glossy Aqua-style icons drawn for the pack (computer, home, folder, document, mail, chart, lock…), the same in every tone except Folder, Heart and Star; `lucideToPack` names the one to use for a lucide-react icon.",
       "registryDependencies": ["https://patina.md/r/theme.json"],
       "files": [
         {

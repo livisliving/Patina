@@ -827,13 +827,15 @@ pinstriped panel (1px #9A9A9A rim, 5px corners, 12px padding); the selected
 tab is the light tone tab gel with **black** ink — the original's white
 label on that light gel fails AA, so the pack departs from it.
 
-**Icons** — 64px glossy objects with a gloss cap and a hairline; fills use
-the tone so they re-color with it. The pack ships 24 of them (`icons`:
+**Icons** — 64px glossy objects with a gloss cap and a hairline. An icon
+looks the same in every tone: its gel parts are its own fixed colour (OS
+blue for most; Mail's seal red, the lock brass, the bolt yellow), and only
+Folder, Heart and Star take the tone. The pack ships 24 of them (`icons`:
 `IconComputer`, `IconHome`, `IconFolder`, `IconDocument`, `IconMail`,
 `IconChart`, `IconLock`…), drawn for it on a 128px grid and legible from
-16px; the colour parts follow the tone, the materials (paper, glass, metal,
-white plastic) stay neutral, and the status ones keep their own colours —
-Info's OS blue, Warning's yellow, Check's green. `lucideToPack` names the one
+16px; the materials (paper, glass, metal, white plastic) are neutral, and
+the status ones keep their own colours — Info's OS blue, Warning's yellow,
+Check's green. `lucideToPack` names the one
 to use for a lucide-react icon; one with no match is removed, not kept as a
 line icon.
 

@@ -14,13 +14,13 @@ import { cn } from "@/lib/utils"
  * pinstripes, and a soft contact shadow under anything that stands on a
  * surface.
  *
- * Materials:
- *   • the tone — folder, heart, star, roof, gems, chart bars, the lock body,
- *     the bolt, the arrow — is `var(--y2k-tone)` mixed toward white or black,
- *     so it re-colours with data-tone and needs no JS;
- *   • white plastic, paper, glass and metal stay neutral in every tone;
- *   • the three status icons are constants, like the traffic lights: Info is
- *     the OS-blue gem, Warning the yellow triangle, Check the green gel tick.
+ * Colour: an icon looks the same in every tone. Its gel parts are one fixed
+ * hue (`hue` on Svg), mixed toward white or black for the shading: OS blue
+ * for most, red for Mail's seal, brass for the lock, yellow for the bolt.
+ * Only Folder, Heart and Star take the tone, as the demo's own Folder, Heart
+ * and Star do. White plastic, paper, glass and metal are neutral, and the
+ * status icons keep their own colours: Info's OS blue, Warning's yellow,
+ * Check's green.
  *
  * Each renders a 128-unit SVG sized by the caller (`className="size-8"`); it
  * is decorative (aria-hidden) — label the control that holds it.
@@ -34,11 +34,18 @@ export type IconProps = React.ComponentProps<"svg">
 
 /* ── Materials ─────────────────────────────────────────────────────── */
 
-const TONE = "var(--y2k-tone)"
-/** The tone mixed toward white or black (pct = how much tone remains). */
+/** The icon's own hue: fixed for most icons, the tone for the few that
+    follow it. Set on the Svg, so an icon's gradients all read the same one. */
+const TONE = "var(--icon-hue)"
+/** The hue mixed toward white or black (pct = how much hue remains). */
 const tone = (pct: number, mix: "white" | "black") =>
-  `color-mix(in srgb, var(--y2k-tone) ${pct}%, ${mix})`
-/** The hairline round anything in the tone… */
+  `color-mix(in srgb, var(--icon-hue) ${pct}%, ${mix})`
+/** Fixed hues. OS_BLUE is the aqua tone's base, the gel the icons were drawn in. */
+const OS_BLUE = "#4d83d2"
+const SEAL_RED = "#d23a3a"
+const BRASS = "#d4a020"
+const BOLT_YELLOW = "#f2c21b"
+/** The hairline round anything in the hue… */
 const RIM = tone(45, "black")
 /** …and round anything neutral. */
 const INK = "#3d434b"
@@ -116,7 +123,8 @@ function Rad({ id, s, cx = 0.5, cy = 0.5, r = 0.5 }: Omit<GradProps, "user"> & {
   )
 }
 
-function Svg({ className, children, ...props }: IconProps) {
+/** `hue` is the icon's fixed colour; leave it out and the icon follows the tone. */
+function Svg({ className, style, hue = "var(--y2k-tone)", children, ...props }: IconProps & { hue?: string }) {
   return (
     <svg
       viewBox="0 0 128 128"
@@ -124,6 +132,7 @@ function Svg({ className, children, ...props }: IconProps) {
       height={128}
       aria-hidden="true"
       className={cn("shrink-0", className)}
+      style={{ "--icon-hue": hue, ...style } as React.CSSProperties}
       {...props}
     >
       {children}
@@ -165,77 +174,54 @@ const HEART_GLOSS_R = "M69 38C73 29 81 23 91 23C103 23 110 32 108 43C96 47 80 45
 
 /* ── Places and things ─────────────────────────────────────────────── */
 
-/** Computer — a white plastic display on a round foot, the tone's desktop on
-    its glass. */
+/** Computer — a white iMac with a black edge and a dark glass screen. */
 export function IconComputer(props: IconProps) {
   const [id, url] = useIds()
   return (
     <Svg {...props}>
       <defs>
-        <Lin id={id("shell")} s={PLASTIC} />
-        <Lin id={id("neck")} s={[[0, "#98a3b0"], [0.35, "#ffffff"], [0.7, "#dbe1e7"], [1, "#8e99a6"]]} x2={1} y2={0} />
-        <Lin id={id("foot")} s={[[0, "#ffffff"], [1, "#a9b3bf"]]} />
-        <Lin id={id("desk")} s={[[0, tone(62, "black")], [0.5, TONE], [1, tone(55, "white")]]} x2={1} y2={1} />
+        <Lin id={id("shell")} s={[[0, "#ffffff"], [0.6, "#e3e9f1"], [1, "#b8c4d3"]]} />
+        <Lin id={id("trim")} s={[[0, "#4a4a4a"], [1, "#0a0a0a"]]} />
+        <Lin id={id("screen")} s={[[0, "#4a4a4a"], [0.55, "#1c1c1c"], [1, "#050505"]]} x2={1} y2={1} />
       </defs>
-      <Shadow cy={119} rx={40} />
-      {/* The foot and neck */}
-      <ellipse cx={64} cy={112} rx={30} ry={6.5} fill={url("foot")} stroke={INK} strokeWidth={1.75} />
-      <path d="M55 90L51 111H77L73 90Z" fill={url("neck")} stroke={INK} strokeWidth={1.75} strokeLinejoin="round" />
-      {/* The shell, lit along its top edge */}
-      <rect x={8} y={8} width={112} height={86} rx={14} fill={url("shell")} stroke={INK} strokeWidth={2} />
-      <rect x={10.5} y={10.5} width={107} height={81} rx={11.5} fill="none" stroke="#fff" strokeWidth={1.5} />
-      {/* The glass: the tone's desktop, a ribbon, a little window */}
-      <rect x={16} y={16} width={96} height={64} rx={4} fill="#3a4049" />
-      <rect x={18} y={18} width={92} height={60} rx={2.5} fill={url("desk")} />
-      <path d="M18 64C42 46 72 72 110 36V48C74 80 42 58 18 74Z" fill="#fff" fillOpacity={0.35} />
-      <rect x={30} y={27} width={40} height={28} rx={2} fill="#f4f4f4" stroke="rgba(0,0,0,0.45)" />
-      <rect x={30} y={27} width={40} height={6} rx={2} fill="#d2d2d2" />
-      <circle cx={34.5} cy={30} r={1.4} fill="#f04646" />
-      <circle cx={39} cy={30} r={1.4} fill="#f4b01e" />
-      <circle cx={43.5} cy={30} r={1.4} fill="#46be2d" />
-      <path d="M18 18H76L18 60Z" fill="#fff" fillOpacity={0.16} />
-      {/* A tone gem on the chin */}
-      <circle cx={64} cy={87} r={3} fill={TONE} stroke={RIM} />
+      <ellipse cx={64} cy={117} rx={40} ry={5} fill="rgba(0,0,0,0.22)" />
+      {/* The foot, then the rounded shell with its black edge */}
+      <path d="M44 102h40l8 12H36z" fill={url("shell")} stroke="#333" strokeWidth={1.5} />
+      <path d="M18 28c0-12 8-17 20-17h52c12 0 20 5 20 17l2 58c0 14-8 20-22 20H38c-14 0-22-6-22-20z" fill={url("trim")} />
+      <path d="M22 29c0-9 6-13 16-13h52c10 0 16 4 16 13l2 57c0 11-6 16-18 16H40c-12 0-18-5-18-16z" fill={url("shell")} />
+      {/* The dark glass, with a diagonal catch of light */}
+      <rect x={32} y={22} width={64} height={52} rx={4} fill={url("screen")} stroke="rgba(0,0,0,0.6)" />
+      <path d="M33 23h40L33 63z" fill="rgba(255,255,255,0.14)" />
+      {/* Speakers and the disc slot */}
+      <circle cx={36} cy={90} r={4} fill={url("trim")} />
+      <circle cx={92} cy={90} r={4} fill={url("trim")} />
+      <rect x={46} y={88} width={36} height={4} rx={2} fill="#8795a8" />
     </Svg>
   )
 }
 
-/** Home — a cream house under a gel roof in the tone. */
+/** Home — a cream house with a dark roof edge, a wooden door and a
+    shuttered window, as the 10.1 toolbar draws it. */
 export function IconHome(props: IconProps) {
   const [id, url] = useIds()
   return (
     <Svg {...props}>
       <defs>
-        <Lin id={id("wall")} s={[[0, "#fffaf0"], [1, "#dccfb2"]]} />
-        <Lin id={id("roof")} s={GEL} />
-        <Lin id={id("brick")} s={[[0, "#c9694a"], [1, "#8a3a24"]]} />
-        <Lin id={id("wood")} s={[[0, "#8a4618"], [0.5, "#c47832"], [1, "#8a4618"]]} x2={1} y2={0} />
-        <Lin id={id("glass")} s={[[0, "#e4f5ff"], [1, "#6fa7da"]]} />
+        <Lin id={id("wall")} s={[[0, "#fbf7ee"], [1, "#d8ccb2"]]} />
+        <Lin id={id("wood")} s={[[0, "#8a4618"], [0.5, "#c87a36"], [1, "#8a4618"]]} x2={1} y2={0} />
       </defs>
-      <Shadow cy={116} rx={50} ry={6} />
-      <rect x={84} y={22} width={12} height={30} fill={url("brick")} stroke="#5a2414" strokeWidth={1.5} />
-      <rect x={82} y={18} width={16} height={6} rx={1.5} fill="#ece6da" stroke="#5a2414" strokeWidth={1.5} />
-      {/* Walls, and the shade the eaves throw on them */}
-      <path d="M24 62L64 30L104 62V110H24Z" fill={url("wall")} stroke="#6f5f43" strokeWidth={1.75} strokeLinejoin="round" />
-      <path d="M24 70L64 38L104 70V76L64 44L24 76Z" fill="#000" fillOpacity={0.12} />
-      {/* Two windows and the door */}
-      {[31, 79].map((x) => (
-        <g key={x}>
-          <rect x={x} y={72} width={18} height={16} fill={url("glass")} stroke="#6f5f43" strokeWidth={1.5} />
-          <path d={`M${x + 9} 72V88M${x} 80H${x + 18}`} stroke="#fff" strokeWidth={2} />
-        </g>
-      ))}
-      <rect x={55} y={78} width={18} height={32} fill={url("wood")} stroke="#5a2e0e" strokeWidth={1.5} />
-      <circle cx={69} cy={95} r={1.8} fill="#f3d27a" />
-      {/* The roof */}
-      <path
-        d="M64 12L121 61Q124 64 121 67L113 74L64 32L15 74L7 67Q4 64 7 61Z"
-        fill={url("roof")}
-        stroke={RIM}
-        strokeWidth={2.5}
-        strokeLinejoin="round"
-      />
-      <Gloss d="M64 17.5L114 60.5L110 63.5L64 24L18 63.5L14 60.5Z" />
+      <ellipse cx={64} cy={114} rx={42} ry={5} fill="rgba(0,0,0,0.22)" />
+      <rect x={84} y={24} width={11} height={28} fill="#d8ccb2" stroke="#6b5a3e" strokeWidth={1.5} />
+      {/* The wall and gable, under a dark roof edge */}
+      <path d="M26 58L64 24l38 34v52H26z" fill={url("wall")} stroke="#6b5a3e" strokeWidth={1.5} />
+      <path d="M14 64L64 19l50 45" fill="none" stroke="#2b2724" strokeWidth={7} strokeLinecap="round" strokeLinejoin="round" />
+      {/* A shuttered window and the door */}
+      <rect x={55} y={44} width={18} height={16} fill="#f7f4ec" stroke="#6b5a3e" />
+      <rect x={49} y={44} width={6} height={16} fill={url("wood")} />
+      <rect x={73} y={44} width={6} height={16} fill={url("wood")} />
+      <rect x={54} y={74} width={20} height={36} fill={url("wood")} stroke="#5a2e0e" strokeWidth={1.5} />
+      <path d="M60 78v28M68 78v28" stroke="rgba(0,0,0,0.25)" />
+      <circle cx={70} cy={93} r={1.6} fill="#f3d27a" />
     </Svg>
   )
 }
@@ -355,7 +341,7 @@ export function IconTrash(props: IconProps) {
 export function IconSearch(props: IconProps) {
   const [id, url] = useIds()
   return (
-    <Svg {...props}>
+    <Svg {...props} hue={OS_BLUE}>
       <defs>
         <Rad id={id("lens")} s={[[0, "#ffffff", 0.92], [0.7, "#d6ebfb", 0.8], [1, "#8fbfe6", 0.9]]} cx={0.4} cy={0.35} r={0.7} />
         <Lin id={id("ring")} s={CHROME} x2={1} y2={1} />
@@ -383,7 +369,7 @@ export function IconPreferences(props: IconProps) {
   const gear =
     "M55.1 21.3Q57.4 20.5 57.7 18L58.2 12.8Q58.5 10.3 61 10.3L67 10.3Q69.5 10.3 69.8 12.8L70.3 18Q70.6 20.5 72.9 21.3L80.7 23.8Q83.1 24.6 84.7 22.7L88.2 18.8Q89.9 16.9 91.9 18.4L96.9 22Q98.9 23.4 97.6 25.6L95 30.1Q93.7 32.3 95.2 34.3L100 40.9Q101.4 42.9 103.9 42.4L109 41.3Q111.5 40.8 112.2 43.1L114.1 48.9Q114.9 51.3 112.6 52.3L107.8 54.4Q105.5 55.4 105.5 57.9L105.5 66.1Q105.5 68.6 107.8 69.6L112.6 71.7Q114.9 72.7 114.1 75.1L112.2 80.9Q111.5 83.2 109 82.7L103.9 81.6Q101.4 81.1 100 83.1L95.2 89.7Q93.7 91.7 95 93.9L97.6 98.4Q98.9 100.6 96.9 102L91.9 105.6Q89.9 107.1 88.2 105.2L84.7 101.3Q83.1 99.4 80.7 100.2L72.9 102.7Q70.6 103.5 70.3 106L69.8 111.2Q69.5 113.7 67 113.7L61 113.7Q58.5 113.7 58.2 111.2L57.7 106Q57.4 103.5 55.1 102.7L47.3 100.2Q44.9 99.4 43.3 101.3L39.8 105.2Q38.1 107.1 36.1 105.6L31.1 102Q29.1 100.6 30.4 98.4L33 93.9Q34.3 91.7 32.8 89.7L28 83.1Q26.6 81.1 24.1 81.6L19 82.7Q16.5 83.2 15.8 80.9L13.9 75.1Q13.1 72.7 15.4 71.7L20.2 69.6Q22.5 68.6 22.5 66.1L22.5 57.9Q22.5 55.4 20.2 54.4L15.4 52.3Q13.1 51.3 13.9 48.9L15.8 43.1Q16.5 40.8 19 41.3L24.1 42.4Q26.6 42.9 28 40.9L32.8 34.3Q34.3 32.3 33 30.1L30.4 25.6Q29.1 23.4 31.1 22L36.1 18.4Q38.1 16.9 39.8 18.8L43.3 22.7Q44.9 24.6 47.3 23.8Z"
   return (
-    <Svg {...props}>
+    <Svg {...props} hue={OS_BLUE}>
       <defs>
         <Lin id={id("steel")} s={CHROME} x2={1} y2={1} />
         <Rad
@@ -412,7 +398,7 @@ export function IconPreferences(props: IconProps) {
 export function IconMail(props: IconProps) {
   const [id, url] = useIds()
   return (
-    <Svg {...props}>
+    <Svg {...props} hue={SEAL_RED}>
       <defs>
         <Lin id={id("paper")} s={[[0, "#ffffff"], [0.6, "#e9eef4"], [1, "#c9d2dd"]]} />
         <Lin id={id("flap")} s={[[0, "#fdfdfe"], [1, "#dde4ec"]]} />
@@ -483,7 +469,7 @@ export function IconGlobe(props: IconProps) {
 export function IconPeople(props: IconProps) {
   const [id, url] = useIds()
   return (
-    <Svg {...props}>
+    <Svg {...props} hue={OS_BLUE}>
       <defs>
         <Lin id={id("white")} s={[[0, "#ffffff"], [0.55, "#dde2e8"], [1, "#a3acb7"]]} />
         <Lin id={id("gel")} s={GEL} />
@@ -569,7 +555,7 @@ export function IconStar(props: IconProps) {
 export function IconClock(props: IconProps) {
   const [id, url] = useIds()
   return (
-    <Svg {...props}>
+    <Svg {...props} hue={OS_BLUE}>
       <defs>
         <Lin id={id("bezel")} s={GEL} />
         <Rad id={id("face")} s={[[0, "#ffffff"], [0.75, "#f3f5f8"], [1, "#cfd6df"]]} />
@@ -602,7 +588,7 @@ export function IconLock(props: IconProps) {
   const [id, url] = useIds()
   const shackle = "M42 58V42C42 26 52 16 64 16S86 26 86 42V58"
   return (
-    <Svg {...props}>
+    <Svg {...props} hue={BRASS}>
       <defs>
         <Lin
           id={id("steel")}
@@ -629,7 +615,7 @@ export function IconLock(props: IconProps) {
 export function IconChart(props: IconProps) {
   const [id, url] = useIds()
   return (
-    <Svg {...props}>
+    <Svg {...props} hue={OS_BLUE}>
       <defs>
         <Lin
           id={id("bar")}
@@ -660,7 +646,7 @@ export function IconChart(props: IconProps) {
 export function IconMusic(props: IconProps) {
   const [id, url] = useIds()
   return (
-    <Svg {...props}>
+    <Svg {...props} hue={OS_BLUE}>
       <defs>
         <g id={id("notes")}>
           <ellipse cx={37} cy={94} rx={17} ry={12} transform="rotate(-22 37 94)" />
@@ -687,7 +673,7 @@ export function IconMusic(props: IconProps) {
 export function IconPicture(props: IconProps) {
   const [id, url] = useIds()
   return (
-    <Svg {...props}>
+    <Svg {...props} hue={OS_BLUE}>
       <defs>
         <Lin id={id("frame")} s={PLASTIC} />
         <Lin id={id("print")} s={[[0, tone(40, "white")], [1, tone(75, "white")]]} />
@@ -721,7 +707,7 @@ export function IconPicture(props: IconProps) {
 export function IconDownload(props: IconProps) {
   const [id, url] = useIds()
   return (
-    <Svg {...props}>
+    <Svg {...props} hue={OS_BLUE}>
       <defs>
         <Lin id={id("tray")} s={[[0, "#fbfcfd"], [0.5, "#d4d9e0"], [1, "#9aa2ad"]]} />
         <Lin id={id("gel")} s={GEL} />
@@ -753,7 +739,7 @@ export function IconDownload(props: IconProps) {
 export function IconLightning(props: IconProps) {
   const [id, url] = useIds()
   return (
-    <Svg {...props}>
+    <Svg {...props} hue={BOLT_YELLOW}>
       <defs>
         <Lin id={id("gel")} s={GEL} user y1={6} y2={122} />
       </defs>
@@ -775,7 +761,7 @@ export function IconLightning(props: IconProps) {
 export function IconChat(props: IconProps) {
   const [id, url] = useIds()
   return (
-    <Svg {...props}>
+    <Svg {...props} hue={OS_BLUE}>
       <defs>
         <g id={id("back")}>
           <ellipse cx={78} cy={40} rx={42} ry={28} />
@@ -806,7 +792,7 @@ export function IconChat(props: IconProps) {
 export function IconCode(props: IconProps) {
   const [id, url] = useIds()
   return (
-    <Svg {...props}>
+    <Svg {...props} hue={OS_BLUE}>
       <defs>
         <Lin id={id("bar")} s={[[0, "#fbfbfb"], [1, "#cdcdcd"]]} />
         <Lin id={id("glass")} s={[[0, "#32363c"], [1, "#07080a"]]} />

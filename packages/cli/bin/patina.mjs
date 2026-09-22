@@ -14,18 +14,21 @@ Usage
   npx @patina/cli init [options]
 
 Options
+  --tone <name>      pink, aqua, lime, tangerine or grape (asked when not given)
   --registry <url>   Component registry base URL (default: https://patina.md/r)
   --no-components    Write DESIGN.md and the skills, skip the shadcn components
   --force            Overwrite files that already exist
   --dry-run          Print what would happen, write nothing
-  --yes              Don't ask anything
+  --yes              Don't ask anything (then --tone is required)
   --help             This
 
 What init does
+  0. Asks which of the five tones you want.
   1. Writes DESIGN.md to the project root — the spec your coding agent reads.
   2. Installs the Y2K theme + components from the registry (via shadcn).
   3. Installs the agent skills into .claude/skills/ and the /check-y2k scanner.
-  4. Leaves a note in CLAUDE.md so your agent reads DESIGN.md before building UI.
+  4. Sets data-tone on your <html>, and leaves a note in CLAUDE.md so your
+     agent reads DESIGN.md (and keeps the tone) before building UI.
 `
 
 const argv = process.argv.slice(2)
@@ -55,6 +58,7 @@ try {
     force: flag("force"),
     dryRun: flag("dry-run"),
     yes: flag("yes"),
+    tone: value("tone", undefined),
   })
   process.exit(code)
 } catch (err) {

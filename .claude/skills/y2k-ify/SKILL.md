@@ -12,6 +12,23 @@ same data, same behaviour — and comes out looking like Mac OS X 10.0.
 file only says in what order to work. If there is no DESIGN.md, stop and say
 the project needs `npx @patina/cli init` first.
 
+## First, the tone
+
+Look for `data-tone` on the project's `<html>` (app/layout, pages/_document
+or index.html). If it is there, use that tone and do not change it. If it is
+not, do not start and do not assume pink. List the five and ask the user
+which one they want:
+
+1. Y2K pink — 2001–06, McBling: Juicy Couture velour, the pink Razr
+2. Aqua — 1998–01: the Bondi Blue iMac, Mac OS X's own blue
+3. Lime — 1999–02: iMac Lime, Nickelodeon slime, Matrix terminals
+4. Tangerine — 1999–03: iMac Tangerine, orange translucent plastic
+5. Grape — 2000–04: iMac Grape, MSN Messenger purple
+
+Then set `data-tone="<pink|aqua|lime|tangerine|grape>"` on `<html>`.
+Installing the pack for someone works the same way: ask first, then run
+`npx @patina/cli init --tone <name>`.
+
 ## Order of work
 
 Structure before colour. A page with a hero, a centered column and three

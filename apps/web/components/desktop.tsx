@@ -1452,10 +1452,12 @@ export function Desktop() {
                 <p>Run this in a React project that uses Tailwind (a new create-next-app is fine):</p>
                 <Mono className="y2k-field block px-[6px] py-1">npx @patina/cli init</Mono>
                 <p>
-                  It puts <Mono>DESIGN.md</Mono> at the root of the project, the pack&apos;s components in{" "}
+                  It first asks which of the five tones you want (or pass <Mono>--tone aqua</Mono>, say). Then it
+                  puts <Mono>DESIGN.md</Mono> at the root of the project, the pack&apos;s components in{" "}
                   <Mono>components/ui</Mono>, the <Mono>/y2k-ify</Mono> and <Mono>/check-y2k</Mono> skills in{" "}
-                  <Mono>.claude/skills</Mono>, and a note in <Mono>CLAUDE.md</Mono> and <Mono>AGENTS.md</Mono> that
-                  tells your agent to read DESIGN.md before it builds any UI. Files you already have are left alone
+                  <Mono>.claude/skills</Mono>, the tone on your <Mono>&lt;html&gt;</Mono>, and a note in{" "}
+                  <Mono>CLAUDE.md</Mono> and <Mono>AGENTS.md</Mono> that tells your agent to read DESIGN.md before it
+                  builds any UI. Files you already have are left alone
                   unless you add <Mono className="whitespace-nowrap">--force</Mono>.
                 </p>
                 <p>
@@ -1490,8 +1492,9 @@ export function Desktop() {
 
                 <h3 className="mt-1 font-bold">Change the tone</h3>
                 <p>
-                  Pink is the default. Aqua, Lime, Tangerine and Grape change the gel, the selection colour and the
-                  wallpaper. In your project, set it on the page: <Mono>&lt;html data-tone=&quot;aqua&quot;&gt;</Mono>.
+                  There are five: Y2K pink, Aqua, Lime, Tangerine and Grape. The tone colours the gel, the selection
+                  and the wallpaper. The installer sets the one you pick on <Mono>&lt;html&gt;</Mono>; to change it
+                  later, edit <Mono>data-tone</Mono> there, e.g. <Mono>&lt;html data-tone=&quot;aqua&quot;&gt;</Mono>.
                   Here, choose one from the ★ menu or open Tone Preferences.
                 </p>
 
@@ -1696,7 +1699,7 @@ export function Desktop() {
                     )
                   })}
                 </div>
-                <p className="mt-3 text-[11px] text-(--y2k-ink-secondary)">At 32px, the size a toolbar uses. The coloured parts change with the tone, and <Mono>lucideToPack</Mono> maps lucide icon names to these.</p>
+                <p className="mt-3 text-[11px] text-(--y2k-ink-secondary)">At 32px, the size a toolbar uses. They look the same in every tone, apart from Folder, Heart and Star. <Mono>lucideToPack</Mono> maps lucide icon names to these.</p>
               </WindowGroup>
               )}
               {dsMatch("Marquee & counter") && (
@@ -2137,11 +2140,11 @@ export function Desktop() {
         items={[
           { id: "finder", label: "Finder", icon: <FaceIcon />, running: wins.finder.open, onClick: openWin("finder") },
           { id: "readme", label: "Read Me", icon: <NoteIcon />, running: wins.readme.open, onClick: openWin("readme") },
+          { id: "tone", label: "Tone Preferences", icon: <PrefsIcon />, running: wins.tone.open, onClick: openWin("tone") },
           { id: "buttons", label: "Design System", icon: <PillIcon />, running: wins.buttons.open, onClick: openWin("buttons") },
           { id: "design", label: "DESIGN.md", icon: <DocIcon />, running: wins.design.open, onClick: openWin("design") },
           { id: "terminal", label: "Terminal", icon: <TerminalIcon />, running: wins.terminal.open, onClick: openWin("terminal") },
           { id: "ipod", label: "iPod", icon: <IPodIcon />, running: wins.ipod.open, onClick: openWin("ipod") },
-          { id: "tone", label: "Tone Preferences", icon: <PrefsIcon />, running: wins.tone.open, onClick: openWin("tone") },
           // Minimized windows get their own tiles on the right (after a divider),
           // like Mac OS X's minimized-window section. Click to restore.
           ...minimizedWindows.map((id, i) => ({

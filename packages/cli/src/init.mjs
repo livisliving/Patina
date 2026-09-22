@@ -1,11 +1,13 @@
 /**
  * `patina init` — put the pack into a project.
  *
- * Five things, in this order:
+ * First the tone: the user picks one of the five (or passes --tone); nothing
+ * is written until they have. Then five things, in this order:
  *   1. DESIGN.md at the project root (the spec the coding agent reads),
  *   2. the Y2K theme + components, pulled from the registry by shadcn,
  *   3. .claude/skills/ + the /check-y2k scanner,
  *   4. a pointer in CLAUDE.md, so the agent reads DESIGN.md before it builds,
+ *      and `data-tone` on the project's <html>,
  *   5. the font note — Lucida Grande is not ours to ship.
  *
  * Nothing is overwritten without --force — a project's own button.tsx
@@ -46,18 +48,98 @@ const COMPONENTS = {
 }
 const ITEMS = ["theme", ...Object.keys(COMPONENTS)]
 
+/** The five tones, as the demo's Tone Preferences describes them. */
+const TONES = [
+  ["pink", "Y2K pink", "2001–06, McBling: Juicy Couture velour, the pink Razr, rhinestones"],
+  ["aqua", "Aqua", "1998–01: the Bondi Blue iMac, Mac OS X's water-and-gel blue"],
+  ["lime", "Lime", "1999–02: iMac Lime, Nickelodeon slime, Matrix terminals"],
+  ["tangerine", "Tangerine", "1999–03: iMac Tangerine, Fanta, orange translucent plastic"],
+  ["grape", "Grape", "2000–04: iMac Grape, MSN Messenger purple, Lisa Frank"],
+]
+const TONE_LIST = TONES.map(([id, label, era], i) => `    ${i + 1}. ${label.padEnd(10)} --tone ${id.padEnd(10)} ${era}`).join("\n")
+
+/** A tone from what someone typed: its number, id or label. */
+function toTone(input) {
+  const v = String(input ?? "").trim().toLowerCase()
+  const byNumber = /^[1-5]$/.test(v) ? TONES[Number(v) - 1] : null
+  return (byNumber ?? TONES.find(([id, label]) => v === id || v === label.toLowerCase()))?.[0] ?? null
+}
+
 /** The note left in CLAUDE.md (and an AGENTS.md, when there is one), so the
- *  coding agent knows the pack is here without being told each time. */
-const AGENT_NOTE = `<!-- BEGIN:patina -->
+ *  coding agent knows the pack and the tone without being told each time. */
+const agentNote = (tone) => `<!-- BEGIN:patina -->
 # Patina — the Y2K taste pack
 
 This project's UI follows \`DESIGN.md\`: Mac OS X 10.0 Aqua in a millennium
-tone. Before building or restyling any UI, read \`DESIGN.md\` and use the
-pack's components (Button, WindowFrame, WindowGroup, Table, TextField and the
-rest, installed by shadcn). To restyle an existing page, use the \`/y2k-ify\`
-skill. Finish every UI change with \`/check-y2k\`
+tone. The tone is **${tone}** (\`data-tone="${tone}"\` on \`<html>\`); keep it
+unless the user asks for another. Before building or restyling any UI, read
+\`DESIGN.md\` and use the pack's components (Button, WindowFrame, WindowGroup,
+Table, TextField and the rest, installed by shadcn). To restyle an existing
+page, use the \`/y2k-ify\` skill. Finish every UI change with \`/check-y2k\`
 (\`node scripts/check-y2k.mjs <paths>\`).
 <!-- END:patina -->`
+const NOTE_BLOCK = /<!-- BEGIN:patina -->[\s\S]*?<!-- END:patina -->/
+
+/**
+ * Which tone the project gets. `--tone` answers it; a person at a terminal is
+ * shown the five and asked; anything else (a script, an agent, `--yes`) is
+ * stopped before a file is written, with the list, so whoever is running it
+ * asks the user instead of taking pink by default.
+ */
+async function chooseTone({ tone, yes, dryRun }) {
+  if (tone !== undefined) {
+    const picked = toTone(tone)
+    if (!picked) console.error(`patina: "${tone}" is not a tone. The five are:\n${TONE_LIST}\n`)
+    return picked
+  }
+  if (yes || !process.stdin.isTTY) {
+    if (dryRun) return "pink"
+    console.error(`patina: which tone? The five are:\n${TONE_LIST}\n
+  Run again with --tone <name>. If you are an agent running this for someone,
+  show them the list and ask which one they want.\n`)
+    return null
+  }
+  console.log(`  Which tone? Every gel control, the selection and the wallpaper take it.\n${TONE_LIST}\n`)
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
+  try {
+    for (;;) {
+      const picked = toTone(await rl.question("  Tone [1-5]: "))
+      if (picked) return picked
+      console.log("  Type a number from 1 to 5, or a tone's name.")
+    }
+  } finally {
+    rl.close()
+  }
+}
+
+/** Every file that can hold the page's <html>: the App Router layout, the
+ *  Pages Router document, a Vite index.html. */
+const HTML_FILES = ["app", "src/app"]
+  .flatMap((d) => ["tsx", "jsx", "js", "ts"].map((x) => `${d}/layout.${x}`))
+  .concat(["pages", "src/pages"].flatMap((d) => ["tsx", "jsx", "js"].map((x) => `${d}/_document.${x}`)), ["index.html"])
+
+/** Put `data-tone` on the project's <html>, or say where it goes. */
+function applyTone(cwd, tone, { dryRun }) {
+  for (const rel of HTML_FILES) {
+    const file = path.join(cwd, rel)
+    if (!fs.existsSync(file)) continue
+    const src = fs.readFileSync(file, "utf8")
+    const tag = src.match(/<html\b[^>]*>/)
+    if (!tag) continue
+    const want = `data-tone="${tone}"`
+    const next = /\sdata-tone=/.test(tag[0])
+      ? tag[0].replace(/data-tone=(?:"[^"]*"|'[^']*'|\{[^}]*\})/, want)
+      : tag[0].replace(/^<html\b/, `<html ${want}`)
+    if (next === tag[0]) {
+      console.log(skip(`${rel} already has ${want}`))
+      return
+    }
+    if (!dryRun) fs.writeFileSync(file, src.replace(tag[0], next))
+    console.log(tick(`${rel} — ${want} on <html>`))
+    return
+  }
+  console.log(skip(`no <html> found — add data-tone="${tone}" to yours`))
+}
 
 /**
  * Where the shipped copies live. In a published package they sit in assets/
@@ -212,7 +294,7 @@ function fixThemeImport(cwd, { dryRun }) {
   console.log(tick(`${cssRel} — ${what.join(", ")}`))
 }
 
-export async function init({ cwd, registry, components, force, dryRun, yes }) {
+export async function init({ cwd, registry, components, force, dryRun, yes, tone: toneArg }) {
   const src = assetRoot()
 
   if (!fs.existsSync(path.join(cwd, "package.json"))) {
@@ -221,6 +303,10 @@ export async function init({ cwd, registry, components, force, dryRun, yes }) {
   }
 
   console.log(`\npatina init${dryRun ? " (dry run)" : ""}\n`)
+
+  const tone = await chooseTone({ tone: toneArg, yes, dryRun })
+  if (!tone) return 2
+  console.log(tick(`tone: ${TONES.find(([id]) => id === tone)[1]}${toneArg === undefined && dryRun ? " (a real run asks first)" : ""}\n`))
 
   /* 1 + 3 — the files. */
   let written = 0
@@ -315,18 +401,22 @@ export async function init({ cwd, registry, components, force, dryRun, yes }) {
     console.log(skip("components skipped (--no-components)"))
   }
 
-  /* 4 — the pointer for the coding agent. */
+  /* 4 — the tone on <html>, and the pointer for the coding agent. */
+  applyTone(cwd, tone, { dryRun })
+  const note = agentNote(tone)
   for (const name of ["CLAUDE.md", "AGENTS.md"]) {
     const target = path.join(cwd, name)
     const exists = fs.existsSync(target)
     if (name === "AGENTS.md" && !exists) continue
     const have = exists ? fs.readFileSync(target, "utf8") : ""
-    if (have.includes("<!-- BEGIN:patina -->")) {
+    // A re-run with another tone rewrites the note in place.
+    const next = NOTE_BLOCK.test(have) ? have.replace(NOTE_BLOCK, note) : have ? `${have.trimEnd()}\n\n${note}\n` : `${note}\n`
+    if (next === have) {
       console.log(skip(`${name} already points at DESIGN.md`))
       continue
     }
-    if (!dryRun) fs.writeFileSync(target, have ? `${have.trimEnd()}\n\n${AGENT_NOTE}\n` : `${AGENT_NOTE}\n`)
-    console.log(tick(`${name} — ${exists ? "a note added" : "written"}: read DESIGN.md before building UI`))
+    if (!dryRun) fs.writeFileSync(target, next)
+    console.log(tick(`${name} — ${!exists ? "written" : NOTE_BLOCK.test(have) ? "note updated" : "a note added"}: read DESIGN.md, tone ${tone}`))
     written++
   }
 
