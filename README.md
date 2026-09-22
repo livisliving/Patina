@@ -8,7 +8,7 @@ lights, gel buttons and a Dock, in a millennium tone: hot pink by default, or Aq
 Tangerine or Grape. *"The most anti-AI thing in 2026 is 2000's idea of the future."*
 
 Patina isn't a browser extension and doesn't restyle pages you visit. It changes what
-your coding agent writes. After `npx @patina/cli init` your agent reads DESIGN.md before
+your coding agent writes. After `npx @pat1na/cli init` your agent reads DESIGN.md before
 it builds any UI, and `/y2k-ify` rebuilds a page you already have.
 
 The demo desktop, built with the pack: https://patina-one.vercel.app
@@ -24,7 +24,7 @@ patina/
 │   └── src/registry/y2k/  #   button.tsx, window.tsx …
 │   └── src/styles/y2k.css #   tokens → CSS variables, materials, keyframes, data-tone remaps
 ├── packages/shaders/      # chrome reflection + translucent plastic, CSS fallbacks
-├── packages/cli/          # npx @patina/cli init — installs the pack into a project
+├── packages/cli/          # npx @pat1na/cli init — installs the pack into a project
 ├── scripts/check-y2k.mjs  # the /check-y2k scanner: reads its rules out of DESIGN.md
 └── .claude/skills/        #   check-y2k · y2k-ify
 ```
@@ -39,7 +39,7 @@ npm run dev              # Y2K OS at http://localhost:3000
 npm run design:lint      # npx @google/design.md lint DESIGN.md
 npm run registry:build   # shadcn build → apps/web/public/r/*.json
 npm run check:y2k        # /check-y2k against DESIGN.md (exit 1 on any violation)
-npm pack -w @patina/cli  # build the installer tarball (assets are synced on prepack)
+npm pack -w @pat1na/cli  # build the installer tarball (assets are synced on prepack)
 
 # point the built registry somewhere else (preview, localhost) — canonical when unset
 PATINA_REGISTRY=http://localhost:3000/r npm run registry:build
@@ -57,7 +57,7 @@ npx shadcn@latest add https://livisliving.github.io/Patina/r/window.json
 ```
 
 The registry lives on GitHub Pages, at `https://livisliving.github.io/Patina/r` — the base `registry.json`
-names and `npx @patina/cli init` installs from. The Vercel deployment serves the same files
+names and `npx @pat1na/cli init` installs from. The Vercel deployment serves the same files
 (https://patina-one.vercel.app/r); `PATINA_REGISTRY` at build time points a copy elsewhere.
 
 Adding `window` also brings in `button` and `theme` (the CSS variables).
@@ -69,3 +69,7 @@ or Geist. Pinstripes instead of grey cards. Gel or wallpaper instead of purple-t
 gradients. Capsule buttons and Aqua's window corners instead of 8 to 16px card radii. Shadows only on
 windows, menus, the Dock and gel. No thin-line icons. The traffic lights stay red, yellow
 and green in every tone.
+
+## Licence
+
+MIT, see [LICENSE](LICENSE). Lucida Grande is Apple's and is not included.

@@ -513,7 +513,7 @@ function SaveDialog({
 const LOGIN_STAMP = "Sat Sep 20 09:41"
 
 const PROMPT = "patina:~ olivia$ "
-const INIT = "npx @patina/cli init"
+const INIT = "npx @pat1na/cli init"
 const INSTALL = ["Installing the Y2K pack…", "✓ DESIGN.md · /y2k-ify · /check-y2k · components.json"]
 
 /** The Terminal window's shell: a handful of commands over the Finder's own
@@ -713,7 +713,7 @@ const TYPE_FACES = [
     fallback: "Lucida Grande on a Mac. Elsewhere Lato, which is open source and loads with the page, then the system sans. Japanese and Chinese fall back to AquaKana and Hiragino.",
   },
   { token: "--y2k-font-wordmark", role: "Wordmark", sample: "Patina", px: 44, fallback: "EB Garamond, loaded with the page. Only for the wordmark." },
-  { token: "--y2k-font-mono", role: "Code", sample: "npx @patina/cli init", px: 11, fallback: "Monaco on a Mac, then the system monospace." },
+  { token: "--y2k-font-mono", role: "Code", sample: "npx @pat1na/cli init", px: 11, fallback: "Monaco on a Mac, then the system monospace." },
 ] as const
 
 const TONE_IDS = TONES.map((t) => t.id)
@@ -1452,7 +1452,7 @@ export function Desktop() {
                 <li>
                   Install the pack in your project:
                   <Mono className="y2k-field my-1 block px-[6px] py-1">
-                    npx @patina/cli init
+                    npx @pat1na/cli init
                   </Mono>
                   That adds <Mono>DESIGN.md</Mono>, the pack&apos;s components and the <Mono>/y2k-ify</Mono> and{" "}
                   <Mono>/check-y2k</Mono> skills.
@@ -1498,7 +1498,7 @@ export function Desktop() {
 
                 <h3 className="mt-1 font-bold">Install</h3>
                 <p>Run this in a React project that uses Tailwind (a new create-next-app is fine):</p>
-                <Mono className="y2k-field block px-[6px] py-1">npx @patina/cli init</Mono>
+                <Mono className="y2k-field block px-[6px] py-1">npx @pat1na/cli init</Mono>
                 <p>
                   It first asks which of the five tones you want (or pass <Mono>--tone aqua</Mono>, say). Then it
                   puts <Mono>DESIGN.md</Mono> at the root of the project, the pack&apos;s components in{" "}
@@ -1955,7 +1955,7 @@ export function Desktop() {
               <div className="flex flex-col gap-3 px-6 py-5 font-(family-name:--y2k-font-ui) text-[12px] leading-[1.6]">
                 <h2 className="text-[13px] font-bold">DESIGN.md</h2>
                 <p className="text-(--y2k-ink-secondary)">
-                  This is the spec your coding agent reads. <Mono>npx @patina/cli init</Mono> puts the full file in
+                  This is the spec your coding agent reads. <Mono>npx @pat1na/cli init</Mono> puts the full file in
                   your project, with the <Mono>/y2k-ify</Mono> and <Mono>/check-y2k</Mono> skills. What follows is a
                   shorter version.
                 </p>

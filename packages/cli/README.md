@@ -1,9 +1,9 @@
-# @patina/cli
+# @pat1na/cli
 
 Installs Patina's Y2K taste pack into a project, so your coding agent (Claude Code, Cursor, Codex) builds UI in the pack's style: Mac OS X 10.0 Aqua in a millennium tone.
 
 ```bash
-npx @patina/cli init
+npx @pat1na/cli init
 ```
 
 Run it in a React project that uses Tailwind (a new create-next-app is fine). It asks which tone you want (Y2K pink, Aqua, Lime, Tangerine or Grape), then:
@@ -26,7 +26,7 @@ Files you already have are kept unless you pass `--force`.
 --yes              Don't ask anything (then --tone is required)
 ```
 
-From a script or an agent, pass the tone: `npx @patina/cli init --tone aqua --yes`. Without one it stops before writing anything and lists the five, so whoever is running it can ask.
+From a script or an agent, pass the tone: `npx @pat1na/cli init --tone aqua --yes`. Without one it stops before writing anything and lists the five, so whoever is running it can ask.
 
 ## Fonts
 

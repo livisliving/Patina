@@ -11,7 +11,7 @@ import { init } from "../src/init.mjs"
 const USAGE = `patina — taste packs for AI coding agents
 
 Usage
-  npx @patina/cli init [options]
+  npx @pat1na/cli init [options]
 
 Options
   --tone <name>      pink, aqua, lime, tangerine or grape (asked when not given)

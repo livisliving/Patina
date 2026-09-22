@@ -361,7 +361,7 @@ function main(argv) {
   const roots = paths.length ? paths : ["."]
 
   if (!fs.existsSync(designPath)) {
-    console.error(`check-y2k: no DESIGN.md at ${designPath}. Run \`npx @patina/cli init\` first, or pass --design <path>.`)
+    console.error(`check-y2k: no DESIGN.md at ${designPath}. Run \`npx @pat1na/cli init\` first, or pass --design <path>.`)
     return 2
   }
   const design = fs.readFileSync(designPath, "utf8")

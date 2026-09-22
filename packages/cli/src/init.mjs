@@ -427,7 +427,7 @@ export async function init({ cwd, registry, components, force, dryRun, yes, tone
     @import url("https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap");
 
   Next:
-    node scripts/check-y2k.mjs .     # or: npx @patina/cli init --help
+    node scripts/check-y2k.mjs .     # or: npx @pat1na/cli init --help
     Ask your coding agent to build a page — it reads DESIGN.md.
     Existing pages still build: the pack's Button accepts shadcn's variant
     and size names. /y2k-ify is what turns them into Aqua.
