@@ -4,9 +4,10 @@
  *
  * registry.json names its cross-references absolutely (a shadcn item's
  * `registryDependencies` must be a full URL), so the built files carry the
- * canonical base, https://livisliving.github.io/Patina/r (GitHub Pages) — which nobody can use to test
- * against a preview deployment or a local server. This rewrites that base in
- * the BUILT output, leaving registry.json itself canonical:
+ * canonical base, registry.json's `homepage` + "/r" (GitHub Pages) — which
+ * nobody can use to test against a preview deployment or a local server. This
+ * rewrites that base in the BUILT output, leaving registry.json itself
+ * canonical:
  *
  *   PATINA_REGISTRY=http://localhost:3000/r npm run registry:build
  *
@@ -17,7 +18,7 @@
 import fs from "node:fs"
 import path from "node:path"
 
-const CANONICAL = "https://livisliving.github.io/Patina/r"
+const CANONICAL = `${JSON.parse(fs.readFileSync(new URL("../packages/ui/registry.json", import.meta.url), "utf8")).homepage}/r`
 const base = (process.env.PATINA_REGISTRY ?? "").replace(/\/+$/, "")
 const dir = process.argv[2] ?? "apps/web/public/r"
 

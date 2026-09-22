@@ -8,6 +8,9 @@
 
 import { init } from "../src/init.mjs"
 
+/** The pack's registry on GitHub Pages; registry.json names the same base. */
+const DEFAULT_REGISTRY = "https://livisliving.github.io/Patina/r"
+
 const USAGE = `patina — taste packs for AI coding agents
 
 Usage
@@ -15,7 +18,7 @@ Usage
 
 Options
   --tone <name>      pink, aqua, lime, tangerine or grape (asked when not given)
-  --registry <url>   Component registry base URL (default: https://livisliving.github.io/Patina/r)
+  --registry <url>   Component registry base URL (default: ${DEFAULT_REGISTRY})
   --no-components    Write DESIGN.md and the skills, skip the shadcn components
   --force            Overwrite files that already exist
   --dry-run          Print what would happen, write nothing
@@ -53,7 +56,7 @@ if (cmd !== "init") {
 try {
   const code = await init({
     cwd: process.cwd(),
-    registry: value("registry", "https://livisliving.github.io/Patina/r"),
+    registry: value("registry", DEFAULT_REGISTRY),
     components: !flag("no-components"),
     force: flag("force"),
     dryRun: flag("dry-run"),

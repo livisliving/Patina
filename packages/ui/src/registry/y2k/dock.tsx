@@ -30,17 +30,12 @@ type DockItem = {
   minimized?: boolean
 }
 
-export type { DockItem }
-
 const BASE = 64 // px, must match --y2k-dock-icon
 const MAX_SCALE = 2.0
 const RANGE = 140 // px of influence on either side of the cursor
 
 /** How far the Dock fades where it runs off the screen on a phone. */
 const FADE = 48
-
-/** Two bounces of y2k-dock-bounce. */
-const BOUNCE_MS = 1200
 
 /**
  * Patina Dock — DESIGN.md › Layout › Dock.
@@ -74,14 +69,15 @@ function Dock({ items, className }: { items: DockItem[]; className?: string }) {
     const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 1
     setMore((m) => (m.left === left && m.right === right ? m : { left, right }))
   }, [])
+  // Only a phone's shelf scrolls, so only there is it worth watching.
   React.useEffect(() => {
     const el = listRef.current
-    if (!el) return
+    if (!el || !phone) return
     const ro = new ResizeObserver(measure)
     ro.observe(el)
     for (const child of el.children) ro.observe(child)
     return () => ro.disconnect()
-  }, [measure, items.length])
+  }, [measure, items.length, phone])
   const fade =
     phone && (more.left || more.right)
       ? `linear-gradient(to right, ${more.left ? `transparent, #000 ${FADE}px` : "#000"}, ${more.right ? `#000 calc(100% - ${FADE}px), transparent` : "#000"})`
@@ -89,19 +85,18 @@ function Dock({ items, className }: { items: DockItem[]; className?: string }) {
 
   const reset = React.useCallback(() => setSizes(items.map(() => BASE)), [items])
 
-  // Apps starting up: their icons bounce until the timer clears them.
+  // Apps starting up: their icons bounce until the animation ends.
   const [bouncing, setBouncing] = React.useState<ReadonlySet<string>>(() => new Set())
   const launch = (item: DockItem) => {
-    if (!item.running && !item.minimized && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setBouncing((b) => new Set(b).add(item.id))
-      window.setTimeout(() => setBouncing((b) => {
-        const next = new Set(b)
-        next.delete(item.id)
-        return next
-      }), BOUNCE_MS)
-    }
+    if (!item.running && !item.minimized) setBouncing((b) => new Set(b).add(item.id))
     item.onClick?.()
   }
+  const landed = (id: string) =>
+    setBouncing((b) => {
+      const next = new Set(b)
+      next.delete(id)
+      return next
+    })
 
   const onMove = React.useCallback(
     (e: React.PointerEvent) => {
@@ -169,8 +164,9 @@ function Dock({ items, className }: { items: DockItem[]; className?: string }) {
                         // Minimized-window tiles read as "parked": nudged down into
                         // the shelf and dimmed a touch, distinct from a live app.
                         item.minimized && "translate-y-0.5 opacity-90 [&_svg]:drop-shadow-[0_1px_1px_rgba(0,0,0,0.45)]",
-                        bouncing.has(item.id) && "animate-[y2k-dock-bounce_600ms_2]"
+                        bouncing.has(item.id) && "animate-[y2k-dock-bounce_600ms_2] motion-reduce:animate-none"
                       )}
+                      onAnimationEnd={(e) => e.target === e.currentTarget && landed(item.id)}
                     >
                       {item.icon}
                     </span>
@@ -206,7 +202,9 @@ function Dock({ items, className }: { items: DockItem[]; className?: string }) {
 
 /* ── The genie ─────────────────────────────────────────────────────── */
 
-type GenieTarget = Element | DOMRect | (() => Element | null | undefined)
+/** An element, a rect, or a selector the genie looks up two frames later,
+ *  once the caller has changed the page. */
+type GenieTarget = Element | DOMRect | string
 
 const frame = () => new Promise<number>((resolve) => requestAnimationFrame(resolve))
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
@@ -219,43 +217,35 @@ const smooth = (v: number) => v * v * (3 - 2 * v)
  * then the whole window slides down the funnel and into it. The page itself
  * is not touched.
  *
- * Each target is an element, a rect, or a function the genie calls two
- * frames later, once the caller has changed the page. Minimising: pass the
- * window itself (it is copied at once) and a function for its new tile.
- * Restoring: measure the tile first, then pass a function for the window and
- * `hide`, a selector for the window, so it stays hidden until the genie
- * has poured it out. Resolves when the copy is gone; does nothing when the
- * visitor asks for reduced motion.
+ * Minimising: pass the window element (it is copied at once, before the
+ * caller takes it away) and a selector for its new tile. Restoring: pass the
+ * tile's rect, measured before the tile goes, and a selector for the window;
+ * the window stays hidden until the genie has poured it out. Resolves when
+ * the copy is gone; does nothing when the visitor asks for reduced motion.
  */
-async function genie(
-  windowTarget: GenieTarget,
-  tileTarget: GenieTarget,
-  { reverse = false, duration = 520, hide }: { reverse?: boolean; duration?: number; hide?: string } = {}
-) {
+async function genie(windowTarget: GenieTarget, tileTarget: GenieTarget, { reverse = false, duration = 520 } = {}) {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
-  const now = (t: GenieTarget) => (t instanceof Element ? t.getBoundingClientRect() : t instanceof DOMRect ? t : null)
-  const later = (t: GenieTarget) => {
-    const el = typeof t === "function" ? t() : null
-    return el ? { el, rect: el.getBoundingClientRect() } : null
+  const rectOf = (t: GenieTarget) => {
+    const el = typeof t === "string" ? document.querySelector(t) : t
+    return el instanceof Element ? el.getBoundingClientRect() : el
   }
 
-  const hider = hide ? document.createElement("style") : null
+  const hider = reverse && typeof windowTarget === "string" ? document.createElement("style") : null
   if (hider) {
-    hider.textContent = `${hide} { visibility: hidden !important; }`
+    hider.textContent = `${windowTarget} { visibility: hidden !important; }`
     document.head.append(hider)
   }
   const layer = document.createElement("div")
   layer.setAttribute("aria-hidden", "true")
   layer.style.cssText = "position:fixed;inset:0;z-index:2147483000;pointer-events:none;overflow:hidden"
-  let bands: HTMLElement[] = []
-  let box: DOMRect | null = null
 
-  /** Lay the copy over the window, cut into strips, before anything moves. */
-  const lay = (source: Element, rect: DOMRect) => {
-    box = rect
-    const n = Math.max(16, Math.min(72, Math.round(rect.height / 6)))
+  /** Lay a copy of the window over it, cut into strips, before anything
+   *  moves. Each strip holds its own copy, clipped to its band. */
+  const lay = (source: Element) => {
+    const rect = source.getBoundingClientRect()
+    const n = Math.max(12, Math.min(40, Math.round(rect.height / 12)))
     const bandH = rect.height / n
-    bands = Array.from({ length: n }, (_, i) => {
+    const bands = Array.from({ length: n }, (_, i) => {
       const band = document.createElement("div")
       band.style.cssText = `position:absolute;left:${rect.left}px;top:${rect.top + i * bandH}px;width:${rect.width}px;height:${bandH + 1}px;overflow:hidden;transform-origin:0 0;will-change:transform`
       if (reverse) band.style.visibility = "hidden"
@@ -271,23 +261,24 @@ async function genie(
       return band
     })
     document.body.append(layer)
+    return { rect, bands, bandH }
   }
 
   try {
     // Minimising: the window is here now and gone next frame, so copy it now.
-    if (windowTarget instanceof Element) lay(windowTarget, windowTarget.getBoundingClientRect())
-    let tile = now(tileTarget)
+    let laid = windowTarget instanceof Element ? lay(windowTarget) : null
+    let tile = typeof tileTarget === "string" ? null : rectOf(tileTarget)
     await frame()
     await frame()
-    if (!box) {
-      const w = later(windowTarget)
-      if (w) lay(w.el, w.rect)
+    if (!laid && typeof windowTarget === "string") {
+      const el = document.querySelector(windowTarget)
+      if (el) laid = lay(el)
     }
-    tile ??= later(tileTarget)?.rect ?? null
-    if (!box || !tile || (box as DOMRect).width === 0) return
+    tile ??= rectOf(tileTarget)
+    if (!laid || !tile || laid.rect.width === 0) return
 
-    const { left: x0, top: y0, width: W, height: H } = box as DOMRect
-    const bandH = H / bands.length
+    const { rect, bands, bandH } = laid
+    const { left: x0, top: y0, width: W } = rect
     // The mouth of the funnel: the middle of the tile, a little in from its sides.
     const mouthL = tile.left + tile.width * 0.15
     const mouthR = tile.right - tile.width * 0.15
@@ -333,4 +324,4 @@ async function genie(
   }
 }
 
-export { Dock, genie }
+export { Dock, genie, type DockItem }

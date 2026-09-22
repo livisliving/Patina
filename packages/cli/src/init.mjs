@@ -233,7 +233,7 @@ function findThemes(cwd, depth = 4) {
  * nowhere and a build that fails on it. Only the installer can see both
  * paths, so it repairs the line here.
  */
-function fixThemeImport(cwd, { dryRun }) {
+function fixThemeImport(cwd, themes, { dryRun }) {
   const cfgPath = path.join(cwd, "components.json")
   if (!fs.existsSync(cfgPath)) return
   let cssRel
@@ -246,7 +246,6 @@ function fixThemeImport(cwd, { dryRun }) {
 
   const cssPath = path.join(cwd, cssRel)
   if (!fs.existsSync(cssPath)) return
-  const themes = findThemes(cwd)
   if (!themes.length) return
 
   // The copy beside the entry wins; otherwise the shallowest one.
@@ -383,19 +382,22 @@ export async function init({ cwd, registry, components, force, dryRun, yes, tone
       // stalls the install.
       const flags = [...(yes ? ["--yes"] : []), ...(overwrite ? ["--overwrite"] : [])]
       const res = spawnSync("npx", ["shadcn@latest", "add", ...flags, ...urls], { cwd, stdio: "inherit", shell: false, env: childEnv() })
-      // Then check every file is really there: shadcn's exit code says
-      // nothing about a prompt it answered for itself.
+      // Then check every file is really there, where shadcn put them (it may
+      // have made the folder): its exit code says nothing about a prompt it
+      // answered for itself.
+      const installedTo = uiDir(cwd)
       const missing = Object.entries(COMPONENTS)
-        .filter(([, f]) => !fs.existsSync(path.join(uiDir(cwd), f)))
+        .filter(([, f]) => !fs.existsSync(path.join(installedTo, f)))
         .map(([item]) => item)
-      if (!findThemes(cwd).length) missing.unshift("theme")
+      const themes = findThemes(cwd)
+      if (!themes.length) missing.unshift("theme")
       if (res.status !== 0 || missing.length) {
         const why = res.status !== 0 ? `shadcn exited ${res.status ?? "with an error"}` : `shadcn did not write ${missing.join(", ")}`
         console.log(stop(`${why} — the files above are still in place.`))
         console.log(`    retry: npx shadcn@latest add --overwrite ${urls.join(" ")}`)
         return 1
       }
-      fixThemeImport(cwd, { dryRun })
+      fixThemeImport(cwd, themes, { dryRun })
     }
   } else {
     console.log(skip("components skipped (--no-components)"))

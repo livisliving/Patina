@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import type { NextConfig } from "next";
 
 // GITHUB_PAGES=true builds the static site for GitHub Pages: plain files, no
@@ -7,8 +8,9 @@ import type { NextConfig } from "next";
 const pages = process.env.GITHUB_PAGES === "true";
 const basePath = pages ? (process.env.PAGES_BASE_PATH ?? "") : "";
 // Where this copy of the site serves the component registry (public/r).
-// Elsewhere (Vercel, localhost) Help names the canonical one, on GitHub Pages.
-const registry = pages ? `${process.env.PAGES_BASE_URL ?? ""}/r` : "https://livisliving.github.io/Patina/r";
+// Elsewhere (Vercel, localhost) Help names the canonical one: registry.json's homepage.
+const canonical = `${JSON.parse(fs.readFileSync(new URL("../../packages/ui/registry.json", import.meta.url), "utf8")).homepage}/r`;
+const registry = pages ? `${process.env.PAGES_BASE_URL ?? ""}/r` : canonical;
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@patina/ui", "@patina/shaders"],

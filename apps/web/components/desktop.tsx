@@ -514,6 +514,8 @@ const LOGIN_STAMP = "Sat Sep 20 09:41"
 
 const PROMPT = "patina:~ olivia$ "
 const INIT = "npx @pat1na/cli init"
+/** A text link in running copy: OS blue, underlined. */
+const LINK = "text-(--y2k-link) underline underline-offset-2"
 const INSTALL = ["Installing the Y2K pack…", "✓ DESIGN.md · /y2k-ify · /check-y2k · components.json"]
 
 /** The Terminal window's shell: a handful of commands over the Finder's own
@@ -713,7 +715,7 @@ const TYPE_FACES = [
     fallback: "Lucida Grande on a Mac. Elsewhere Lato, which is open source and loads with the page, then the system sans. Japanese and Chinese fall back to AquaKana and Hiragino.",
   },
   { token: "--y2k-font-wordmark", role: "Wordmark", sample: "Patina", px: 44, fallback: "EB Garamond, loaded with the page. Only for the wordmark." },
-  { token: "--y2k-font-mono", role: "Code", sample: "npx @pat1na/cli init", px: 11, fallback: "Monaco on a Mac, then the system monospace." },
+  { token: "--y2k-font-mono", role: "Code", sample: INIT, px: 11, fallback: "Monaco on a Mac, then the system monospace." },
 ] as const
 
 const TONE_IDS = TONES.map((t) => t.id)
@@ -828,17 +830,14 @@ export function Desktop() {
   const minimize = React.useCallback(
     (id: WinId) => {
       const el = document.querySelector(`[data-window-id="${id}"]`)
-      if (el) void genie(el, () => document.querySelector(`[data-dock-id="min:${id}"]`))
+      if (el) void genie(el, `[data-dock-id="min:${id}"]`)
       park(id)
     },
     [park]
   )
   const show = (id: WinId) => {
     const tile = wins[id].minimized ? document.querySelector(`[data-dock-id="min:${id}"]`) : null
-    if (tile) {
-      const at = `[data-window-id="${id}"]`
-      void genie(() => document.querySelector(at), tile.getBoundingClientRect(), { reverse: true, hide: at })
-    }
+    if (tile) void genie(`[data-window-id="${id}"]`, tile.getBoundingClientRect(), { reverse: true })
     open(id)
   }
 
@@ -861,8 +860,6 @@ export function Desktop() {
   })
   // Stable, so the iPod (memoised) doesn't redraw on every desktop update.
   const ejectIPod = React.useCallback(() => close("ipod"), [close])
-  // The system volume in the menu bar; the iPod plays at its own volume times this.
-  const [volume, setVolume] = React.useState(75)
   // Which app the About window is about (the front app's first menu opens it).
   const [aboutApp, setAboutApp] = React.useState("Finder")
 
@@ -1178,7 +1175,7 @@ export function Desktop() {
     <div className="min-h-dvh overflow-x-hidden font-(family-name:--y2k-font-ui) text-(--y2k-ink)">
       <Wallpaper photos={WALLPAPERS} />
       <Stars />
-      <MenuBar tone={tone} onToneChange={setTone} onOpen={open} menus={menus} volume={volume} onVolumeChange={setVolume} />
+      <MenuBar tone={tone} onToneChange={setTone} onOpen={show} menus={menus} />
 
       {/* Desktop surface: catches marquee drag-select on empty space (desktop
           only). Sits above the wallpaper, below the icons and windows. */}
@@ -1391,7 +1388,7 @@ export function Desktop() {
               </dl>
               <p className="mt-2 text-[11px]">
                 Built by{" "}
-                <a href="https://oliviazuo.com" target="_blank" rel="noopener noreferrer" className="text-(--y2k-link) underline underline-offset-2">
+                <a href="https://oliviazuo.com" target="_blank" rel="noopener noreferrer" className={LINK}>
                   Olivia Forster
                 </a>
               </p>
@@ -1452,7 +1449,7 @@ export function Desktop() {
                 <li>
                   Install the pack in your project:
                   <Mono className="y2k-field my-1 block px-[6px] py-1">
-                    npx @pat1na/cli init
+                    {INIT}
                   </Mono>
                   That adds <Mono>DESIGN.md</Mono>, the pack&apos;s components and the <Mono>/y2k-ify</Mono> and{" "}
                   <Mono>/check-y2k</Mono> skills.
@@ -1498,7 +1495,7 @@ export function Desktop() {
 
                 <h3 className="mt-1 font-bold">Install</h3>
                 <p>Run this in a React project that uses Tailwind (a new create-next-app is fine):</p>
-                <Mono className="y2k-field block px-[6px] py-1">npx @pat1na/cli init</Mono>
+                <Mono className="y2k-field block px-[6px] py-1">{INIT}</Mono>
                 <p>
                   It first asks which of the five tones you want (or pass <Mono>--tone aqua</Mono>, say). Then it
                   puts <Mono>DESIGN.md</Mono> at the root of the project, the pack&apos;s components in{" "}
@@ -1551,7 +1548,7 @@ export function Desktop() {
                   Double-click an icon to open it and drag a window by its title bar. The three lights at the top left
                   close, minimise and zoom. Everything else is in the Dock. The Design System app shows the pack&apos;s
                   components, colours and type, and{" "}
-                  <button type="button" onClick={openWin("design")} className="cursor-pointer text-(--y2k-link) underline underline-offset-2">
+                  <button type="button" onClick={openWin("design")} className={cn("cursor-pointer", LINK)}>
                     DESIGN.md
                   </button>{" "}
                   has the rules in full.
@@ -1560,7 +1557,7 @@ export function Desktop() {
                 <h3 className="mt-1 font-bold">Source</h3>
                 <p>
                   The code is on GitHub:{" "}
-                  <a href="https://github.com/livisliving/patina" target="_blank" rel="noopener noreferrer" className="text-(--y2k-link) underline underline-offset-2">
+                  <a href="https://github.com/livisliving/patina" target="_blank" rel="noopener noreferrer" className={LINK}>
                     github.com/livisliving/patina
                   </a>
                 </p>
@@ -1737,15 +1734,12 @@ export function Desktop() {
               {dsMatch("Icons") && (
               <WindowGroup label="Icons">
                 <div className="grid grid-cols-4 gap-y-3 sm:grid-cols-6">
-                  {(Object.keys(ICONS) as (keyof typeof ICONS)[]).map((name) => {
-                    const Icon = ICONS[name]
-                    return (
-                      <span key={name} className="flex flex-col items-center gap-1 text-[11px]">
-                        <Icon className="size-8" />
-                        {name}
-                      </span>
-                    )
-                  })}
+                  {Object.entries(ICONS).map(([name, Icon]) => (
+                    <span key={name} className="flex flex-col items-center gap-1 text-[11px]">
+                      <Icon className="size-8" />
+                      {name}
+                    </span>
+                  ))}
                 </div>
                 <p className="mt-3 text-[11px] text-(--y2k-ink-secondary)">At 32px, the size a toolbar uses. They look the same in every tone, apart from Folder, Heart and Star. <Mono>lucideToPack</Mono> maps lucide icon names to these.</p>
               </WindowGroup>
@@ -1955,7 +1949,7 @@ export function Desktop() {
               <div className="flex flex-col gap-3 px-6 py-5 font-(family-name:--y2k-font-ui) text-[12px] leading-[1.6]">
                 <h2 className="text-[13px] font-bold">DESIGN.md</h2>
                 <p className="text-(--y2k-ink-secondary)">
-                  This is the spec your coding agent reads. <Mono>npx @pat1na/cli init</Mono> puts the full file in
+                  This is the spec your coding agent reads. <Mono>{INIT}</Mono> puts the full file in
                   your project, with the <Mono>/y2k-ify</Mono> and <Mono>/check-y2k</Mono> skills. What follows is a
                   shorter version.
                 </p>
@@ -2170,7 +2164,7 @@ export function Desktop() {
             }}
             className={cn("md:h-[400px] md:w-[600px]", wins.ipod.minimized && "hidden")}
           >
-            <IPod onEject={ejectIPod} hidden={wins.ipod.minimized} level={volume / 100} />
+            <IPod onEject={ejectIPod} hidden={wins.ipod.minimized} />
           </DesktopWindow>
         )}
       </main>

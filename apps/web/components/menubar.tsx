@@ -5,6 +5,7 @@ import { MenuBar as PackMenuBar, MenuBarVolume, menuItemClass, menuSeparatorClas
 
 import { StarIcon } from "./aqua-icons"
 import { TONES, type Tone } from "./tones"
+import { setVolume, useVolume } from "./volume"
 
 export type { MenuRow, MenuSpec } from "@patina/ui"
 
@@ -15,14 +16,12 @@ type MenuBarProps = {
   /** After the ★: the front app's menu (its name in bold), then File, Edit,
    *  View, Go, Window and Help. */
   menus: MenuSpec[]
-  /** The system volume, 0–100: the iPod plays at its own volume times this. */
-  volume: number
-  onVolumeChange: (v: number) => void
 }
 
 /** The desktop's menu bar: the pack's, with the ★ menu — About, the tones
  *  (where 10.1 keeps its system-wide settings) and the pack's windows. */
-export function MenuBar({ tone, onToneChange, onOpen, menus, volume, onVolumeChange }: MenuBarProps) {
+export function MenuBar({ tone, onToneChange, onOpen, menus }: MenuBarProps) {
+  const volume = useVolume()
   const star: MenuSpec = {
     label: <StarIcon className="size-4 drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]" />,
     "aria-label": "Patina menu",
@@ -56,7 +55,7 @@ export function MenuBar({ tone, onToneChange, onOpen, menus, volume, onVolumeCha
   return (
     // Today's date, in 2000.
     <PackMenuBar logo={star} menus={menus} locale="en-GB" clockYear={2000}>
-      <MenuBarVolume value={volume} onValueChange={onVolumeChange} />
+      <MenuBarVolume value={volume} onValueChange={setVolume} />
     </PackMenuBar>
   )
 }

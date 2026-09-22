@@ -42,6 +42,8 @@ const tone = (pct: number, mix: "white" | "black") =>
   `color-mix(in srgb, var(--icon-hue) ${pct}%, ${mix})`
 /** Fixed hues. OS_BLUE is the aqua tone's base, the gel the icons were drawn in. */
 const OS_BLUE = "#4d83d2"
+/** Folder, Heart and Star follow the tone, as the demo's own art does. */
+const TONE_HUE = "var(--y2k-tone)"
 const SEAL_RED = "#d23a3a"
 const BRASS = "#d4a020"
 const BOLT_YELLOW = "#f2c21b"
@@ -123,8 +125,9 @@ function Rad({ id, s, cx = 0.5, cy = 0.5, r = 0.5 }: Omit<GradProps, "user"> & {
   )
 }
 
-/** `hue` is the icon's fixed colour; leave it out and the icon follows the tone. */
-function Svg({ className, style, hue = "var(--y2k-tone)", children, ...props }: IconProps & { hue?: string }) {
+/** `hue` is the icon's own colour: OS blue unless it says otherwise, or
+ *  TONE_HUE for the few that follow the tone. */
+function Svg({ className, style, hue = OS_BLUE, children, ...props }: IconProps & { hue?: string }) {
   return (
     <svg
       viewBox="0 0 128 128"
@@ -231,7 +234,7 @@ export function IconHome(props: IconProps) {
 export function IconFolder(props: IconProps) {
   const [id, url] = useIds()
   return (
-    <Svg {...props}>
+    <Svg {...props} hue={TONE_HUE}>
       <defs>
         <Lin id={id("back")} s={[[0, tone(38, "white")], [1, tone(62, "white")]]} />
         <Lin
@@ -341,7 +344,7 @@ export function IconTrash(props: IconProps) {
 export function IconSearch(props: IconProps) {
   const [id, url] = useIds()
   return (
-    <Svg {...props} hue={OS_BLUE}>
+    <Svg {...props}>
       <defs>
         <Rad id={id("lens")} s={[[0, "#ffffff", 0.92], [0.7, "#d6ebfb", 0.8], [1, "#8fbfe6", 0.9]]} cx={0.4} cy={0.35} r={0.7} />
         <Lin id={id("ring")} s={CHROME} x2={1} y2={1} />
@@ -369,7 +372,7 @@ export function IconPreferences(props: IconProps) {
   const gear =
     "M55.1 21.3Q57.4 20.5 57.7 18L58.2 12.8Q58.5 10.3 61 10.3L67 10.3Q69.5 10.3 69.8 12.8L70.3 18Q70.6 20.5 72.9 21.3L80.7 23.8Q83.1 24.6 84.7 22.7L88.2 18.8Q89.9 16.9 91.9 18.4L96.9 22Q98.9 23.4 97.6 25.6L95 30.1Q93.7 32.3 95.2 34.3L100 40.9Q101.4 42.9 103.9 42.4L109 41.3Q111.5 40.8 112.2 43.1L114.1 48.9Q114.9 51.3 112.6 52.3L107.8 54.4Q105.5 55.4 105.5 57.9L105.5 66.1Q105.5 68.6 107.8 69.6L112.6 71.7Q114.9 72.7 114.1 75.1L112.2 80.9Q111.5 83.2 109 82.7L103.9 81.6Q101.4 81.1 100 83.1L95.2 89.7Q93.7 91.7 95 93.9L97.6 98.4Q98.9 100.6 96.9 102L91.9 105.6Q89.9 107.1 88.2 105.2L84.7 101.3Q83.1 99.4 80.7 100.2L72.9 102.7Q70.6 103.5 70.3 106L69.8 111.2Q69.5 113.7 67 113.7L61 113.7Q58.5 113.7 58.2 111.2L57.7 106Q57.4 103.5 55.1 102.7L47.3 100.2Q44.9 99.4 43.3 101.3L39.8 105.2Q38.1 107.1 36.1 105.6L31.1 102Q29.1 100.6 30.4 98.4L33 93.9Q34.3 91.7 32.8 89.7L28 83.1Q26.6 81.1 24.1 81.6L19 82.7Q16.5 83.2 15.8 80.9L13.9 75.1Q13.1 72.7 15.4 71.7L20.2 69.6Q22.5 68.6 22.5 66.1L22.5 57.9Q22.5 55.4 20.2 54.4L15.4 52.3Q13.1 51.3 13.9 48.9L15.8 43.1Q16.5 40.8 19 41.3L24.1 42.4Q26.6 42.9 28 40.9L32.8 34.3Q34.3 32.3 33 30.1L30.4 25.6Q29.1 23.4 31.1 22L36.1 18.4Q38.1 16.9 39.8 18.8L43.3 22.7Q44.9 24.6 47.3 23.8Z"
   return (
-    <Svg {...props} hue={OS_BLUE}>
+    <Svg {...props}>
       <defs>
         <Lin id={id("steel")} s={CHROME} x2={1} y2={1} />
         <Rad
@@ -469,7 +472,7 @@ export function IconGlobe(props: IconProps) {
 export function IconPeople(props: IconProps) {
   const [id, url] = useIds()
   return (
-    <Svg {...props} hue={OS_BLUE}>
+    <Svg {...props}>
       <defs>
         <Lin id={id("white")} s={[[0, "#ffffff"], [0.55, "#dde2e8"], [1, "#a3acb7"]]} />
         <Lin id={id("gel")} s={GEL} />
@@ -506,7 +509,7 @@ export function IconPeople(props: IconProps) {
 export function IconHeart(props: IconProps) {
   const [id, url] = useIds()
   return (
-    <Svg {...props}>
+    <Svg {...props} hue={TONE_HUE}>
       <defs>
         <Lin id={id("gel")} s={GEL} />
         <Rad id={id("glow")} s={[[0, tone(35, "white"), 0.85], [1, tone(35, "white"), 0]]} />
@@ -524,7 +527,7 @@ export function IconHeart(props: IconProps) {
 export function IconStar(props: IconProps) {
   const [id, url] = useIds()
   return (
-    <Svg {...props}>
+    <Svg {...props} hue={TONE_HUE}>
       <defs>
         <Lin id={id("gel")} s={GEL} />
         <Rad id={id("glow")} s={[[0, tone(35, "white"), 0.8], [1, tone(35, "white"), 0]]} />
@@ -555,7 +558,7 @@ export function IconStar(props: IconProps) {
 export function IconClock(props: IconProps) {
   const [id, url] = useIds()
   return (
-    <Svg {...props} hue={OS_BLUE}>
+    <Svg {...props}>
       <defs>
         <Lin id={id("bezel")} s={GEL} />
         <Rad id={id("face")} s={[[0, "#ffffff"], [0.75, "#f3f5f8"], [1, "#cfd6df"]]} />
@@ -615,7 +618,7 @@ export function IconLock(props: IconProps) {
 export function IconChart(props: IconProps) {
   const [id, url] = useIds()
   return (
-    <Svg {...props} hue={OS_BLUE}>
+    <Svg {...props}>
       <defs>
         <Lin
           id={id("bar")}
@@ -646,7 +649,7 @@ export function IconChart(props: IconProps) {
 export function IconMusic(props: IconProps) {
   const [id, url] = useIds()
   return (
-    <Svg {...props} hue={OS_BLUE}>
+    <Svg {...props}>
       <defs>
         <g id={id("notes")}>
           <ellipse cx={37} cy={94} rx={17} ry={12} transform="rotate(-22 37 94)" />
@@ -673,7 +676,7 @@ export function IconMusic(props: IconProps) {
 export function IconPicture(props: IconProps) {
   const [id, url] = useIds()
   return (
-    <Svg {...props} hue={OS_BLUE}>
+    <Svg {...props}>
       <defs>
         <Lin id={id("frame")} s={PLASTIC} />
         <Lin id={id("print")} s={[[0, tone(40, "white")], [1, tone(75, "white")]]} />
@@ -707,7 +710,7 @@ export function IconPicture(props: IconProps) {
 export function IconDownload(props: IconProps) {
   const [id, url] = useIds()
   return (
-    <Svg {...props} hue={OS_BLUE}>
+    <Svg {...props}>
       <defs>
         <Lin id={id("tray")} s={[[0, "#fbfcfd"], [0.5, "#d4d9e0"], [1, "#9aa2ad"]]} />
         <Lin id={id("gel")} s={GEL} />
@@ -761,7 +764,7 @@ export function IconLightning(props: IconProps) {
 export function IconChat(props: IconProps) {
   const [id, url] = useIds()
   return (
-    <Svg {...props} hue={OS_BLUE}>
+    <Svg {...props}>
       <defs>
         <g id={id("back")}>
           <ellipse cx={78} cy={40} rx={42} ry={28} />
@@ -792,7 +795,7 @@ export function IconChat(props: IconProps) {
 export function IconCode(props: IconProps) {
   const [id, url] = useIds()
   return (
-    <Svg {...props} hue={OS_BLUE}>
+    <Svg {...props}>
       <defs>
         <Lin id={id("bar")} s={[[0, "#fbfbfb"], [1, "#cdcdcd"]]} />
         <Lin id={id("glass")} s={[[0, "#32363c"], [1, "#07080a"]]} />

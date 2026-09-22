@@ -58,20 +58,17 @@ function pressed(e: KeyboardEvent, shortcut: string, mac: boolean) {
 /** Which of the bar's menus is open: one at a time, by key. */
 type BarState = {
   open: string | null
-  /** Changes it from what it is right now, so a menu closing and the next
-   *  one opening in the same pointer event land in either order. */
-  setOpen: (update: (current: string | null) => string | null) => void
-  /** What is open right now, for the moment a menu finishes closing. */
-  openRef: React.RefObject<string | null>
+  /** Takes an updater, so a menu closing and the next one opening in the
+   *  same pointer event land in either order. */
+  setOpen: React.Dispatch<React.SetStateAction<string | null>>
 }
 const MenuBarContext = React.createContext<BarState | null>(null)
 
 /** The props that make a Radix DropdownMenu one of the bar's menus. Outside
- *  a MenuBar it opens and closes on its own. */
+ *  a MenuBar there are none: the menu opens and closes on its own. */
 function useBarMenu(key: string) {
   const bar = React.useContext(MenuBarContext)
-  const [alone, setAlone] = React.useState(false)
-  if (!bar) return { root: { open: alone, onOpenChange: setAlone }, trigger: {}, content: {} }
+  if (!bar) return { root: {}, trigger: {}, content: {} }
   return {
     root: {
       open: bar.open === key,
@@ -85,7 +82,7 @@ function useBarMenu(key: string) {
       // Focus goes back to the title only when the bar closes, not when the
       // pointer has moved on to the next menu.
       onCloseAutoFocus: (e: Event) => {
-        if (bar.openRef.current !== null) e.preventDefault()
+        if (bar.open !== null) e.preventDefault()
       },
     },
   }
@@ -122,9 +119,9 @@ function MenuBarTitle({ className, ...props }: React.ComponentProps<typeof Menu.
     <Menu.Trigger
       data-slot="menu-bar-title"
       className={cn(
-        "relative isolate flex h-full shrink-0 cursor-default items-center rounded-[3px] px-2 whitespace-nowrap outline-none select-none",
-        "before:absolute before:inset-0 before:-z-10 before:rounded-[3px] before:bg-(image:--y2k-tone-highlight) before:opacity-0",
-        "hover:before:opacity-100 hover:text-(--y2k-tone-highlight-text) data-[state=open]:before:opacity-100 data-[state=open]:text-(--y2k-tone-highlight-text)",
+        "flex h-full shrink-0 cursor-default items-center rounded-[3px] px-2 whitespace-nowrap outline-none select-none",
+        "hover:bg-(image:--y2k-tone-highlight) hover:text-(--y2k-tone-highlight-text)",
+        "data-[state=open]:bg-(image:--y2k-tone-highlight) data-[state=open]:text-(--y2k-tone-highlight-text)",
         className
       )}
       {...props}
@@ -188,12 +185,20 @@ function MenuBarClock({
   const now = useNow()
   const [view, setView] = React.useState<"text" | "icon">("text")
   const menu = useBarMenu("clock")
-  // A 24-hour clock keeps its leading zero (07:05); a 12-hour one doesn't (7:05 pm).
-  const h24 = /h2[34]/.test(new Intl.DateTimeFormat(locale, { hour: "numeric" }).resolvedOptions().hourCycle ?? "")
-  const day = now?.toLocaleDateString(locale, { weekday: "short" }) ?? ""
-  const time = now?.toLocaleTimeString(locale, { hour: h24 ? "2-digit" : "numeric", minute: "2-digit" }) ?? ""
+  // Built once per locale. A 24-hour clock keeps its leading zero (07:05);
+  // a 12-hour one doesn't (7:05 pm).
+  const format = React.useMemo(() => {
+    const h24 = !new Intl.DateTimeFormat(locale, { hour: "numeric" }).resolvedOptions().hour12
+    return {
+      day: new Intl.DateTimeFormat(locale, { weekday: "short" }),
+      time: new Intl.DateTimeFormat(locale, { hour: h24 ? "2-digit" : "numeric", minute: "2-digit" }),
+      date: new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" }),
+    }
+  }, [locale])
+  const day = now ? format.day.format(now) : ""
+  const time = now ? format.time.format(now) : ""
   const date = now
-    ? new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" })
+    ? format.date
         .formatToParts(now)
         .map((part) => (part.type === "year" && year !== undefined ? String(year) : part.value))
         .join("")
@@ -304,12 +309,7 @@ function MenuBar({
   /** Status items before the clock, such as a MenuBarVolume. */
   children?: React.ReactNode
 }) {
-  const [open, setOpenState] = React.useState<string | null>(null)
-  const openRef = React.useRef<string | null>(null)
-  const setOpen = React.useCallback((update: (current: string | null) => string | null) => {
-    openRef.current = update(openRef.current)
-    setOpenState(openRef.current)
-  }, [])
+  const [open, setOpen] = React.useState<string | null>(null)
 
   // Shortcuts: every menu's rows, read at the moment of the key press.
   const latest = React.useRef([logo, ...menus])
@@ -332,7 +332,7 @@ function MenuBar({
   }, [])
 
   return (
-    <MenuBarContext.Provider value={{ open, setOpen, openRef }}>
+    <MenuBarContext.Provider value={{ open, setOpen }}>
     <header
       data-slot="menu-bar"
       className={cn(
