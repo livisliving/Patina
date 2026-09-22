@@ -2,6 +2,23 @@
   "name": "@patina/cli",
   "version": "0.0.1",
   "description": "Install the Patina taste pack into a project: DESIGN.md, the Y2K components, and the agent skills.",
+  "keywords": [
+    "shadcn",
+    "design-system",
+    "claude-code",
+    "ai-agents",
+    "aqua",
+    "y2k"
+  ],
+  "homepage": "https://livisliving.github.io/Patina/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/livisliving/Patina.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/livisliving/Patina/issues"
+  },
   "type": "module",
   "bin": {
     "patina": "./bin/patina.mjs"
