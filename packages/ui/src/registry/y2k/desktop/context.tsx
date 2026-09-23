@@ -21,13 +21,12 @@ import { WindowActionsProvider, useWindows, type Point, type WinEntry, type WinS
  *  volume, then file names) — what the address names while it is in front. */
 export type DocumentPayload = { doc: DocumentEntry; path: string[] }
 
-/** The apps' icons: About <app> shows one. The pack has no movie icon, so
- *  QuickTime borrows Music's. */
+/** The apps' icons: About <app> shows one. */
 export const APP_ICONS: Record<string, React.ReactNode> = {
   Finder: <FaceIcon />,
   TextEdit: <NoteIcon />,
   Preview: <ICONS.preview />,
-  "QuickTime Player": <ICONS.music />,
+  "QuickTime Player": <ICONS.quicktime />,
   iPod: <IPodIcon />,
 }
 

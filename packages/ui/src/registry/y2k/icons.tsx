@@ -5,6 +5,7 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 import { PREVIEW_PNG } from "./icon-preview"
+import { QUICKTIME_PNG } from "./icon-quicktime"
 
 /**
  * Patina icons — DESIGN.md › Shapes, Components › Icons.
@@ -674,12 +675,22 @@ export function IconMusic(props: IconProps) {
   )
 }
 
-/** Preview — two prints and a loupe: Olivia's own artwork, a PNG (the one
-    icon not drawn here), its shadow in the picture. */
+/** Preview — two prints and a loupe: Olivia's own artwork, a PNG (one of
+    the two icons not drawn here), its shadow in the picture. */
 export function IconPreview(props: IconProps) {
   return (
     <Svg {...props}>
       <image href={PREVIEW_PNG} width={128} height={128} />
+    </Svg>
+  )
+}
+
+/** QuickTime Player — the Q on a metal player: Olivia's own artwork, a PNG
+    (the other icon not drawn here), its shadow in the picture. */
+export function IconQuickTime(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <image href={QUICKTIME_PNG} width={128} height={128} />
     </Svg>
   )
 }
@@ -912,6 +923,7 @@ export const ICONS = {
   chart: IconChart,
   music: IconMusic,
   preview: IconPreview,
+  quicktime: IconQuickTime,
   download: IconDownload,
   info: IconInfo,
   warning: IconWarning,

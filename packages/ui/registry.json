@@ -226,6 +226,11 @@
           "path": "src/registry/y2k/icon-preview.ts",
           "type": "registry:ui",
           "target": "components/ui/icon-preview.ts"
+        },
+        {
+          "path": "src/registry/y2k/icon-quicktime.ts",
+          "type": "registry:ui",
+          "target": "components/ui/icon-quicktime.ts"
         }
       ]
     },
@@ -251,6 +256,7 @@
         { "path": "src/registry/y2k/desktop/blocks-more.tsx", "type": "registry:component", "target": "components/desktop/blocks-more.tsx" },
         { "path": "src/registry/y2k/desktop/blocks.tsx", "type": "registry:component", "target": "components/desktop/blocks.tsx" },
         { "path": "src/registry/y2k/desktop/context.tsx", "type": "registry:component", "target": "components/desktop/context.tsx" },
+        { "path": "src/registry/y2k/desktop/crop.ts", "type": "registry:component", "target": "components/desktop/crop.ts" },
         { "path": "src/registry/y2k/desktop/desktop.tsx", "type": "registry:component", "target": "components/desktop/desktop.tsx" },
         { "path": "src/registry/y2k/desktop/disk.tsx", "type": "registry:component", "target": "components/desktop/disk.tsx" },
         { "path": "src/registry/y2k/desktop/document.tsx", "type": "registry:component", "target": "components/desktop/document.tsx" },

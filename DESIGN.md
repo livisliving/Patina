@@ -743,12 +743,16 @@ are gel, the pictures are the owner's.
 - A picture (`figure`) → set bare into the page at the page's width,
   scaling with the window, no border and no frame, with an 11px caption;
   it opens Preview. Several pictures (`gallery`, a
-  carousel, a stack) → a row of 160px-tall thumbnails, bare like a single
-  picture, wrapping when the page is narrow; a long screenshot shows its
-  top; each opens Preview. Never a stack that hides all but the first.
+  carousel, a stack) → a strip in a well that scrolls sideways, the Aqua
+  scrollbar along its foot: each picture 240px tall and whole, bare like a
+  single picture; a long screenshot shows its top (180 × 240); each opens
+  Preview. Never a stack that hides all but the first, never a wrapped wall.
 - An embedded board (`embed`: FigJam, Figma, YouTube) → inline, sunk in a
   well, with `Open in ‹app›`; without an embed address, its picture. A
-  movie (`video`) → its poster, opening QuickTime Player.
+  movie (`video`) → muted and looping at the page's width while it is in
+  view, on its poster until then (and always, with reduced motion); it
+  opens QuickTime Player. A movie exported with bars baked in keeps them
+  out with `crop` (shares of the frame), in the page and in the Player.
 - A picture still to come (`placeholder`) → a pinstripe plate of its
   proportions, `Picture to come`.
 - Buttons that go somewhere (`links`) → a row of white push buttons; one

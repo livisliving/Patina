@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import type { Img, Movie } from "@/lib/content"
 
 import { asset } from "./asset"
+import { cropStyle, croppedSize } from "./crop"
 import { useDrag } from "./use-drag"
 import { useMediaQuery } from "./use-media-query"
 import { useResize } from "./use-resize"
@@ -282,7 +283,17 @@ export function PreviewWindow({ win }: { win: WinEntry }) {
  */
 export function PlayerWindow({ win }: { win: WinEntry }) {
   const movie = win.payload as Movie
-  const [box, setBox] = React.useState(() => fitImage(640, 360))
+  // The picture's size and proportions (the frame's, less the bars).
+  const picture = (w: number, h: number) => croppedSize(w, h, movie.crop)
+  const [box, setBox] = React.useState(() => {
+    const p = picture(640, 360)
+    return fitImage(p.w, p.h)
+  })
+  // The poster's proportions until the movie says its own.
+  const [ratio, setRatio] = React.useState(() => {
+    const p = picture(movie.poster?.w ?? 640, movie.poster?.h ?? 360)
+    return p.w / p.h
+  })
   return (
     <DesktopWindow
       win={win}
@@ -292,15 +303,31 @@ export function PlayerWindow({ win }: { win: WinEntry }) {
       status={movie.name}
     >
       {/* In flow (a phone) the body has no height of its own: keep the frame. */}
-      <div className="relative min-h-0 flex-1 max-md:aspect-video">
-        <video
-          src={asset(movie.src)}
-          poster={movie.poster ? asset(movie.poster.src) : undefined}
-          controls
-          playsInline
-          onLoadedMetadata={(e) => setBox(fitImage(e.currentTarget.videoWidth || 640, e.currentTarget.videoHeight || 360))}
-          className="absolute inset-0 size-full object-contain"
-        />
+      <div className="relative min-h-0 flex-1 overflow-hidden [container-type:size] max-md:aspect-video">
+        {/* A cropped movie sits in a clip of the picture's own proportions,
+            as large as the body allows and centred in it (the metal shows
+            round it when the window is another shape), the movie scaled
+            and slid behind the clip so the bars stay outside it. */}
+        <div
+          className={movie.crop ? "absolute inset-0 m-auto overflow-hidden" : "absolute inset-0"}
+          style={movie.crop ? { aspectRatio: ratio, width: `min(100cqw, calc(100cqh * ${ratio}))` } : undefined}
+        >
+          <video
+            src={asset(movie.src)}
+            poster={movie.poster ? asset(movie.poster.src) : undefined}
+            controls
+            playsInline
+            onLoadedMetadata={(e) => {
+              const p = picture(e.currentTarget.videoWidth || 640, e.currentTarget.videoHeight || 360)
+              setBox(fitImage(p.w, p.h))
+              setRatio(p.w / p.h)
+            }}
+            // max-w-none: the preflight's max-width:100% on a video would
+            // hold it to the clip and bring the bars back.
+            className="absolute inset-0 size-full max-w-none object-contain"
+            style={cropStyle(movie.crop)}
+          />
+        </div>
       </div>
     </DesktopWindow>
   )

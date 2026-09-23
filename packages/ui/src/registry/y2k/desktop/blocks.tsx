@@ -7,14 +7,16 @@ import { Checkbox } from "@/components/ui/forms"
 import { IconGlobe, IconWarning } from "@/components/ui/icons"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { WindowWell } from "@/components/ui/window"
+import { WindowScrollArea, WindowWell } from "@/components/ui/window"
 import { cn } from "@/lib/utils"
 import type { Block, Img, Movie, Text } from "@/lib/content"
 
 import { asset } from "./asset"
+import { cropStyle, croppedSize } from "./crop"
 import { Code, DataTable, Faq, ProgressBlock, Quote, Steps } from "./blocks-more"
 import { useDesktop } from "./context"
 import { findNode, withOpen } from "./disk"
+import { useReducedMotion } from "./use-media-query"
 
 /**
  * The blocks of a TextEdit document — one renderer per Block type
@@ -117,7 +119,7 @@ export function Inlines({ text }: { text: Text }) {
 /* ── Pictures ─────────────────────────────────────────────────────── */
 
 /** A long screenshot — a phone page, a full-length capture — is taller
- *  than twice its width. In a row it shows its top, cropped. */
+ *  than twice its width. In a strip it shows its top, cropped. */
 const isLong = (img: Img) => img.h > img.w * 2
 
 /** The caption under a figure: 11px secondary ink, the only place
@@ -126,25 +128,25 @@ function Caption({ className, ...props }: React.ComponentProps<"figcaption">) {
   return <figcaption className={cn("mt-1 text-[11px] leading-[1.35] text-(--y2k-ink-secondary)", className)} {...props} />
 }
 
-/** A gallery row's height, and the box a long screenshot is cropped to. */
-const ROW_H = 160
-const CROP_W = 120
+/** A strip's height, and the width a long screenshot is cropped to (3:4). */
+const STRIP_H = 240
+const CROP_W = 180
 
 /**
- * The thumbnail itself. `row` = it stands in a gallery row: 160px tall, a
- * long screenshot cropped to its top (object-cover object-top) in a
- * 120 × 160 box, so a 375 × 2494 page shows its hero and not a 24px
+ * The thumbnail itself. On the page it fills the page's width and scales
+ * with the window. `strip` = it stands in a strip that scrolls sideways:
+ * 240px tall, whole, its width from its own proportions — but a long
+ * screenshot is cropped to its top (object-cover object-top) in a
+ * 180 × 240 box, so a 375 × 2494 page shows its hero and not a 36px
  * sliver. No border: pictures are often whole white-ground sheets and
  * phones with their own rounded corners — a hairline round a rounded phone
  * reads as a rendering fault, and TextEdit set a picture into the page
- * bare. The width is set explicitly — the file's own, or its share of the
- * row's height — because an <img> left at width:auto has no box until it
- * loads, and the page (and the outline's scroll targets) would jump as
- * each picture arrived; the height follows from the file's width and height.
+ * bare. The file's width and height are on the element, so the box has
+ * its proportions before the picture loads and the page (and the
+ * outline's scroll targets) never jump as each one arrives.
  */
-function Thumb({ img, row }: { img: Img; row?: boolean }) {
-  const crop = row && isLong(img)
-  const width = crop ? CROP_W : row ? Math.round((ROW_H * img.w) / img.h) : img.w
+function Thumb({ img, strip }: { img: Img; strip?: boolean }) {
+  const crop = strip && isLong(img)
   return (
     // eslint-disable-next-line @next/next/no-img-element -- a thumbnail of a file already in public/, sized by the document
     <img
@@ -155,8 +157,8 @@ function Thumb({ img, row }: { img: Img; row?: boolean }) {
       loading="lazy"
       decoding="async"
       draggable={false}
-      style={{ width }}
-      className={cn("block", crop ? "h-40 object-cover object-top" : "h-auto max-w-full")}
+      style={strip ? { width: crop ? CROP_W : Math.round((STRIP_H * img.w) / img.h) } : undefined}
+      className={cn("block", strip ? cn("h-60 max-w-none", crop && "object-cover object-top") : "h-auto w-full")}
     />
   )
 }
@@ -172,23 +174,31 @@ const OPENER = "block max-w-full cursor-zoom-in outline-none focus-visible:outli
  * file's name, the picture filling it, its size in the status bar. The
  * title attribute is that file name, so hovering says what will open.
  */
-function Picture({ img, row }: { img: Img; row?: boolean }) {
+function Picture({ img, strip }: { img: Img; strip?: boolean }) {
   const { openImage } = useDesktop()
   return (
-    <button type="button" title={img.name} onClick={() => openImage(img)} className={OPENER}>
-      <Thumb img={img} row={row} />
+    <button type="button" title={img.name} onClick={() => openImage(img)} className={cn(OPENER, strip ? "max-w-none shrink-0" : "w-full")}>
+      <Thumb img={img} strip={strip} />
     </button>
   )
 }
 
-/** A row of thumbnails, wrapping when the page is narrower than the row. */
-function Row({ images }: { images: Img[] }) {
+/** Several pictures in one row that scrolls sideways: a window in the
+ *  page — a well, as the compare tabs' panel is — with the Aqua scrollbar
+ *  along its foot saying there is more. Each picture stands 240px tall and
+ *  whole (a long screenshot shows its top); a stack would hide all but the
+ *  first, and a wrapped row makes a wall. */
+function Strip({ images }: { images: Img[] }) {
   return (
-    <div className="flex flex-wrap gap-2">
-      {images.map((img) => (
-        <Picture key={img.src} img={img} row />
-      ))}
-    </div>
+    <WindowWell className="block">
+      <WindowScrollArea>
+        <div className="flex gap-2 p-2">
+          {images.map((img) => (
+            <Picture key={img.src} img={img} strip />
+          ))}
+        </div>
+      </WindowScrollArea>
+    </WindowWell>
   )
 }
 
@@ -295,8 +305,8 @@ function Checklist({ items }: { items: { title: string; body?: Text }[] }) {
 }
 
 /**
- * figure → one picture set into the page at its own width, never wider
- * than the page, its caption under it. A picture is a file, and a file
+ * figure → one picture set into the page at the page's width, scaling
+ * with the window, its caption under it. A picture is a file, and a file
  * opens in the app that owns it: click → Preview (see Picture).
  */
 function Figure({ image, caption }: { image: Img; caption?: string }) {
@@ -309,14 +319,13 @@ function Figure({ image, caption }: { image: Img; caption?: string }) {
 }
 
 /**
- * gallery → a row of thumbnails, each opening Preview, the caption under
- * the row. Each is at most 160px tall; long phone screenshots show their
- * top (see Thumb), because at 160px tall a whole phone page is a sliver.
+ * gallery → a strip that scrolls sideways (see Strip), each picture
+ * opening Preview, the caption under the strip.
  */
 function Gallery({ images, caption }: { images: Img[]; caption?: string }) {
   return (
     <figure>
-      <Row images={images} />
+      <Strip images={images} />
       {caption && <Caption>{caption}</Caption>}
     </figure>
   )
@@ -325,7 +334,7 @@ function Gallery({ images, caption }: { images: Img[]; caption?: string }) {
 /**
  * compare → the pack's Tabs: 10.0 folder tabs on a pinstriped panel, one
  * tab per state (Before | After), the panel holding that state's pictures
- * as a gallery row. The selected tab is the tone gel, so the switch is a
+ * as a strip. The selected tab is the tone gel, so the switch is a
  * control and not two headings. A tab with no pictures says so rather than
  * vanishing: the tab is part of the record.
  */
@@ -345,11 +354,11 @@ function Compare({ tabs, caption, initial }: { tabs: { label: string; images: Im
         {tabs.map((t, i) => (
           <TabsContent key={t.label} value={String(i)}>
             {/* One picture (a whole Before or After sheet) fills the panel;
-                several make a row. */}
+                several make a strip. */}
             {t.images.length === 1 ? (
               <Picture img={t.images[0]} />
             ) : t.images.length ? (
-              <Row images={t.images} />
+              <Strip images={t.images} />
             ) : (
               <p className="text-[11px] leading-[1.35] text-(--y2k-ink-secondary)">No pictures.</p>
             )}
@@ -501,42 +510,57 @@ function Placeholder({ caption, ratio }: { caption: string; ratio: number }) {
   )
 }
 
-/** The visitor asked for less motion: a movie then waits on its poster. */
-const subscribeMotion = (cb: () => void) => {
-  const mq = window.matchMedia("(prefers-reduced-motion: reduce)")
-  mq.addEventListener("change", cb)
-  return () => mq.removeEventListener("change", cb)
-}
-const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches
-
 /**
  * video → a screen recording plays in the page as it does on the site:
  * muted, looping, at the page's width, on its poster until it loads — a
  * picture that moves. A movie is still a file, and a movie's app is
  * QuickTime Player (Aqua's first brushed-metal window): click it and it
- * opens there, with sound and controls. With reduced motion it stays on
- * its poster until opened.
+ * opens there, with sound and controls. It plays only while it is in
+ * view (scrolled off, or its window minimised, it pauses). With reduced
+ * motion it stays on its poster until opened. A movie with bars baked in
+ * (`crop`) shows only the picture's box, the proportions from the poster.
  */
 function Video({ movie, caption }: { movie: Movie; caption?: string }) {
   const { openVideo } = useDesktop()
-  const still = React.useSyncExternalStore(subscribeMotion, reducedMotion, () => true)
-  const { src, name, poster } = movie
+  const still = useReducedMotion(true)
+  const { src, name, poster, crop } = movie
+  const ref = React.useRef<HTMLVideoElement>(null)
+  React.useEffect(() => {
+    const el = ref.current
+    if (!el || still) return
+    const io = new IntersectionObserver(([e]) => (e.isIntersecting ? el.play().catch(() => {}) : el.pause()))
+    io.observe(el)
+    return () => io.disconnect()
+  }, [still])
+  const clip = crop && poster ? croppedSize(poster.w, poster.h, crop) : undefined
+  const video = (
+    <video
+      ref={ref}
+      src={asset(src)}
+      poster={poster ? asset(poster.src) : undefined}
+      width={poster?.w}
+      height={poster?.h}
+      muted
+      loop
+      playsInline
+      preload={still ? "none" : "metadata"}
+      aria-label={poster?.alt ?? name}
+      className={cn("pointer-events-none block", clip ? "absolute max-w-none" : "h-auto max-w-full")}
+      style={clip && cropStyle(crop)}
+    />
+  )
   return (
     <figure>
-      <button type="button" title={`${name} — open in QuickTime Player`} onClick={() => openVideo(movie)} className={OPENER}>
-        <video
-          src={asset(src)}
-          poster={poster ? asset(poster.src) : undefined}
-          width={poster?.w}
-          height={poster?.h}
-          muted
-          loop
-          playsInline
-          autoPlay={!still}
-          preload={still ? "none" : "auto"}
-          aria-label={poster?.alt ?? name}
-          className="pointer-events-none block h-auto max-w-full"
-        />
+      {/* A button shrinks to its content, so the clip (a box of no width of
+          its own) needs the button at the page's width. */}
+      <button type="button" title={`${name} — open in QuickTime Player`} onClick={() => openVideo(movie)} className={cn(OPENER, clip && "w-full")}>
+        {clip ? (
+          <div className="relative w-full overflow-hidden" style={{ aspectRatio: `${clip.w} / ${clip.h}` }}>
+            {video}
+          </div>
+        ) : (
+          video
+        )}
       </button>
       {caption && <Caption>{caption}</Caption>}
     </figure>

@@ -25,8 +25,14 @@ export type Img = {
   alt: string
 }
 
-/** A movie under public/. */
-export type Movie = { src: string; name: string; poster?: Img }
+/** A share of a frame, each 0–1: `x`/`y` its top left, `w`/`h` its size.
+ *  A movie exported with bars baked in (black or white round the picture)
+ *  shows only this box, in the page and in QuickTime Player. */
+export type Crop = { x: number; y: number; w: number; h: number }
+
+/** A movie under public/. `crop` needs the poster (its frame gives the
+ *  picture's proportions in the page). */
+export type Movie = { src: string; name: string; poster?: Img; crop?: Crop }
 
 /* ── Running text ──────────────────────────────────────────────────── */
 

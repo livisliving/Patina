@@ -46,7 +46,9 @@ function TableHead({ className, sorted, children, ...props }: React.ComponentPro
       data-slot="table-head"
       aria-sort={sorted}
       className={cn(
-        "relative h-[17px] px-2 text-left font-normal whitespace-nowrap",
+        // The 17px line keeps the header its 17px: the Table's 1.6 leading
+        // would otherwise set a 19px line box, and a cell only grows.
+        "relative h-[17px] px-2 text-left leading-[17px] font-normal whitespace-nowrap",
         "shadow-[inset_-1px_0_0_#b4b4b4,inset_0_-1px_0_#a8a8a8]",
         sorted ? "bg-(image:--y2k-tone-listheader-sorted) pr-4" : "bg-(image:--y2k-listheader)",
         className

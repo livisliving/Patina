@@ -92,7 +92,10 @@ function WindowSidebarItem({
       className={cn(
         // Square, full-width, 20px tall, 8px inset, 16px icon.
         "flex h-5 w-full cursor-default items-center gap-1.5 px-2 text-left outline-none",
-        "text-[12px] leading-none whitespace-nowrap",
+        // The row's own height as the line height: the label is a flex item,
+        // so its `truncate` clips to its line box, and at leading-none a
+        // 12px line box cut off Lucida Grande's descenders.
+        "text-[12px] leading-5 whitespace-nowrap",
         selected
           ? // Full-bleed 3-stop tone gradient + white ink w/ dark 1px shadow.
             "bg-(image:--y2k-tone-list) text-(--y2k-tone-selection-text) [text-shadow:0_1px_1px_rgba(0,0,0,0.3)]"

@@ -18,3 +18,20 @@ export function useMediaQuery(query: string) {
   }, [query])
   return matches
 }
+
+const REDUCE = "(prefers-reduced-motion: reduce)"
+
+/** Whether the visitor asked for less motion, read once (in a handler). */
+export const prefersReducedMotion = () => typeof window !== "undefined" && window.matchMedia(REDUCE).matches
+
+const subscribeReduce = (cb: () => void) => {
+  const mq = window.matchMedia(REDUCE)
+  mq.addEventListener("change", cb)
+  return () => mq.removeEventListener("change", cb)
+}
+
+/** Whether the visitor asked for less motion, kept up to date. `onServer`
+ *  is the answer before the page is in a browser: false where motion is
+ *  the safe guess (the TV's typing), true where stillness is (a movie). */
+export const useReducedMotion = (onServer = false) =>
+  React.useSyncExternalStore(subscribeReduce, prefersReducedMotion, () => onServer)
