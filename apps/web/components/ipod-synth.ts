@@ -124,6 +124,11 @@ export function createPlayer(onEnded: () => void) {
 
   const audio = () => {
     if (ctx) return ctx
+    // Safari gives Web Audio the "ambient" session, which an iPhone's silent
+    // switch mutes; music is "playback", as an <audio> element's would be.
+    // Set before the context exists, which takes the session it finds.
+    const nav = navigator as Navigator & { audioSession?: { type: string } }
+    if (nav.audioSession) nav.audioSession.type = "playback"
     ctx = new AudioContext()
     master = ctx.createGain()
     master.gain.value = volume
