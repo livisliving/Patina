@@ -51,8 +51,7 @@ const packVariants = cva(
         white: "[--face:var(--y2k-gel-white)] [--rim:var(--y2k-button-rim-white)]",
         tone: "[--face:var(--y2k-tone-button)] [--rim:var(--y2k-button-rim-tone)]",
         metal: [
-          "[--face:var(--y2k-metal-button)] [--drop:0_0_0_1px_rgba(0,0,0,0.1),0_1px_1px_rgba(0,0,0,0.2),0_2px_2px_rgba(0,0,0,0.18)]",
-          "[--rim:inset_1px_0_0_rgba(0,0,0,0.25),inset_-1px_0_0_rgba(0,0,0,0.25),inset_4px_0_4px_-2px_rgba(0,0,0,0.25),inset_-4px_0_4px_-2px_rgba(0,0,0,0.25)]",
+          "[--face:var(--y2k-metal-button)] [--drop:var(--y2k-shadow-button-metal)] [--rim:var(--y2k-button-rim-metal)]",
         ],
         link: "",
       },
@@ -64,7 +63,7 @@ const packVariants = cva(
         ],
         icon: [
           "size-(--y2k-button-h) rounded-full px-0 text-[11px] text-[#262626]",
-          "shadow-[var(--rim),0_1px_2px_rgba(0,0,0,0.3)] [&_svg:not([class*='size-'])]:size-3",
+          "shadow-[var(--rim),var(--y2k-shadow-button-icon)] [&_svg:not([class*='size-'])]:size-3",
         ],
         "icon-sm": "size-[17px] rounded-full px-0 shadow-[var(--rim),var(--y2k-shadow-button-small)] [&_svg:not([class*='size-'])]:size-3",
       },
@@ -76,7 +75,7 @@ const packVariants = cva(
       {
         variant: "metal",
         className: [
-          "text-[#393939] shadow-[var(--rim),var(--drop)] active:shadow-[var(--rim),0_0_0_1px_rgba(0,0,0,0.1)]",
+          "text-[#393939] shadow-[var(--rim),var(--drop)] active:shadow-[var(--rim),var(--y2k-shadow-button-metal-active)]",
           "disabled:text-[#9c9c9c] disabled:opacity-100 disabled:shadow-[var(--rim),var(--drop)]",
         ],
       },
@@ -163,7 +162,7 @@ function BevelButton({ className, pressed, ...props }: React.ComponentProps<"but
       className={cn(
         "relative inline-flex h-(--y2k-bevel-h) shrink-0 cursor-default items-center justify-center rounded-[2px] px-[10px] whitespace-nowrap outline-none",
         "font-(family-name:--y2k-font-ui) text-[11px] text-black select-none",
-        "bg-(image:--y2k-bevel) shadow-[inset_1px_0_0_rgba(0,0,0,0.07),inset_-1px_0_0_rgba(0,0,0,0.07),0_1px_1px_rgba(0,0,0,0.3)]",
+        "bg-(image:--y2k-bevel) shadow-(--y2k-shadow-bevel)",
         "active:bg-[image:var(--y2k-gel-pressed),var(--y2k-bevel)] aria-pressed:bg-[image:var(--y2k-gel-pressed),var(--y2k-bevel)]",
         "disabled:bg-(image:--y2k-bevel-disabled) disabled:text-(--y2k-ink-disabled) disabled:shadow-none",
         "focus-visible:outline-3 focus-visible:outline-offset-1 focus-visible:outline-(--y2k-tone-focus)",

@@ -86,7 +86,8 @@ function shorten(text: string, lines: number, box: HTMLElement, label: HTMLEleme
   const line = height("X")
   if (height(text) <= line * lines + 1) return text
 
-  /** Where the second line starts, as `t` wraps. */
+  /** Where the second line starts, as `t` wraps: the first character set
+   *  below the first, found by halving. */
   const wrapAt = (t: string) => {
     p.textContent = t
     const node = p.firstChild as Text
@@ -97,8 +98,13 @@ function shorten(text: string, lines: number, box: HTMLElement, label: HTMLEleme
       return range.getBoundingClientRect().top
     }
     const first = top(0)
-    for (let i = 1; i < t.length; i++) if (top(i) > first + 1) return i
-    return t.length
+    let [lo, hi] = [1, t.length]
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1
+      if (top(mid) > first + 1) hi = mid
+      else lo = mid + 1
+    }
+    return lo
   }
   /** The most of `t` that fits on one line, half from each end. */
   const oneLine = (t: string) => {

@@ -39,8 +39,8 @@ const svg = (name, w, h, markup, extra = {}) => ({ type: "svg", name, w, h, svg:
 const pressed = (face) => [face, S("Aqua/Gel Pressed")]
 
 /* ── Button ──────────────────────────────────────────────────────── */
-const RIM = { white: fx(tokens["--y2k-button-rim-white"]), tone: fx(`inset 6px 0 7px -4px ${at(EDGE.gel, 0.7)}, inset -6px 0 7px -4px ${at(EDGE.gel, 0.7)}`), metal: fx("inset 1px 0 0 rgba(0,0,0,0.25), inset -1px 0 0 rgba(0,0,0,0.25), inset 4px 0 4px -2px rgba(0,0,0,0.25), inset -4px 0 4px -2px rgba(0,0,0,0.25)") }
-const DROP = { md: S("Effect/shadow-button"), sm: S("Effect/shadow-button-small"), active: S("Effect/shadow-button-active"), metal: fx("0 0 0 1px rgba(0,0,0,0.1), 0 1px 1px rgba(0,0,0,0.2), 0 2px 2px rgba(0,0,0,0.18)") }
+const RIM = { white: fx(tokens["--y2k-button-rim-white"]), tone: fx(`inset 6px 0 7px -4px ${at(EDGE.gel, 0.7)}, inset -6px 0 7px -4px ${at(EDGE.gel, 0.7)}`), metal: fx(tokens["--y2k-button-rim-metal"]) }
+const DROP = { md: S("Effect/shadow-button"), sm: S("Effect/shadow-button-small"), active: S("Effect/shadow-button-active"), metal: fx(tokens["--y2k-shadow-button-metal"]), metalActive: fx(tokens["--y2k-shadow-button-metal-active"]) }
 const FACE = { White: S("Aqua/Gel White"), Tone: S("Tone/Gel"), Metal: S("Aqua/Metal Button") }
 
 function button(variant, size, state, label) {
@@ -49,8 +49,8 @@ function button(variant, size, state, label) {
     return row("Button", 0, 0, { fills: [], children: [text(label, sm ? "Label/Small" : "Label/Button", state === "Disabled" ? INK_DIS : V("aqua/link"), { decoration: "UNDERLINE" })] })
   }
   const rim = RIM[variant.toLowerCase()]
-  // Metal's drop is a list of its own; the others are one effect style each.
-  const drop = variant === "Metal" ? DROP.metal : [state === "Pressed" ? DROP.active : sm ? DROP.sm : DROP.md]
+  // Metal's drop is a list of its own, pressed to its ring; the others are one effect style each.
+  const drop = variant === "Metal" ? (state === "Pressed" ? DROP.metalActive : DROP.metal) : [state === "Pressed" ? DROP.active : sm ? DROP.sm : DROP.md]
   const ink = variant === "Metal" ? (state === "Disabled" ? "#9c9c9c" : "#393939") : state === "Disabled" ? INK_DIS : INK
   return row("Button", 6, [0, sm ? 12 : 14], {
     h: sm ? 17 : 20, minW: sm ? 56 : 68, radius: 9999,
@@ -83,7 +83,7 @@ for (const variant of ["White", "Tone"]) for (const size of ["Regular", "Small"]
   roundSet.variants.push({ props: { Variant: variant, Size: size, State: state }, node: row("Round Button", 0, 0, {
     w: d, h: d, radius: 9999, layout: { justify: "center" },
     fills: state === "Pressed" ? pressed(face) : [face],
-    effects: [...RIM[variant.toLowerCase()], ...(state === "Pressed" ? [DROP.active] : size === "Small" ? [DROP.sm] : fx("0 2px 3px rgba(0,0,0,0.35)"))],
+    effects: [...RIM[variant.toLowerCase()], ...(state === "Pressed" ? [DROP.active] : size === "Small" ? [DROP.sm] : fx(tokens["--y2k-shadow-button-icon"]))],
     children: [chevron(variant === "Tone" ? "right" : "left")],
   }) })
 }
@@ -94,7 +94,7 @@ const bevelSet = {
   variants: ["Default", "Pressed", "Disabled"].map((state) => ({ props: { State: state }, node: row("Bevel Button", 0, [0, 10], {
     h: 18, radius: 2, bind: { height: "metric/bevel-h" }, layout: { justify: "center" },
     fills: state === "Disabled" ? [S("Aqua/Bevel Disabled")] : state === "Pressed" ? pressed(S("Aqua/Bevel")) : [S("Aqua/Bevel")],
-    effects: state === "Disabled" ? [] : fx("inset 1px 0 0 rgba(0,0,0,0.07), inset -1px 0 0 rgba(0,0,0,0.07), 0 1px 1px rgba(0,0,0,0.3)"),
+    effects: state === "Disabled" ? [] : fx(tokens["--y2k-shadow-bevel"]),
     children: [text("Choose…", "Label/Small", state === "Disabled" ? INK_DIS : BLACK)],
   }) })),
 }

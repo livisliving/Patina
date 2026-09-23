@@ -1,5 +1,7 @@
 "use client"
 
+import * as React from "react"
+import { cn, parseColor } from "@patina/ui"
 import { ShaderSurface } from "@patina/shaders"
 
 import type { Track } from "./ipod-synth"
@@ -15,14 +17,6 @@ import type { Tone } from "./tones"
  * Reduced motion, or no WebGL, shows the palette as a still gradient.
  */
 
-/** The tones' bases, as y2k.css sets --y2k-tone for each. */
-const BASE: Record<Tone, [number, number, number]> = {
-  pink: [232, 68, 154],
-  aqua: [77, 131, 210],
-  lime: [127, 195, 28],
-  tangerine: [232, 137, 26],
-  grape: [122, 58, 186],
-}
 const CHROME: Palette = [[27, 31, 38], [138, 146, 158], [213, 218, 226], [255, 255, 255]]
 
 type RGB = [number, number, number]
@@ -33,9 +27,9 @@ const mix = (a: RGB, b: RGB, t: number): RGB => [0, 1, 2].map((i) => a[i] + (b[i
 const WHITE: RGB = [255, 255, 255]
 const BLACK: RGB = [0, 0, 0]
 
-function palette(tone: Tone | null): Palette {
-  if (!tone) return CHROME
-  const b = BASE[tone]
+/** A tone's gel from its base, deep to white; chrome when there's none. */
+function palette(b: RGB | null): Palette {
+  if (!b) return CHROME
   return [mix(b, BLACK, 0.7), b, mix(b, WHITE, 0.55), mix(b, WHITE, 0.92)]
 }
 
@@ -128,24 +122,42 @@ void main() {
 `
 }
 
+const css = (c: RGB) => `rgb(${c.map(Math.round).join(", ")})`
+
 export function Visualiser({ track, tone, className }: { track: Track | null; tone: Tone; className?: string }) {
   // A station, or nothing loaded yet, plays in the desktop's tone.
   const own = track && track.bars !== Infinity ? (track.tone ?? null) : tone
-  const p = palette(own)
-  const css = (c: RGB) => `rgb(${c.map(Math.round).join(", ")})`
+  const bpm = track?.bpm ?? 90
+  const seed = track?.seed ?? 0
+  const box = React.useRef<HTMLDivElement>(null)
+  const [shader, setShader] = React.useState<{ fragment: string; p: Palette } | null>(null)
+
+  // The tone's base is read off this box's own data-tone, as y2k.css sets it,
+  // so the gel can't drift from the chrome. The shader mounts once it's known
+  // (still before the first paint) and recompiles only when the song does.
+  React.useLayoutEffect(() => {
+    const c = own && box.current ? parseColor(getComputedStyle(box.current).getPropertyValue("--y2k-tone")) : null
+    const p = palette(c ? [c.r, c.g, c.b] : null)
+    setShader({ fragment: fragment(p, bpm, seed), p })
+  }, [own, bpm, seed])
+
   return (
-    <ShaderSurface
-      fragment={fragment(p, track?.bpm ?? 90, track?.seed ?? 0)}
-      className={className}
-      fallback={
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            backgroundImage: `radial-gradient(circle at 50% 60%, ${css(p[3])} 0%, ${css(p[2])} 22%, ${css(p[1])} 48%, ${css(p[0])} 100%)`,
-          }}
+    <div ref={box} data-tone={own ?? undefined} className={cn("relative", className)}>
+      {shader && (
+        <ShaderSurface
+          fragment={shader.fragment}
+          style={{ position: "absolute", inset: 0 }}
+          fallback={
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                backgroundImage: `radial-gradient(circle at 50% 60%, ${css(shader.p[3])} 0%, ${css(shader.p[2])} 22%, ${css(shader.p[1])} 48%, ${css(shader.p[0])} 100%)`,
+              }}
+            />
+          }
         />
-      }
-    />
+      )}
+    </div>
   )
 }
