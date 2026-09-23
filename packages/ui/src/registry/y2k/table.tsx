@@ -122,7 +122,8 @@ function TreeItem({ node, depth }: { node: TreeNode; depth: number }) {
   const [open, setOpen] = React.useState(!!node.defaultOpen)
   const folder = !!node.children?.length
   return (
-    <li role="treeitem" aria-expanded={folder ? open : undefined} className="leading-[18px]">
+    // A tree view shows structure; nothing in it is selectable.
+    <li role="treeitem" aria-selected={false} aria-expanded={folder ? open : undefined} className="leading-[18px]">
       <div className="flex items-center" style={{ paddingLeft: depth * 15 + (folder ? 0 : 12) }}>
         {folder && (
           <button

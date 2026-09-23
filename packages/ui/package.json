@@ -13,7 +13,8 @@
     "./color": "./src/lib/color.ts"
   },
   "scripts": {
-    "build": "shadcn build ./registry.json -o ../../apps/web/public/r"
+    "build": "shadcn build ./registry.json -o ../../apps/web/public/r",
+    "lint": "eslint src"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

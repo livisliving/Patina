@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "npm run dev -w web",
     "build": "npm run build -w web",
-    "lint": "npm run lint -w web",
+    "lint": "npm run lint -w web && npm run lint -w @patina/ui",
     "design:lint": "design.md lint DESIGN.md",
     "design:export": "design.md export --format css-tailwind DESIGN.md",
     "check:y2k": "node scripts/check-y2k.mjs apps/web packages",

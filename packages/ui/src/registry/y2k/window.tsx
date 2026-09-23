@@ -483,18 +483,14 @@ function WindowScrollArea({
   ...props
 }: React.ComponentProps<"div"> & { viewportRef?: React.Ref<HTMLDivElement> }) {
   const viewportRef = React.useRef<HTMLDivElement>(null)
-  const thumbRefs = { y: React.useRef<HTMLButtonElement>(null), x: React.useRef<HTMLButtonElement>(null) }
+  const thumbY = React.useRef<HTMLButtonElement>(null)
+  const thumbX = React.useRef<HTMLButtonElement>(null)
   const [thumbs, setThumbs] = React.useState({ y: 0, x: 0 })
   const drag = React.useRef<{ axis: Axis; at: number; scroll: number } | null>(null)
 
-  const setViewport = React.useCallback(
-    (el: HTMLDivElement | null) => {
-      viewportRef.current = el
-      if (typeof viewportRefProp === "function") viewportRefProp(el)
-      else if (viewportRefProp) viewportRefProp.current = el
-    },
-    [viewportRefProp]
-  )
+  // The caller's ref gets the scrolling element without this component
+  // writing to a prop.
+  React.useImperativeHandle(viewportRefProp, () => viewportRef.current as HTMLDivElement, [])
 
   // Sizes go through React (they add or remove a bar); positions go straight
   // to the thumbs.
@@ -504,14 +500,8 @@ function WindowScrollArea({
     const y = thumbFor(el.clientHeight, el.scrollHeight, el.scrollTop)
     const x = thumbFor(el.clientWidth, el.scrollWidth, el.scrollLeft)
     setThumbs((t) => (t.y === y.thumb && t.x === x.thumb ? t : { y: y.thumb, x: x.thumb }))
-    const place = (axis: Axis, offset: number) => {
-      const node = thumbRefs[axis].current
-      if (node) node.style.transform = `${AXIS[axis].translate}(${offset}px)`
-    }
-    place("y", y.offset)
-    place("x", x.offset)
-    // thumbRefs are stable refs.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (thumbY.current) thumbY.current.style.transform = `${AXIS.y.translate}(${y.offset}px)`
+    if (thumbX.current) thumbX.current.style.transform = `${AXIS.x.translate}(${x.offset}px)`
   }, [])
 
   React.useEffect(() => {
@@ -563,7 +553,7 @@ function WindowScrollArea({
       {...props}
     >
       <div
-        ref={setViewport}
+        ref={viewportRef}
         data-slot="window-scroll-viewport"
         onScroll={measure}
         className="col-start-1 row-start-1 min-h-0 min-w-0 overflow-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -577,7 +567,7 @@ function WindowScrollArea({
               key={axis}
               axis={axis}
               thumb={thumbs[axis]}
-              thumbRef={thumbRefs[axis]}
+              thumbRef={axis === "y" ? thumbY : thumbX}
               onScrollBy={(d) => viewportRef.current?.scrollBy(axis === "y" ? { top: d } : { left: d })}
               thumbHandlers={thumbHandlers(axis)}
             />
