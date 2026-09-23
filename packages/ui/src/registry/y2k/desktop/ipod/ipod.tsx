@@ -547,7 +547,7 @@ export const IPod = React.memo(function IPod({ onEject, hidden }: { onEject: () 
             </WindowScrollArea>
           )}
           {visuals ? (
-            !hidden && <Visualiser track={current} tone={tone} className="min-h-0 flex-1" />
+            !hidden && <Visualiser track={current} tone={tone} player={player} playing={playing} className="min-h-0 flex-1" />
           ) : (
             <WindowScrollArea viewportRef={viewport}>
               <Table className="table-fixed leading-[14px] [&_td:not(:last-child)]:border-r [&_td]:border-[#dedede]">

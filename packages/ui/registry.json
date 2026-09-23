@@ -278,13 +278,12 @@
       "name": "ipod",
       "type": "registry:block",
       "title": "iPod",
-      "description": "iTunes 2 on brushed metal as the desktop's resident iPod: a synthesised library and three stations, transport, volume, search, source list, shuffle and repeat on iTunes 4's foot buttons, and a visualiser that plays each song in its own tone. Pass it to the Desktop as `ipod={IPod}`.",
+      "description": "iTunes 2 on brushed metal as the desktop's resident iPod: a synthesised library and three stations, transport, volume, search, source list, shuffle and repeat on iTunes 4's foot buttons, and a visualiser after Winamp's Tripex and Windows Media Player's that draws the music itself, in each song's own tone. Pass it to the Desktop as `ipod={IPod}`.",
       "registryDependencies": ["https://livisliving.github.io/Patina/r/desktop.json"],
       "files": [
         { "path": "src/registry/y2k/desktop/ipod/ipod-synth.ts", "type": "registry:component", "target": "components/desktop/ipod/ipod-synth.ts" },
         { "path": "src/registry/y2k/desktop/ipod/ipod.tsx", "type": "registry:component", "target": "components/desktop/ipod/ipod.tsx" },
         { "path": "src/registry/y2k/desktop/ipod/ipod-visualiser.tsx", "type": "registry:component", "target": "components/desktop/ipod/ipod-visualiser.tsx" },
-        { "path": "src/registry/y2k/desktop/ipod/shader-surface.tsx", "type": "registry:component", "target": "components/desktop/ipod/shader-surface.tsx" },
         { "path": "src/registry/y2k/desktop/ipod/star-mask.ts", "type": "registry:component", "target": "components/desktop/ipod/star-mask.ts" },
         { "path": "src/lib/color.ts", "type": "registry:lib", "target": "lib/color.ts" }
       ]

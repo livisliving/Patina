@@ -194,7 +194,7 @@ function WindowToolbar({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="window-toolbar"
       className={cn(
-        "flex shrink-0 items-end gap-[10px] border-b border-[#9a9a9a] px-[10px] pt-[6px] pb-1",
+        "flex shrink-0 items-start gap-[10px] border-b border-[#9a9a9a] px-[10px] pt-[6px] pb-1",
         "bg-[linear-gradient(to_bottom,#fbfbfb_0%,#ededed_62%,#dedede_100%)]",
         "in-data-[active=false]:bg-[linear-gradient(to_bottom,#f6f6f6,#ececec)]",
         className

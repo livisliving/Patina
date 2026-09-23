@@ -110,6 +110,8 @@ export type Player = ReturnType<typeof createPlayer>
 export function createPlayer(onEnded: () => void) {
   let ctx: AudioContext | null = null
   let master: GainNode | null = null
+  let mix: GainNode | null = null
+  let analyser: AnalyserNode | null = null
   let noise: AudioBuffer | null = null
   let bus: GainNode | null = null
   let track: Track | null = null
@@ -134,6 +136,14 @@ export function createPlayer(onEnded: () => void) {
     master.gain.value = volume
     const limit = ctx.createDynamicsCompressor()
     master.connect(limit).connect(ctx.destination)
+    // Every track plays into the mix; the visualiser listens there, ahead
+    // of the volume, so it dances as hard at a whisper as at full.
+    mix = ctx.createGain()
+    mix.connect(master)
+    analyser = ctx.createAnalyser()
+    analyser.fftSize = 1024
+    analyser.smoothingTimeConstant = 0.6
+    mix.connect(analyser)
     noise = ctx.createBuffer(1, ctx.sampleRate / 2, ctx.sampleRate)
     const data = noise.getChannelData(0)
     for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1
@@ -245,7 +255,7 @@ export function createPlayer(onEnded: () => void) {
       track = t
       pair = -1
       bus = c.createGain()
-      bus.connect(master!)
+      bus.connect(mix!)
       startAt = c.currentTime + 0.05
       next = 0
       timer = setInterval(tick, 25)
@@ -265,6 +275,8 @@ export function createPlayer(onEnded: () => void) {
       stop()
       void ctx?.suspend()
     },
+    /** What the visualiser listens to: null until the first play. */
+    analyser: () => analyser,
     /** Seconds into the current track. */
     elapsed: () => (ctx && track ? Math.max(0, ctx.currentTime - startAt) : 0),
     /** 0–1, eased so the slider's middle sounds like the middle. */
@@ -276,6 +288,7 @@ export function createPlayer(onEnded: () => void) {
       stop()
       void ctx?.close()
       ctx = null
+      analyser = null
     },
   }
 }
