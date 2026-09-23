@@ -2,11 +2,13 @@
 /**
  * patina — the taste-pack installer.
  *
- * One subcommand today: `init`, which drops the pack into an existing project.
+ * Two subcommands: `init`, which drops the pack into an existing project,
+ * and `update`, which brings that copy up to a Patina release.
  * Keep this file thin: argument shape here, the work in src/.
  */
 
 import { init } from "../src/init.mjs"
+import { update } from "../src/update.mjs"
 
 /** The pack's registry on GitHub Pages; registry.json names the same base. */
 const DEFAULT_REGISTRY = "https://livisliving.github.io/Patina/r"
@@ -15,8 +17,9 @@ const USAGE = `patina — taste packs for AI coding agents
 
 Usage
   npx @pat1na/cli init [options]
+  npx @pat1na/cli update [options]
 
-Options
+Options for init
   --tone <name>      pink, aqua, lime, tangerine or grape (asked when not given)
   --registry <url>   Component registry base URL (default: ${DEFAULT_REGISTRY})
   --no-components    Write DESIGN.md and the skills, skip the shadcn components
@@ -41,6 +44,24 @@ What init does
   writes content/site.ts if you have none and app/page.tsx if it is still
   create-next-app's; a page of your own is kept, and init prints the lines
   that render the desktop in it.
+  5. Writes patina.json: the items installed and each file as written.
+
+Options for update
+  --to <tag>         The Patina release to update to (default: the latest
+                     release on GitHub; main while there is none)
+  --source <dir|url> Read the pack from a checkout of the Patina repository
+                     or a URL of its root instead (then --to only names it)
+  --add <items>      Also install these items, comma-separated (desktop,
+                     content, ipod are never assumed)
+  --force            Replace files changed here since they were installed
+  --dry-run          Print what would change, write nothing
+
+What update does
+  Copies again, from that release, every file of the items patina.json
+  lists (with no patina.json: the theme and the components found under your
+  ui folder) and DESIGN.md, the /check-y2k scanner and the skills. A file
+  you changed since it was installed is kept and named. New npm packages
+  the files need are installed. Then patina.json records the version.
 `
 
 const argv = process.argv.slice(2)
@@ -58,22 +79,32 @@ const value = (name, fallback) => {
   return i !== -1 && argv[i + 1] && !argv[i + 1].startsWith("--") ? argv[i + 1] : fallback
 }
 
-if (cmd !== "init") {
+if (cmd !== "init" && cmd !== "update") {
   console.error(`patina: unknown command "${cmd}".\n\n${USAGE}`)
   process.exit(1)
 }
 
 try {
-  const code = await init({
-    cwd: process.cwd(),
-    registry: value("registry", DEFAULT_REGISTRY),
-    components: !flag("no-components"),
-    desktop: flag("desktop"),
-    force: flag("force"),
-    dryRun: flag("dry-run"),
-    yes: flag("yes"),
-    tone: value("tone", undefined),
-  })
+  const code =
+    cmd === "update"
+      ? await update({
+          cwd: process.cwd(),
+          to: value("to", undefined),
+          source: value("source", undefined),
+          add: (value("add", "") || "").split(",").map((s) => s.trim()).filter(Boolean),
+          force: flag("force"),
+          dryRun: flag("dry-run"),
+        })
+      : await init({
+          cwd: process.cwd(),
+          registry: value("registry", DEFAULT_REGISTRY),
+          components: !flag("no-components"),
+          desktop: flag("desktop"),
+          force: flag("force"),
+          dryRun: flag("dry-run"),
+          yes: flag("yes"),
+          tone: value("tone", undefined),
+        })
   process.exit(code)
 } catch (err) {
   console.error(`patina: ${err.message}`)

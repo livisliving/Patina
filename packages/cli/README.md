@@ -52,6 +52,20 @@ npx shadcn@latest add https://livisliving.github.io/Patina/r/content.json https:
 
 From a script or an agent, pass the tone: `npx @pat1na/cli init --tone aqua --yes`. Without one it stops before writing anything and lists the five, so whoever is running it can ask.
 
+## Updating
+
+The pack is copied into your project, so a new Patina reaches it only when its files are copied again:
+
+```bash
+npx @pat1na/cli update            # to the latest Patina release (main while there is none)
+npx @pat1na/cli update --to v0.2.0
+npx @pat1na/cli update --dry-run  # say what would change, write nothing
+```
+
+`init` writes `patina.json`: the items it installed and a fingerprint of each file as written. `update` copies every file of those items again from the release (and `DESIGN.md`, the `/check-y2k` scanner and the skills), installs any npm package the new files need, and records the version. It never touches what is not listed — the `content`, `desktop` and `ipod` items are updated only when `patina.json` names them (or `--add desktop,content,ipod`), since a site often keeps its own desktop in that folder. A file you changed since it was installed is kept and named; `--force` replaces it. A project installed before `patina.json` existed gets one on its first update, from the theme and the components found under its ui folder.
+
+`--source <folder|url>` reads the pack from a checkout of the Patina repository instead of GitHub (with `--to` naming the version it is), which is how a CI job updates from a tag it has checked out.
+
 ## Fonts
 
 Lucida Grande belongs to Apple, so it isn't included. Macs already have it; everywhere else the pack falls back to Lato, which is open source. Add it from Google Fonts.

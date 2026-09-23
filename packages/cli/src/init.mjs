@@ -30,7 +30,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url))
 /** The registry items installed by default, in dependency order (theme
  *  first), and the file each one writes under the project's ui folder — what
  *  the install is checked against afterwards. */
-const COMPONENTS = {
+export const COMPONENTS = {
   button: "button.tsx",
   window: "window.tsx",
   sidebar: "window-sidebar.tsx",
@@ -169,7 +169,7 @@ function assetRoot() {
 }
 
 /** Files copied verbatim: [source relative to assetRoot, target relative to cwd]. */
-const COPIES = [
+export const COPIES = [
   ["DESIGN.md", "DESIGN.md"],
   ["scripts/check-y2k.mjs", "scripts/check-y2k.mjs"],
   [".claude/skills/check-y2k/SKILL.md", ".claude/skills/check-y2k/SKILL.md"],
@@ -183,7 +183,7 @@ const stop = (s) => `  ✗ ${s}`
 /** The environment for a child npx: npm leaks the flags of the npx that ran
  *  us into it as npm_config_*, and `--package=` would make the child resolve
  *  our package instead of shadcn. */
-function childEnv() {
+export function childEnv() {
   const env = { ...process.env }
   delete env.npm_config_package
   return env
@@ -192,7 +192,7 @@ function childEnv() {
 /** Where shadcn puts an alias's files (`ui`, `lib`, `components`):
  *  components.json's alias, resolved against the root and src/ (the two
  *  layouts create-next-app makes). */
-function aliasDir(cwd, key = "ui") {
+export function aliasDir(cwd, key = "ui") {
   const fallback = { ui: "@/components/ui", lib: "@/lib", components: "@/components" }[key]
   let alias = fallback
   try {
@@ -217,7 +217,7 @@ function missingDesktop(cwd) {
 
 /** The folder `@/` points at (tsconfig's `@/*`: the root or src/), where
  *  content/ goes; and the App Router folder, where page.tsx is. */
-function projectDirs(cwd) {
+export function projectDirs(cwd) {
   let base = null
   try {
     const ts = fs.readFileSync(path.join(cwd, "tsconfig.json"), "utf8")
@@ -499,6 +499,12 @@ export async function init({ cwd, registry, components, desktop, force, dryRun, 
       }
       fixThemeImport(cwd, themes, { dryRun })
       desktopReady = desktop
+      // What was installed, and each file as it was written: `update` reads
+      // it to know which items are the pack's and which files were changed
+      // since. (Imported here: update.mjs imports this module's helpers.)
+      const { recordInstall, MANIFEST } = await import("./update.mjs")
+      await recordInstall(cwd, { registry: base, items })
+      console.log(tick(`${MANIFEST} — the items and files installed, for \`patina update\``))
     }
   } else {
     console.log(skip("components skipped (--no-components)"))
