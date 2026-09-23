@@ -16,7 +16,8 @@
     "check:y2k": "node scripts/check-y2k.mjs apps/web packages",
     "registry:build": "npm run build -w @patina/ui && node scripts/registry-base.mjs",
     "figma:foundations": "node scripts/figma/foundations.mjs",
-    "figma:tone": "node scripts/figma/tone.mjs"
+    "figma:tone": "node scripts/figma/tone.mjs",
+    "figma:controls": "node scripts/figma/controls.mjs"
   },
   "devDependencies": {
     "@google/design.md": "^0.4.0"

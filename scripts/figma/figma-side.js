@@ -280,6 +280,227 @@ async function sheets(P, V, paints, effects, texts) {
   return { witness: w.id, pages: figma.root.children.map((p) => p.name) }
 }
 
+/* ── Controls: node specs → nodes, component sets ────────────────── */
+
+let L = null // paint / effect / text styles and variables, by name
+async function lookups() {
+  const [paints, effects, texts, vars] = await Promise.all([figma.getLocalPaintStylesAsync(), figma.getLocalEffectStylesAsync(), figma.getLocalTextStylesAsync(), figma.variables.getLocalVariablesAsync()])
+  const by = (list) => Object.fromEntries(list.map((s) => [s.name, s]))
+  L = { paints: by(paints), effects: by(effects), texts: by(texts), vars: by(vars) }
+}
+function must(map, name, kind) { const v = map[name]; if (!v) throw new Error(`no ${kind} "${name}"`); return v }
+const clone = (o) => JSON.parse(JSON.stringify(o))
+
+/** "#rgb" | "#rrggbb" | "#rrggbbaa" | "rgb(a)(r, g, b[, a])" → {r,g,b,a} in 0..1 */
+function rgbaOf(s) {
+  s = s.trim()
+  if (s.startsWith("#")) {
+    const h = s.length === 4 ? [...s.slice(1)].map((c) => c + c).join("") : s.slice(1)
+    const n = (i) => parseInt(h.slice(i, i + 2), 16) / 255
+    return { r: n(0), g: n(2), b: n(4), a: h.length >= 8 ? n(6) : 1 }
+  }
+  const [r, g, b, a = 1] = s.match(/[\d.]+/g).map(Number)
+  return { r: r / 255, g: g / 255, b: b / 255, a }
+}
+const T = { right: [[1, 0, 0], [0, 1, 0]], down: [[0, 1, 0], [-1, 0, 1]], diag: [[0.5, -0.5, 0.5], [0.5, 0.5, 0]] }
+
+/** A fill spec → Paint[]: "#hex" | "rgba()" | {style} | {var} | {gradient:{dir,stops}} */
+function paintsOf(spec) {
+  if (typeof spec === "string") return [figma.util.solidPaint(rgbaOf(spec))]
+  if (spec.style) return clone(must(L.paints, spec.style, "paint style").paints)
+  if (spec.var) return [figma.variables.setBoundVariableForPaint(figma.util.solidPaint("#000000"), "color", must(L.vars, spec.var, "variable"))]
+  if (spec.gradient) return [{ type: "GRADIENT_LINEAR", gradientTransform: T[spec.gradient.dir ?? "down"], gradientStops: spec.gradient.stops.map((s) => ({ position: s.position, color: rgbaOf(s.color) })) }]
+  throw new Error(`fill spec ${JSON.stringify(spec)}`)
+}
+const effectsOf = (list) => list.flat().flatMap((e) => (e.style ? clone(must(L.effects, e.style, "effect style").effects) : [e]))
+const SIZING = { hug: "HUG", fill: "FILL", fixed: "FIXED" }
+const ALIGN = { start: "MIN", center: "CENTER", end: "MAX", between: "SPACE_BETWEEN" }
+
+let COMPONENTS = {} // name → ComponentNode | ComponentSetNode built this run
+function instanceOf(spec) {
+  const c = COMPONENTS[spec.of]
+  if (!c) throw new Error(`instance of "${spec.of}" before it was built`)
+  const inst = (c.type === "COMPONENT_SET" ? c.defaultVariant : c).createInstance()
+  if (spec.props) inst.setProperties(spec.props)
+  return inst
+}
+
+async function applyFills(node, fills) {
+  if (fills.length === 1 && fills[0].style) { const s = must(L.paints, fills[0].style, "paint style"); if (node.setFillStyleIdAsync) await node.setFillStyleIdAsync(s.id); else node.fillStyleId = s.id }
+  else node.fills = fills.flatMap(paintsOf)
+}
+async function applyEffects(node, effects) {
+  if (effects.length === 1 && effects[0].style) { const s = must(L.effects, effects[0].style, "effect style"); if (node.setEffectStyleIdAsync) await node.setEffectStyleIdAsync(s.id); else node.effectStyleId = s.id }
+  else node.effects = effectsOf(effects)
+}
+
+/** Build `spec` into `target` (an existing component, emptied) or as a new node under `parent`. */
+async function build(spec, target, parent) {
+  let node = target
+  if (!node) {
+    node = spec.type === "text" ? figma.createText()
+      : spec.type === "rect" ? figma.createRectangle()
+      : spec.type === "ellipse" ? figma.createEllipse()
+      : spec.type === "svg" ? figma.createNodeFromSvg(spec.svg)
+      : spec.type === "instance" ? instanceOf(spec)
+      : figma.createFrame()
+    if (parent) parent.appendChild(node)
+  }
+  // An existing component keeps its variant name; everything else takes the spec's.
+  if (spec.name && !target) node.name = spec.name
+  const framey = node.type === "FRAME" || node.type === "COMPONENT"
+  if (framey) {
+    node.clipsContent = !!spec.clip
+    if (spec.layout) {
+      const l = spec.layout
+      const row = l.dir !== "col"
+      node.layoutMode = row ? "HORIZONTAL" : "VERTICAL"
+      if (l.wrap) node.layoutWrap = "WRAP"
+      // Size the fixed axes first (resize() also resets the sizing modes),
+      // then say which axes hug, then the padding and gap the hug includes.
+      if (spec.w != null || spec.h != null) node.resize(spec.w ?? node.width, spec.h ?? node.height)
+      node.primaryAxisSizingMode = (row ? spec.w : spec.h) != null ? "FIXED" : "AUTO"
+      node.counterAxisSizingMode = (row ? spec.h : spec.w) != null ? "FIXED" : "AUTO"
+      node.itemSpacing = l.gap ?? 0
+      const pad = Array.isArray(l.pad) ? l.pad : [l.pad ?? 0]
+      const [t, r = t, b = t, le = r] = pad
+      node.paddingTop = t; node.paddingRight = r; node.paddingBottom = b; node.paddingLeft = le
+      node.primaryAxisAlignItems = ALIGN[l.justify ?? "start"]
+      node.counterAxisAlignItems = ALIGN[l.align ?? "start"] === "SPACE_BETWEEN" ? "CENTER" : ALIGN[l.align ?? "start"]
+    } else {
+      node.layoutMode = "NONE"
+      if (spec.w != null || spec.h != null) node.resize(spec.w ?? node.width, spec.h ?? node.height)
+    }
+  } else if (spec.type !== "text" && (spec.w != null || spec.h != null)) node.resize(spec.w ?? node.width, spec.h ?? node.height)
+
+  if (spec.fills) await applyFills(node, spec.fills)
+  if (spec.strokes) { node.strokes = paintsOf(spec.strokes.color); node.strokeWeight = spec.strokes.weight ?? 1; node.strokeAlign = spec.strokes.align ?? "INSIDE" }
+  if (spec.radius != null) {
+    if (Array.isArray(spec.radius)) { const [tl, tr, br, bl] = spec.radius; node.topLeftRadius = tl; node.topRightRadius = tr; node.bottomRightRadius = br; node.bottomLeftRadius = bl }
+    else node.cornerRadius = spec.radius
+  }
+  if (spec.effects) await applyEffects(node, spec.effects)
+  if (spec.opacity != null) node.opacity = spec.opacity
+
+  if (spec.type === "text") {
+    const t = spec.text
+    if (t.style) await setTextStyle(node, must(L.texts, t.style, "text style").id)
+    node.characters = t.chars
+    if (t.fill) node.fills = paintsOf(t.fill)
+    if (t.decoration) node.textDecoration = t.decoration
+    node.textAutoResize = t.autoHeight ? "HEIGHT" : "WIDTH_AND_HEIGHT"
+    if (t.align) node.textAlignHorizontal = t.align
+  }
+  if (spec.type === "svg") {
+    if (spec.w != null) node.resize(spec.w, spec.h)
+    node.fills = []; node.clipsContent = false
+    if (spec.svgFill || spec.svgOverlay) for (const v of node.findAll((n) => "fills" in n && n.fills.length)) {
+      const base = spec.svgFill ? paintsOf(spec.svgFill) : clone(v.fills)
+      v.fills = spec.svgOverlay ? [...base, ...paintsOf(spec.svgOverlay)] : base
+    }
+  }
+  if (spec.type === "instance") {
+    for (const [k, v] of Object.entries(spec.text ?? {})) for (const t of node.findAll((n) => n.type === "TEXT" && n.name === k)) t.characters = v
+    if (spec.w != null) node.resize(spec.w, spec.h ?? node.height)
+  }
+  if (spec.minW != null) node.minWidth = spec.minW
+
+  // In the parent: absolute children float; the rest take their sizing.
+  if (parent && parent.type !== "PAGE") {
+    if (spec.absolute && parent.layoutMode && parent.layoutMode !== "NONE") node.layoutPositioning = "ABSOLUTE"
+    if (spec.x != null) node.x = spec.x
+    if (spec.y != null) node.y = spec.y
+    // Sizing only means something inside an auto-layout parent (or on one).
+    if (spec.sizing && ((parent.layoutMode && parent.layoutMode !== "NONE") || (node.layoutMode && node.layoutMode !== "NONE"))) {
+      if (spec.sizing.w) node.layoutSizingHorizontal = SIZING[spec.sizing.w]
+      if (spec.sizing.h) node.layoutSizingVertical = SIZING[spec.sizing.h]
+    }
+  }
+  const floating = []
+  for (const c of spec.children ?? []) { const n = await build(c, null, node); if (c.right != null) floating.push([n, c]) }
+  for (const [n, c] of floating) { n.x = node.width - n.width - c.right; n.constraints = { horizontal: "MAX", vertical: "MIN" } }
+  for (const [field, name] of Object.entries(spec.bind ?? {})) {
+    try { node.setBoundVariable(field, must(L.vars, name, "variable")) } catch (e) { WARN.push(`${node.name}.${field} ← ${name}: ${e.message}`) }
+  }
+  return node
+}
+let WARN = []
+
+const variantName = (props) => Object.entries(props).map(([k, v]) => `${k}=${v}`).join(", ")
+
+async function upsertSet(spec, page, y) {
+  const existing = page.findChild((n) => n.type === "COMPONENT_SET" && n.name === spec.name)
+  // Variants the spec no longer has (or a failed run misnamed) go first, or the set errors.
+  if (existing) { const names = new Set(spec.variants.map((v) => variantName(v.props))); for (const c of [...existing.children]) if (!names.has(c.name)) c.remove() }
+  const fresh = []
+  for (const v of spec.variants) {
+    const name = variantName(v.props)
+    let comp = existing && existing.children.find((c) => c.name === name)
+    if (comp) {
+      for (const ch of [...comp.children]) ch.remove()
+      await build(v.node, comp, null)
+      comp.name = name
+    } else {
+      const f = await build(v.node, null, page)
+      comp = figma.createComponentFromNode(f)
+      comp.name = name
+      if (existing) existing.appendChild(comp)
+      else fresh.push(comp)
+    }
+  }
+  const set = existing ?? figma.combineAsVariants(fresh, page)
+  set.name = spec.name
+  set.description = spec.description ?? ""
+  arrange(set, spec.variants.map((v) => variantName(v.props)))
+  set.x = 0; set.y = y
+  COMPONENTS[spec.name] = set
+  return set
+}
+/** The variants in spec order, six to a row, 24 apart, inside the set. */
+function arrange(set, order) {
+  const kids = order.map((n) => set.children.find((c) => c.name === n)).filter(Boolean)
+  let x = 16, y = 16, col = 0, rowH = 0, maxX = 0
+  for (const c of kids) {
+    if (col === 6) { col = 0; x = 16; y += rowH + 24; rowH = 0 }
+    c.x = x; c.y = y
+    x += c.width + 24; rowH = Math.max(rowH, c.height); col++
+    maxX = Math.max(maxX, x - 24)
+  }
+  // Moving children does not grow the set; fit it to them, 16px round.
+  try { set.resize(maxX + 16, y + rowH + 16) } catch (e) { WARN.push(`${set.name}: ${e.message}`) }
+}
+
+async function upsertComponent(spec, page, x, y) {
+  let comp = page.findChild((n) => n.type === "COMPONENT" && n.name === spec.name)
+  if (comp) { for (const ch of [...comp.children]) ch.remove(); await build(spec.node, comp, null) }
+  else { const f = await build(spec.node, null, page); comp = figma.createComponentFromNode(f); comp.name = spec.name }
+  comp.description = spec.description ?? ""
+  comp.x = x; comp.y = y
+  COMPONENTS[spec.name] = comp
+  return comp
+}
+
+async function controls(P) {
+  await loadFonts(P.fonts)
+  await lookups()
+  COMPONENTS = {}; WARN = []
+  const pg = page(P.page)
+  // The page holds components and sets, nothing else: loose frames and
+  // variant-named strays are what a failed run leaves behind.
+  for (const n of [...pg.children]) if (n.type !== "COMPONENT_SET" && (n.type !== "COMPONENT" || n.name.includes("="))) n.remove()
+  for (const n of pg.children) COMPONENTS[n.name] = n
+  const out = { sets: {}, components: {} }
+  let y = 0
+  for (const s of P.sets) { const set = await upsertSet(s, pg, y); out.sets[s.name] = set.children.length; y += set.height + 64 }
+  let cy = 0
+  for (const c of P.components) { const comp = await upsertComponent(c, pg, 1400, cy); out.components[c.name] = `${Math.round(comp.width)}×${Math.round(comp.height)}`; cy += comp.height + 64 }
+  // Two witnesses for the build: a hugging tab's padding, and the tick's absolute place.
+  const tab = COMPONENTS.Tab?.children.find((c) => c.name === "State=Active")
+  const tick = COMPONENTS["Menu Item"]?.children.find((c) => c.name === "State=Default, Tick=True")?.findOne((n) => n.name === "Tick")
+  out.witness = { tab: tab && { width: tab.width, paddingLeft: tab.paddingLeft, sizing: tab.primaryAxisSizingMode }, tick: tick && { x: tick.x, y: tick.y, positioning: tick.layoutPositioning } }
+  return { file: figma.root.name, ...out, warnings: WARN }
+}
+
 /** `figma:tone`: the Tone collection's values and the Cover's tone line, nothing else. */
 async function retone(P) {
   await loadFonts(P.fonts)
@@ -292,6 +513,7 @@ async function retone(P) {
 
 async function main(P) {
   if (P.task === "tone") return retone(P)
+  if (P.task === "controls") return controls(P)
   await loadFonts(P.fonts)
   const { vars: V, created: newVars } = await upsertCollections(P.collections)
   const colours = page("Colours")
