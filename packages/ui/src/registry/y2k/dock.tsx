@@ -56,7 +56,9 @@ const FADE = 48
 function Dock({ items, className }: { items: DockItem[]; className?: string }) {
   const listRef = React.useRef<HTMLUListElement>(null)
   const [sizes, setSizes] = React.useState<number[]>(() => items.map(() => BASE))
-  const canMagnify = useMediaQuery("(hover: hover) and (pointer: fine)")
+  // No magnification for a visitor who asked for reduced motion (DESIGN.md
+  // › Do's), just as there is no bounce and no genie.
+  const canMagnify = useMediaQuery("(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)")
   const phone = useMediaQuery("(max-width: 767px)")
 
   // Which ends have icons past them: set on scroll, and when the shelf or
@@ -215,12 +217,36 @@ const frame = () => new Promise<number>((resolve) => requestAnimationFrame(resol
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
 const smooth = (v: number) => v * v * (3 - 2 * v)
 
+/** The genie playing on each window: a new one on the same window stops it. */
+const playing = new WeakMap<Element, () => void>()
+
+/**
+ * The matrix3d that lays a w × h box, its corner at the origin, on the
+ * trapezoid whose top edge runs from lt to rt at height top and whose foot
+ * runs from lb to rb at height foot. A skew can't do this — it moves both
+ * sides of a strip the same way — but a projective map can: every row stays
+ * straight and spans exactly from side to side, so one strip's foot is the
+ * next one's top and the window's sides run on unbroken.
+ */
+function trapezoid(w: number, h: number, top: number, lt: number, rt: number, foot: number, lb: number, rb: number) {
+  const k = Math.max(1e-3, rt - lt) / Math.max(1e-3, rb - lb) - 1
+  return `matrix3d(${(rt - lt) / w},0,0,0,${(lb * (1 + k) - lt) / h},${(foot * (1 + k) - top) / h},0,${k / h},0,0,1,0,${lt},${top},0,1)`
+}
+
+/** A child's place under an ancestor, as child indices: found again in a copy. */
+function pathTo(el: Element, root: Element) {
+  const path: number[] = []
+  for (let e = el; e !== root && e.parentElement; e = e.parentElement) path.unshift(Array.prototype.indexOf.call(e.parentElement.children, e))
+  return path
+}
+
 /**
  * Mac OS X's genie: a window pours into its Dock tile as it is minimised, or
  * out of it (`reverse`) as it comes back. It plays over a copy of the window
- * cut into horizontal strips: first the lower edge bends toward the tile,
- * then the whole window slides down the funnel and into it. The page itself
- * is not touched.
+ * cut into horizontal strips, each laid on its piece of a funnel whose sides
+ * curve from the window down to the tile: first the window's foot stretches
+ * down into the tile, then the whole window slides down the funnel and into
+ * it. The page itself is not touched.
  *
  * Minimising: pass the window element (it is copied at once, before the
  * caller takes it away) and a selector for its new tile. Restoring: pass the
@@ -244,32 +270,103 @@ async function genie(windowTarget: GenieTarget, tileTarget: GenieTarget, { rever
   }
   const layer = document.createElement("div")
   layer.setAttribute("aria-hidden", "true")
+  layer.inert = true
   layer.style.cssText = "position:fixed;inset:0;z-index:2147483000;pointer-events:none;overflow:hidden"
+  // The funnel ends at the tile's mouth: whatever has poured past it is in.
+  const funnel = document.createElement("div")
+  funnel.style.cssText = "position:absolute;left:0;top:0;width:100%;height:100%;overflow:hidden"
+  layer.append(funnel)
+
+  let source: Element | null = null
+  let stopped = false
+  const stop = () => {
+    stopped = true
+    layer.remove()
+    hider?.remove()
+    if (source && playing.get(source) === stop) playing.delete(source)
+  }
 
   /** Lay a copy of the window over it, cut into strips, before anything
    *  moves. Each strip holds its own copy, clipped to its band. */
-  const lay = (source: Element) => {
-    const rect = source.getBoundingClientRect()
-    const n = Math.max(12, Math.min(40, Math.round(rect.height / 12)))
-    const bandH = rect.height / n
+  const lay = (el: Element) => {
+    playing.get(el)?.()
+    playing.set((source = el), stop)
+    // A window shown again replays its opening; the genie is its opening,
+    // so play that to the end, or it is measured (and copied) mid-zoom.
+    for (const a of el.getAnimations()) if (Number.isFinite(a.effect?.getComputedTiming().endTime)) a.finish()
+    const rect = el.getBoundingClientRect()
+    const n = Math.max(16, Math.min(40, Math.round(rect.height / 12)))
+    const strip = rect.height / n
+
+    // What a copy doesn't carry over: where the window is scrolled, and the
+    // picture in a canvas or a movie. A movie would load again in every
+    // strip, so the copies get its current frame, or its poster.
+    const scrollers = [...el.querySelectorAll("*")]
+      .filter((e) => (e.scrollHeight > e.clientHeight || e.scrollWidth > e.clientWidth) && /auto|scroll/.test(getComputedStyle(e).overflow))
+      .map((e) => ({ path: pathTo(e, el), top: e.scrollTop, left: e.scrollLeft, gutter: e instanceof HTMLElement && e.offsetWidth - e.clientWidth > e.clientLeft * 2 }))
+    const stills = [...el.querySelectorAll("canvas, video")]
+    const model = el.cloneNode(true) as HTMLElement
+    model.classList.add(COPY)
+    for (const e of [model, ...model.querySelectorAll("[id]")]) e.removeAttribute("id")
+    // A copy is a picture: its scrollers only need to show the right place.
+    // Clipped, not scrolling, each is part of its strip's one layer — a
+    // scrolling layer in every strip would cost a frame in three.
+    for (const s of scrollers) {
+      const e = s.path.reduce<Element | undefined>((at, i) => at?.children[i], model)
+      if (e instanceof HTMLElement) Object.assign(e.style, { overflow: "hidden", scrollbarGutter: s.gutter ? "stable" : "" })
+    }
+    // The window's pictures are loaded and decoded: a copy should paint them
+    // at once, not wait to be scrolled near (and lay out short until then).
+    for (const img of model.querySelectorAll("img")) Object.assign(img, { loading: "eager", decoding: "sync" })
+    model.querySelectorAll("canvas, video").forEach((e, i) => {
+      if (!(e instanceof HTMLVideoElement)) return
+      const movie = stills[i] as HTMLVideoElement
+      e.preload = "none"
+      e.autoplay = false
+      if (movie.readyState < 2 || (movie.paused && movie.currentTime === 0)) return
+      const still = Object.assign(document.createElement("canvas"), { width: movie.videoWidth, height: movie.videoHeight, className: e.className })
+      still.style.cssText = e.style.cssText
+      e.replaceWith(still)
+    })
+    Object.assign(model.style, {
+      position: "absolute", left: "0", right: "auto", bottom: "auto",
+      width: `${rect.width}px`, height: `${rect.height}px`, margin: "0",
+      transform: "none", translate: "none", scale: "none", rotate: "none",
+      animation: "none", transition: "none", visibility: "inherit",
+    })
+
     const bands = Array.from({ length: n }, (_, i) => {
+      const top = i * strip
+      // Two pixels deeper than its share, tucked under the next strip, so
+      // their antialiased edges never meet over the desktop. The 0.999 keeps
+      // Chrome blending each strip: drawn as opaque, a strip's top edge is
+      // mixed with white, and a pale line runs across every join.
+      const h = Math.min(rect.height - top, strip + 2)
       const band = document.createElement("div")
-      band.style.cssText = `position:absolute;left:${rect.left}px;top:${rect.top + i * bandH}px;width:${rect.width}px;height:${bandH + 1}px;overflow:hidden;transform-origin:0 0;will-change:transform`
-      if (reverse) band.style.visibility = "hidden"
-      const c = source.cloneNode(true) as HTMLElement
-      c.removeAttribute("id")
-      c.classList.add(COPY)
-      Object.assign(c.style, {
-        position: "absolute", left: "0", top: `${-i * bandH}px`, right: "auto", bottom: "auto",
-        width: `${rect.width}px`, height: `${rect.height}px`, margin: "0",
-        transform: "none", translate: "none", scale: "none", animation: "none", visibility: "visible",
-      })
-      band.append(c)
-      layer.append(band)
-      return band
+      band.style.cssText = `position:absolute;left:0;top:0;width:${rect.width}px;height:${h}px;overflow:hidden;opacity:0.999;transform-origin:0 0;will-change:transform;transform:translate(${rect.left}px,${rect.top + top}px)`
+      const copy = model.cloneNode(true) as HTMLElement
+      copy.style.top = `${-top}px`
+      band.append(copy)
+      funnel.append(band)
+      return { band, copy, top, h }
     })
     document.body.append(layer)
-    return { rect, bands, bandH }
+    // In the page now, so the copies can scroll and draw.
+    for (const { copy } of bands) {
+      for (const s of scrollers) {
+        if (!s.top && !s.left) continue
+        s.path.reduce<Element | undefined>((at, i) => at?.children[i], copy)?.scrollTo({ left: s.left, top: s.top, behavior: "instant" })
+      }
+      copy.querySelectorAll("canvas, video").forEach((e, i) => {
+        if (!(e instanceof HTMLCanvasElement)) return
+        try {
+          e.getContext("2d")?.drawImage(stills[i] as CanvasImageSource, 0, 0, e.width, e.height)
+        } catch {
+          // A canvas that can't be read (another origin's picture) stays blank.
+        }
+      })
+    }
+    return { rect, bands }
   }
 
   try {
@@ -278,46 +375,46 @@ async function genie(windowTarget: GenieTarget, tileTarget: GenieTarget, { rever
     let tile = typeof tileTarget === "string" ? null : rectOf(tileTarget)
     await frame()
     await frame()
+    if (stopped) return
     if (!laid && typeof windowTarget === "string") {
-      const el = document.querySelector(windowTarget)
+      const el = document.querySelector(`${windowTarget}:not(.${COPY})`)
       if (el) laid = lay(el)
     }
     tile ??= rectOf(tileTarget)
     if (!laid || !tile || laid.rect.width === 0) return
 
-    const { rect, bands, bandH } = laid
-    const { left: x0, top: y0, width: W } = rect
+    const { rect, bands } = laid
+    const { left: x0, top: y0, width: W, height: H } = rect
     // The mouth of the funnel: the middle of the tile, a little in from its sides.
     const mouthL = tile.left + tile.width * 0.15
     const mouthR = tile.right - tile.width * 0.15
     const mouthY = tile.top + tile.height * 0.3
     const drop = Math.max(1, mouthY - y0)
+    funnel.style.height = `${mouthY}px`
 
     const draw = (p: number) => {
-      const bend = smooth(clamp01(p / 0.4)) // the lower edge reaching for the tile
-      const slide = clamp01((p - 0.22) / 0.78)
+      const bend = smooth(clamp01(p / 0.45)) // the foot reaching down into the tile
+      const slide = clamp01((p - 0.25) / 0.75)
       const fall = slide * slide * drop // speeding up into the Dock
-      // The funnel's sides at a height on the screen.
+      // Where a row of the window is: drawn out down to the mouth as the foot
+      // reaches for it — the title bar keeps its height, the tail stretches
+      // (a window taller than the drop is squeezed evenly) — then sliding
+      // down after it.
+      const reach = (drop - H) * bend
+      const at = (y: number) => y0 + fall + y + reach * (reach > 0 ? (y / H) ** 2 : y / H)
+      // The funnel's sides at a height on the screen: straight down from the
+      // window's sides at its top, curving in to the mouth's.
       const sides = (y: number) => {
         const k = smooth(clamp01((y - y0) / drop)) * bend
         return [x0 + (mouthL - x0) * k, x0 + W + (mouthR - x0 - W) * k] as const
       }
-      bands.forEach((band, i) => {
-        const top = y0 + i * bandH + fall
-        if (top >= mouthY && p > 0.02) {
-          band.style.visibility = "hidden"
-          return
-        }
-        band.style.visibility = "visible"
-        // Each strip is slanted to meet the funnel at its top and its foot,
-        // so its edges run on into the next strip's instead of stepping.
-        const [lt, rt] = sides(top)
-        const [lb, rb] = sides(top + bandH)
-        const width = (rt - lt + (rb - lb)) / 2
-        const midTop = (lt + rt) / 2
-        const slant = ((lb + rb) / 2 - midTop) / bandH
-        band.style.transform = `matrix(${Math.max(0.001, width / W)}, 0, ${slant}, 1, ${midTop - width / 2 - x0}, ${fall})`
-      })
+      for (const { band, top, h } of bands) {
+        const yt = at(top)
+        const yb = at(top + h)
+        const [lt, rt] = sides(yt)
+        const [lb, rb] = sides(yb)
+        band.style.transform = trapezoid(W, h, yt, lt, rt, yb, lb, rb)
+      }
     }
     const start = performance.now()
     for (;;) {
@@ -325,10 +422,10 @@ async function genie(windowTarget: GenieTarget, tileTarget: GenieTarget, { rever
       draw(reverse ? 1 - p : p)
       if (p >= 1) break
       await frame()
+      if (stopped) return
     }
   } finally {
-    layer.remove()
-    hider?.remove()
+    stop()
   }
 }
 

@@ -15,13 +15,37 @@ Run it in a React project that uses Tailwind (a new create-next-app is fine). It
 
 Files you already have are kept unless you pass `--force`.
 
+## A site as a desktop
+
+```bash
+npx @pat1na/cli init --tone aqua --desktop
+```
+
+`--desktop` turns a site that is read (a portfolio, a blog, a product's pages) into a Mac OS X desktop: the Finder, TextEdit documents, Preview, the About box, the Dock. On top of the above it:
+
+- installs three more registry items: `content` (the Content model, `lib/content.ts`), `desktop` (`components/desktop/`) and `ipod`;
+- writes an example `content/site.ts` if you have none: one person, a case study with an outline, a Work folder with two projects and an alias. Replace every word of it;
+- replaces `app/page.tsx` with the desktop only if it is still create-next-app's starter. A page of your own is kept, and init prints the lines that render the desktop.
+
+Then ask your agent to `/y2k-ify` your site: it sorts each page and each block into `content/*.ts` by `DESIGN.md` › Content, and the desktop draws the rest. Neither `content/site.ts` nor your page is ever overwritten, `--force` or not.
+
+Installed without `--desktop`? Add the three items with shadcn:
+
+```bash
+npx shadcn@latest add https://livisliving.github.io/Patina/r/content.json https://livisliving.github.io/Patina/r/desktop.json https://livisliving.github.io/Patina/r/ipod.json
+```
+
 ## Options
 
 ```
 --tone <name>      pink, aqua, lime, tangerine or grape (asked when not given)
 --registry <url>   Component registry base URL (default: https://livisliving.github.io/Patina/r)
 --no-components    Write DESIGN.md and the skills, skip the shadcn components
---force            Overwrite files that already exist
+--desktop          Also install the desktop: the Content model, the OS layer,
+                   an example content/site.ts, and the page (over
+                   create-next-app's starter only)
+--force            Overwrite the pack's files that already exist (never
+                   content/site.ts or a page of yours)
 --dry-run          Print what would happen, write nothing
 --yes              Don't ask anything (then --tone is required)
 ```

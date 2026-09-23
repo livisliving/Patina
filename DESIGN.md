@@ -38,6 +38,11 @@ colors:
   on-error: "#FFFFFF"
   traffic-yellow: "#F4B01E"
   traffic-green: "#46BE2D"
+  # ── A Stickies note (10.0), measured off 512 Pixels' screenshot; content,
+  #    never toned
+  note-paper: "#FFFFA1"
+  note-strip: "#FFE53E"
+  note-rim: "#FFC700"
   # ── Other tones (swap into primary / primary-bright / primary-container)
   tone-aqua: "#4D83D2"
   tone-aqua-bright: "#749EDC"
@@ -251,6 +256,15 @@ components:
     textColor: "{colors.on-neutral}"
     typography: "{typography.body-md}"
     padding: 20px
+    width: 900px            # with an outline; without one, 640px
+    height: 520px
+  window-outline:
+    width: 192px
+  window-finder:
+    width: 640px            # at least 512px on a narrow screen
+    height: 400px
+  window-about-person:
+    width: 448px
   # ── System chrome ────────────────────────────────────────────────
   menubar:
     backgroundColor: "{colors.neutral-tint}"
@@ -395,6 +409,19 @@ components:
   link:
     textColor: "{colors.secondary}"
     typography: "{typography.body-md}"
+  # ── A Stickies note (a quote in a document): content, never toned ──
+  stickies-note:
+    backgroundColor: "{colors.note-paper}"
+    textColor: "{colors.on-neutral}"
+    typography: "{typography.body-md}"
+    rounded: "{rounded.none}"
+    padding: 8px
+  stickies-note-strip:
+    backgroundColor: "{colors.note-strip}"
+    height: 12px
+  stickies-note-rim:
+    backgroundColor: "{colors.note-rim}"
+    width: 1px
   # ── Tone mapping: the same button in each tone ──────────────────
   button-default-aqua:
     backgroundColor: "{colors.tone-aqua-gel}"
@@ -581,6 +608,10 @@ titles say `About Patina`, `Read Me`. Never uppercase, never Title Case
 Sentences. Body text is black; secondary text is the neutral-variant gray at
 11px, never a "muted foreground" mid-gray at body size.
 
+Descenders are never clipped. A box cut to its text gives each line at least
+1.35 × the font size; a line height of 1 is for a label centred in a taller
+control, never for a box the g and the y fall out of.
+
 ## Layout
 
 The layout model is a **desktop, not a page.** The viewport is the wallpaper;
@@ -595,7 +626,9 @@ is no hero section, no max-width container, no footer.
   Window, Help. On a phone only ★, the app and Help stay. It is the
   `MenuBar` component: menus are data, with the original's shortcuts shown
   and bound.
-- **Windows** are 300–520px wide and sized to content. Title bar 26px;
+- **Windows:** a dialog is 300–520px wide and sized to its controls; a
+  document, the Finder and the About box take the sizes under Content.
+  Title bar 26px;
   toolbar (when present) is a strip falling from #FBFBFB to #DEDEDE over a
   #9A9A9A foot, its items 10px apart (a 32px icon over an 11px label), shown
   and hidden by the white oval at the title bar's right end; body padding
@@ -631,6 +664,124 @@ is no hero section, no max-width container, no footer.
 - **Desktop icons** sit top-right, 48px with a 12px white label.
 - **Responsive:** below 768px, windows become full-width and stack in order;
   the menu bar and Dock stay pinned; dragging is off.
+
+## Content
+
+A site becomes a **disk, not a page.** Its map is the disk's folders; every
+piece of content is a file, and each file opens in the application that
+opened it in 2001. Decide the window before the components: the window
+follows from what the content is, the components from what each block is.
+A group box groups controls in a dialog; it never divides an article.
+
+**The model.** Content is written once, into the Content model in
+`lib/content.ts` (the `content` item): a `Site` — its owner, the `Person`
+the About box shows, its entries (document, collection, picture, movie,
+alias, about) and at most three `featured` — and, inside each document, its
+blocks. A project keeps its own in `content/*.ts`; `content/site.ts` exports
+`SITE`. The model is Patina's, not this pack's: another pack renders the
+same file its own way. Here the `desktop` item renders it — the Finder,
+TextEdit, Preview, QuickTime Player and the About box below. Sort and
+transcribe into the model; never hand-build a window, a Finder or a Dock
+icon for content.
+
+**Site → desktop.** The site's name is the ★ menu's first row (About
+‹name›) and the root volume (‹name› HD). Primary navigation becomes the Go
+menu, the desktop icons (the volume, then the featured entries, top-right)
+and the Dock (Finder · featured documents · top-level collections ·
+resident apps | minimised windows | Bin). The home page is the desktop's
+state at load, never a window of its own: the About box in front at the
+left, the Finder open at the volume beside it, a resident app (the iPod)
+under the Finder — laid out from the viewport, clear of the icon column
+and the Dock. Footer links and the copyright live in the About box; the
+live site is one row of the ★ menu. There is no footer, no scroll-to-top,
+no scroll-in animation and no browser window showing the whole site. A
+page's old URL opens its window on the desktop: it redirects to
+`/?open=‹its Finder path›` (`/?open=Archive/Tidewater.rtf`), and the
+address follows the front window, so a visitor can copy a link to it.
+
+**Page → window.** Ask in this order; the first yes decides.
+
+| The content is… | Entry | Window |
+|:--|:--|:--|
+| a set of items that each open (portfolio, archive, blog index) | collection | the Finder (metal), `window-finder` 640 × 400: icon, list and column views; list columns Name · Date Created · Kind · Size; a Kind source list when its items have two categories or more; status `4 of 14 items` |
+| one text read start to finish (case study, post, doc page) | document | TextEdit: pinstripe chrome, a white page (`window-document`, 900 × 520; 640 wide without an outline), an outline (TreeView, `window-outline` 192) when it has three sections or more, status `7 sections, 6 pictures` |
+| a person, or the product itself | about | the About box, which only closes: a person's is `window-about-person` 448, its panes switched with a pop-up button as Show Info's were, each in a sunken well; a product's is 300 |
+| a picture, anywhere | picture | Preview: titled with the file name, status `682 × 1023, 155 KB`; several may be open |
+| a movie | movie | QuickTime Player (metal): the poster frame, then the film |
+| something to fill in and submit | — | a dialog (Layout › Inside a window) |
+
+**Block → component.** Inside a document each block of the model has one
+component, and so one source of colour: the page is white, the controls
+are gel, the pictures are the owner's.
+
+- Section heading (`h2`) → 13px bold with an anchor, listed in the outline,
+  where the section in view is selected. Subheading (`h3`) → 13px bold,
+  close to its paragraph.
+- Paragraph, list → 13px black; emphasis bold; links OS blue, underlined,
+  no arrows; a link to another entry of the site opens its window.
+- Facts (timeline, team, role, client) → right-aligned 11px labels beside
+  13px values, as Show Info lists properties.
+- Problems → the 32px Warning icon, a bold title, the line.
+- What was done or delivered (`checklist`) → checked check boxes,
+  read-only.
+- Steps → a Setup Assistant pane (*Aqua Human Interface Guidelines*, 2002,
+  ch. 14): one step to a pane, an Introduction first when the source has
+  one, Go Back and Continue at
+  the foot, and a progress bar to the left of Go Back — the one honest
+  progress bar in a document.
+- Quote → a Stickies note in Stickies' own yellow (`note-paper`,
+  `note-strip`, `note-rim`), never the tone.
+- Questions and answers (`faq`) → disclosure triangles (HIG ch. 7): a
+  question to a row, its answer folded beneath it.
+- Before / after, variants (`compare`) → folder tabs, the one the site
+  shows first in front.
+- Results under categories (`metrics`) → a Table, never a Progress bar:
+  "56% fewer" is a change, not a fraction. A number the site sets apart
+  from its label stays bold, before it, in the one cell.
+- Any other table (`table`) → the Table (Components › Lists).
+- A true fraction (`progress`: 3 of 5, 72% complete) → Progress.
+- A picture (`figure`) → set bare into the page at the page's width,
+  scaling with the window, no border and no frame, with an 11px caption;
+  it opens Preview. Several pictures (`gallery`, a
+  carousel, a stack) → a row of 160px-tall thumbnails, bare like a single
+  picture, wrapping when the page is narrow; a long screenshot shows its
+  top; each opens Preview. Never a stack that hides all but the first.
+- An embedded board (`embed`: FigJam, Figma, YouTube) → inline, sunk in a
+  well, with `Open in ‹app›`; without an embed address, its picture. A
+  movie (`video`) → its poster, opening QuickTime Player.
+- A picture still to come (`placeholder`) → a pinstripe plate of its
+  proportions, `Picture to come`.
+- Buttons that go somewhere (`links`) → a row of white push buttons; one
+  whose address is not known is disabled, `Link not supplied`.
+- Code → Monaco at 11px.
+- Tags → a fact, or the Finder's Kind — never pills.
+
+A block this list does not name stays a paragraph and is reported as
+unmapped; never invent a component for it.
+
+**Names.** A file is named after its entry, with a suffix that says it
+opens: `.rtf` for a document with pictures, `.txt` for text only; the owner
+may name it otherwise (`fileName`). A picture or a movie keeps its file's
+name, short, in sentence case, with its extension
+(`Babel revamp timeline.jpg`). An item that is another entry — an
+archive's case study — is an alias of it: the same name, the alias arrow,
+and it opens the original rather than a copy. Kinds are three to five per
+collection; finer labels stay searchable (`keywords`). The one line a
+card or a folder carries is the entry's `comment`: the Finder shows it as
+Show Info's Comments, and a document under its title.
+
+**Content is transcribed, never invented.** Words, numbers, pictures and
+links come from the owner's source first and the live site second. What is
+missing is a placeholder or a greyed control, and it is listed; a link
+whose address is not known is `href: ""`, never a guess. A picture is the
+owner's original file — the same picture, never a crop or a re-shot — and
+one wider than 1400px (2400px for a board people must read) is scaled down
+to that width, never up, and saved as JPEG at quality 80; a narrower one is
+used as it is. On a Mac: `sips --resampleWidth 1400 -s format jpeg -s
+formatOptions 80 in.jpg --out out.jpg` (`sips -Z` would cap the longer side
+and shrink a tall screenshot); elsewhere ImageMagick's
+`magick in.jpg -resize '1400x>' -quality 80 out.jpg`. Its `w`, `h` and
+`bytes` are then the new file's.
 
 ## Elevation & Depth
 

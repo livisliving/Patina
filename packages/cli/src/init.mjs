@@ -9,6 +9,9 @@
  *   4. a pointer in CLAUDE.md, so the agent reads DESIGN.md before it builds,
  *      and `data-tone` on the project's <html>,
  *   5. the font note — Lucida Grande is not ours to ship.
+ * With --desktop, step 2 also installs the Content model and the desktop that
+ * renders it (the `content`, `desktop` and `ipod` items), and then an example
+ * content/site.ts and — only over create-next-app's own — app/page.tsx.
  *
  * Nothing is overwritten without --force — a project's own button.tsx
  * included, so a project that already has shadcn's components stops and asks
@@ -48,6 +51,14 @@ const COMPONENTS = {
 }
 const ITEMS = ["theme", ...Object.keys(COMPONENTS)]
 
+/** `--desktop`: the Content model and the OS layer that renders it, and the
+ *  file each item writes — [components.json alias, path under it]. */
+const DESKTOP = {
+  content: ["lib", "content.ts"],
+  desktop: ["components", "desktop/desktop.tsx"],
+  ipod: ["components", "desktop/ipod/ipod.tsx"],
+}
+
 /** The five tones, as the demo's Tone Preferences describes them. */
 const TONES = [
   ["pink", "Y2K pink", "2001–06, McBling: Juicy Couture velour, the pink Razr, rhinestones"],
@@ -67,7 +78,7 @@ function toTone(input) {
 
 /** The note left in CLAUDE.md (and an AGENTS.md, when there is one), so the
  *  coding agent knows the pack and the tone without being told each time. */
-const agentNote = (tone) => `<!-- BEGIN:patina -->
+const agentNote = (tone, desktop) => `<!-- BEGIN:patina -->
 # Patina — the Y2K taste pack
 
 This project's UI follows \`DESIGN.md\`: Mac OS X 10.0 Aqua in a millennium
@@ -76,7 +87,10 @@ unless the user asks for another. Before building or restyling any UI, read
 \`DESIGN.md\` and use the pack's components (Button, WindowFrame, WindowGroup,
 Table, TextField and the rest, installed by shadcn). To restyle an existing
 page, use the \`/y2k-ify\` skill. Finish every UI change with \`/check-y2k\`
-(\`node scripts/check-y2k.mjs <paths>\`).
+(\`node scripts/check-y2k.mjs <paths>\`).${desktop ? `
+The site's content lives in \`content/*.ts\`, in the Content model
+(\`@/lib/content\`); the \`desktop\` item (\`components/desktop/\`) renders it.
+Change the words there, not in the windows (DESIGN.md › Content).` : ""}
 <!-- END:patina -->`
 const NOTE_BLOCK = /<!-- BEGIN:patina -->[\s\S]*?<!-- END:patina -->/
 
@@ -175,18 +189,96 @@ function childEnv() {
   return env
 }
 
-/** Where shadcn puts the components: components.json's `ui` alias, resolved
- *  against the root and src/ (the two layouts create-next-app makes). */
-function uiDir(cwd) {
-  let alias = "@/components/ui"
+/** Where shadcn puts an alias's files (`ui`, `lib`, `components`):
+ *  components.json's alias, resolved against the root and src/ (the two
+ *  layouts create-next-app makes). */
+function aliasDir(cwd, key = "ui") {
+  const fallback = { ui: "@/components/ui", lib: "@/lib", components: "@/components" }[key]
+  let alias = fallback
   try {
-    alias = JSON.parse(fs.readFileSync(path.join(cwd, "components.json"), "utf8"))?.aliases?.ui ?? alias
+    alias = JSON.parse(fs.readFileSync(path.join(cwd, "components.json"), "utf8"))?.aliases?.[key] ?? alias
   } catch {
     /* no components.json yet: shadcn init will write the default */
   }
   const rel = alias.replace(/^@\//, "")
   const candidates = [path.join(cwd, rel), path.join(cwd, "src", rel)]
   return candidates.find((d) => fs.existsSync(d)) ?? (fs.existsSync(path.join(cwd, "src")) ? candidates[1] : candidates[0])
+}
+const uiDir = (cwd) => aliasDir(cwd, "ui")
+
+/** The `--desktop` items' files that are not there: item names. A file may
+ *  land under the alias or at the root / src/ path shadcn chose for a target,
+ *  so any of them counts. */
+function missingDesktop(cwd) {
+  return Object.entries(DESKTOP)
+    .filter(([, [key, file]]) => ![aliasDir(cwd, key), path.join(cwd, key), path.join(cwd, "src", key)].some((d) => fs.existsSync(path.join(d, file))))
+    .map(([item]) => item)
+}
+
+/** The folder `@/` points at (tsconfig's `@/*`: the root or src/), where
+ *  content/ goes; and the App Router folder, where page.tsx is. */
+function projectDirs(cwd) {
+  let base = null
+  try {
+    const ts = fs.readFileSync(path.join(cwd, "tsconfig.json"), "utf8")
+    const target = JSON.parse(ts)?.compilerOptions?.paths?.["@/*"]?.[0]
+    if (target) base = path.join(cwd, target.replace(/\*$/, ""))
+  } catch {
+    /* a tsconfig with comments, or none: guess from the folders below */
+  }
+  const src = fs.existsSync(path.join(cwd, "src", "app"))
+  base ??= src ? path.join(cwd, "src") : cwd
+  const app = [path.join(cwd, "app"), path.join(cwd, "src", "app")].find((d) => fs.existsSync(d)) ?? null
+  return { base, app }
+}
+
+/** create-next-app's own page, untouched: its only import is next/image and
+ *  it still carries the template's links. Anything else is the user's. */
+function isStarterPage(src) {
+  const imports = src.match(/^import\b.*$/gm) ?? []
+  return (
+    imports.every((l) => /from\s+["']next\/image["']/.test(l)) &&
+    /utm_source=create-next-app/.test(src) &&
+    /\/next\.svg/.test(src)
+  )
+}
+
+/**
+ * The desktop's two project files. content/site.ts is written only when it
+ * is not there; the page only over create-next-app's own starter — a page
+ * the user has written is theirs, so they get the lines to add instead.
+ * --force changes neither: both are the user's content, not the pack's.
+ */
+function scaffoldDesktop(cwd, { dryRun }) {
+  const templates = path.join(HERE, "templates")
+  const { base, app } = projectDirs(cwd)
+  const rel = (p) => path.relative(cwd, p).split(path.sep).join("/")
+
+  const site = path.join(base, "content", "site.ts")
+  if (fs.existsSync(site)) {
+    console.log(skip(`${rel(site)} already exists — kept`))
+  } else {
+    if (!dryRun) {
+      fs.mkdirSync(path.dirname(site), { recursive: true })
+      fs.copyFileSync(path.join(templates, "site.ts"), site)
+    }
+    console.log(tick(`${rel(site)} — an example SITE to replace with yours`))
+  }
+
+  const pageSrc = fs.readFileSync(path.join(templates, "page.tsx"), "utf8")
+  const page = app && ["tsx", "jsx", "js"].map((x) => path.join(app, `page.${x}`)).find((p) => fs.existsSync(p))
+  const current = page ? fs.readFileSync(page, "utf8") : null
+  if (current === pageSrc) {
+    console.log(skip(`${rel(page)} already renders the desktop`))
+  } else if (app && (!page || isStarterPage(current))) {
+    const target = page ?? path.join(app, "page.tsx")
+    if (!dryRun) fs.writeFileSync(target, pageSrc)
+    console.log(tick(`${rel(target)} — ${page ? "create-next-app's starter replaced by" : "written:"} the desktop`))
+  } else {
+    console.log(skip(`${page ? `${rel(page)} is your own page — kept` : "no app/ folder"}. To show the desktop, render it:`))
+    console.log(pageSrc.split("\n").filter((l) => l.startsWith("import")).map((l) => `      ${l}`).join("\n"))
+    console.log(`      <Desktop site={SITE} volume="Your Name HD" ipod={IPod} />`)
+  }
 }
 
 /** Ask at a terminal; `--yes` answers yes, and a script (no TTY) gets the
@@ -293,7 +385,7 @@ function fixThemeImport(cwd, themes, { dryRun }) {
   console.log(tick(`${cssRel} — ${what.join(", ")}`))
 }
 
-export async function init({ cwd, registry, components, force, dryRun, yes, tone: toneArg }) {
+export async function init({ cwd, registry, components, desktop, force, dryRun, yes, tone: toneArg }) {
   const src = assetRoot()
 
   if (!fs.existsSync(path.join(cwd, "package.json"))) {
@@ -331,13 +423,15 @@ export async function init({ cwd, registry, components, force, dryRun, yes, tone
   }
 
   /* 2 — the components, via shadcn. */
+  let desktopReady = false
   if (components) {
     const base = registry.replace(/\/+$/, "")
-    const urls = ITEMS.map((n) => `${base}/${n}.json`)
+    const items = [...ITEMS, ...(desktop ? Object.keys(DESKTOP) : [])]
+    const urls = items.map((n) => `${base}/${n}.json`)
     console.log(`\n  components from ${base}`)
-    const go = dryRun ? false : await confirm(`  run: npx shadcn@latest add ${ITEMS.length} items?`, { yes })
+    const go = dryRun ? false : await confirm(`  run: npx shadcn@latest add ${items.length} items?`, { yes })
     if (!go) {
-      console.log(skip("components skipped — run this when you are ready:"))
+      console.log(skip(`components ${dryRun ? "not installed (dry run)" : "skipped"} — run this when you are ready:`))
       console.log(`    npx shadcn@latest add ${urls.join(" ")}`)
     } else {
       // shadcn cannot add anything without a components.json, and it asks for
@@ -366,6 +460,11 @@ export async function init({ cwd, registry, components, force, dryRun, yes, tone
       const taken = [
         ...findThemes(cwd).map((t) => path.relative(cwd, t)),
         ...Object.values(COMPONENTS).filter((f) => fs.existsSync(path.join(dir, f))).map((f) => path.relative(cwd, path.join(dir, f))),
+        ...(desktop
+          ? Object.entries(DESKTOP)
+              .filter(([item]) => !missingDesktop(cwd).includes(item))
+              .map(([, [key, file]]) => path.relative(cwd, path.join(aliasDir(cwd, key), file)))
+          : []),
       ]
       let overwrite = force || bootstrapped
       if (taken.length && !overwrite) {
@@ -389,6 +488,7 @@ export async function init({ cwd, registry, components, force, dryRun, yes, tone
       const missing = Object.entries(COMPONENTS)
         .filter(([, f]) => !fs.existsSync(path.join(installedTo, f)))
         .map(([item]) => item)
+      if (desktop) missing.push(...missingDesktop(cwd))
       const themes = findThemes(cwd)
       if (!themes.length) missing.unshift("theme")
       if (res.status !== 0 || missing.length) {
@@ -398,14 +498,23 @@ export async function init({ cwd, registry, components, force, dryRun, yes, tone
         return 1
       }
       fixThemeImport(cwd, themes, { dryRun })
+      desktopReady = desktop
     }
   } else {
     console.log(skip("components skipped (--no-components)"))
   }
 
+  /* 2b — the desktop's content and page, once its items are in. A dry run
+     shows what a real one would write. */
+  if (desktop) {
+    console.log("")
+    if (desktopReady || (dryRun && components)) scaffoldDesktop(cwd, { dryRun })
+    else console.log(skip("content/site.ts and the page not written — they need the content, desktop and ipod items first"))
+  }
+
   /* 4 — the tone on <html>, and the pointer for the coding agent. */
   applyTone(cwd, tone, { dryRun })
-  const note = agentNote(tone)
+  const note = agentNote(tone, desktop || fs.existsSync(path.join(projectDirs(cwd).base, "content", "site.ts")))
   for (const name of ["CLAUDE.md", "AGENTS.md"]) {
     const target = path.join(cwd, name)
     const exists = fs.existsSync(target)
@@ -432,7 +541,9 @@ export async function init({ cwd, registry, components, force, dryRun, yes, tone
     node scripts/check-y2k.mjs .     # or: npx @pat1na/cli init --help
     Ask your coding agent to build a page — it reads DESIGN.md.
     Existing pages still build: the pack's Button accepts shadcn's variant
-    and size names. /y2k-ify is what turns them into Aqua.
+    and size names. /y2k-ify is what turns them into Aqua.${desktop ? `
+    The desktop draws content/site.ts: ask your agent to /y2k-ify your site
+    into it — it sorts every page and block by DESIGN.md › Content.` : ""}
 `)
 
   if (blocked && !force) console.log(`  ${blocked} file(s) kept as they were. Re-run with --force to replace them.\n`)

@@ -228,6 +228,60 @@
           "target": "components/ui/icon-preview.ts"
         }
       ]
+    },
+    {
+      "name": "content",
+      "type": "registry:lib",
+      "title": "Patina content",
+      "description": "The Patina layer: the types a site is written down in once — documents, collections, pictures, movies, aliases, the About entry, the person and the blocks a document is made of — independent of any taste pack.",
+      "files": [
+        { "path": "src/lib/content.ts", "type": "registry:lib", "target": "lib/content.ts" }
+      ]
+    },
+    {
+      "name": "desktop",
+      "type": "registry:block",
+      "title": "Desktop",
+      "description": "A whole site as a Mac OS X 10.1 desktop, from a Site (lib/content.ts): the Finder in three views with a Kind filter, marquee, search and Back; TextEdit documents with an outline; Preview and QuickTime windows; the About box with its panes; the menu bar, desktop icons and Dock — every window dragged, resized, zoomed and minimised through the genie.",
+      "dependencies": ["radix-ui"],
+      "registryDependencies": ["https://livisliving.github.io/Patina/r/theme.json", "https://livisliving.github.io/Patina/r/button.json", "https://livisliving.github.io/Patina/r/window.json", "https://livisliving.github.io/Patina/r/sidebar.json", "https://livisliving.github.io/Patina/r/table.json", "https://livisliving.github.io/Patina/r/tabs.json", "https://livisliving.github.io/Patina/r/popup.json", "https://livisliving.github.io/Patina/r/segmented.json", "https://livisliving.github.io/Patina/r/forms.json", "https://livisliving.github.io/Patina/r/progress.json", "https://livisliving.github.io/Patina/r/menu-bar.json", "https://livisliving.github.io/Patina/r/dock.json", "https://livisliving.github.io/Patina/r/wallpaper.json", "https://livisliving.github.io/Patina/r/icons.json", "https://livisliving.github.io/Patina/r/content.json"],
+      "files": [
+        { "path": "src/registry/y2k/desktop/about.tsx", "type": "registry:component", "target": "components/desktop/about.tsx" },
+        { "path": "src/registry/y2k/desktop/asset.ts", "type": "registry:component", "target": "components/desktop/asset.ts" },
+        { "path": "src/registry/y2k/desktop/blocks-more.tsx", "type": "registry:component", "target": "components/desktop/blocks-more.tsx" },
+        { "path": "src/registry/y2k/desktop/blocks.tsx", "type": "registry:component", "target": "components/desktop/blocks.tsx" },
+        { "path": "src/registry/y2k/desktop/context.tsx", "type": "registry:component", "target": "components/desktop/context.tsx" },
+        { "path": "src/registry/y2k/desktop/desktop.tsx", "type": "registry:component", "target": "components/desktop/desktop.tsx" },
+        { "path": "src/registry/y2k/desktop/disk.tsx", "type": "registry:component", "target": "components/desktop/disk.tsx" },
+        { "path": "src/registry/y2k/desktop/document.tsx", "type": "registry:component", "target": "components/desktop/document.tsx" },
+        { "path": "src/registry/y2k/desktop/finder.tsx", "type": "registry:component", "target": "components/desktop/finder.tsx" },
+        { "path": "src/registry/y2k/desktop/icon-data.ts", "type": "registry:component", "target": "components/desktop/icon-data.ts" },
+        { "path": "src/registry/y2k/desktop/icons.tsx", "type": "registry:component", "target": "components/desktop/icons.tsx" },
+        { "path": "src/registry/y2k/desktop/menubar.tsx", "type": "registry:component", "target": "components/desktop/menubar.tsx" },
+        { "path": "src/registry/y2k/desktop/tones.ts", "type": "registry:component", "target": "components/desktop/tones.ts" },
+        { "path": "src/registry/y2k/desktop/use-drag.ts", "type": "registry:component", "target": "components/desktop/use-drag.ts" },
+        { "path": "src/registry/y2k/desktop/use-marquee-select.ts", "type": "registry:component", "target": "components/desktop/use-marquee-select.ts" },
+        { "path": "src/registry/y2k/desktop/use-media-query.ts", "type": "registry:component", "target": "components/desktop/use-media-query.ts" },
+        { "path": "src/registry/y2k/desktop/use-resize.ts", "type": "registry:component", "target": "components/desktop/use-resize.ts" },
+        { "path": "src/registry/y2k/desktop/use-tone.ts", "type": "registry:component", "target": "components/desktop/use-tone.ts" },
+        { "path": "src/registry/y2k/desktop/volume.ts", "type": "registry:component", "target": "components/desktop/volume.ts" },
+        { "path": "src/registry/y2k/desktop/windows.tsx", "type": "registry:component", "target": "components/desktop/windows.tsx" }
+      ]
+    },
+    {
+      "name": "ipod",
+      "type": "registry:block",
+      "title": "iPod",
+      "description": "iTunes 2 on brushed metal as the desktop's resident iPod: a synthesised library and three stations, transport, volume, search, source list, shuffle and repeat on iTunes 4's foot buttons, and a visualiser that plays each song in its own tone. Pass it to the Desktop as `ipod={IPod}`.",
+      "registryDependencies": ["https://livisliving.github.io/Patina/r/desktop.json"],
+      "files": [
+        { "path": "src/registry/y2k/desktop/ipod/ipod-synth.ts", "type": "registry:component", "target": "components/desktop/ipod/ipod-synth.ts" },
+        { "path": "src/registry/y2k/desktop/ipod/ipod.tsx", "type": "registry:component", "target": "components/desktop/ipod/ipod.tsx" },
+        { "path": "src/registry/y2k/desktop/ipod/ipod-visualiser.tsx", "type": "registry:component", "target": "components/desktop/ipod/ipod-visualiser.tsx" },
+        { "path": "src/registry/y2k/desktop/ipod/shader-surface.tsx", "type": "registry:component", "target": "components/desktop/ipod/shader-surface.tsx" },
+        { "path": "src/registry/y2k/desktop/ipod/star-mask.ts", "type": "registry:component", "target": "components/desktop/ipod/star-mask.ts" },
+        { "path": "src/lib/color.ts", "type": "registry:lib", "target": "lib/color.ts" }
+      ]
     }
   ]
 }
