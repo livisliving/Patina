@@ -1,0 +1,44 @@
+# When a Patina release is published, tell each site built on the pack, so
+# its own "Patina update" workflow copies the release in and opens a pull
+# request (see packages/cli: `patina update`). One repository_dispatch per
+# site listed below.
+#
+# Needs one secret, SITES_DISPATCH_TOKEN: a fine-grained personal access
+# token with Contents: read and write on those repositories (and nothing
+# else). Settings › Secrets and variables › Actions.
+name: Tell the sites
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release to announce (empty: each site takes the latest)"
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        site:
+          - livisliving/olivia-forster-patina
+    steps:
+      - name: Ask ${{ matrix.site }} to update
+        env:
+          GH_TOKEN: ${{ secrets.SITES_DISPATCH_TOKEN }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::SITES_DISPATCH_TOKEN is not set (Settings › Secrets and variables › Actions)."
+            exit 1
+          fi
+          gh api "repos/${{ matrix.site }}/dispatches" \
+            -f event_type=patina-release \
+            -f "client_payload[tag]=$TAG"
+          echo "Asked ${{ matrix.site }} to update to ${TAG:-the latest release}."
