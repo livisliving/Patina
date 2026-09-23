@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils"
  * The Aqua 10.0 push button, at the original's measurements: 20px tall, a
  * full 10px round end, 68px minimum, 14px end caps, 13px regular text. The
  * body is the original's 20 rows (--y2k-gel-white / --y2k-tone-button); the
- * round ends darken toward the rim; it floats on a deep, soft drop shadow.
+ * round ends darken toward the rim; it sits on a short, tight drop shadow.
  *   white  — the neutral push button (Cancel, Show All…). The default.
  *   tone   — the gel in the current tone. `isDefault` marks the window's
  *            default action; `pulsing` adds the dialog throb.
@@ -51,7 +51,7 @@ const packVariants = cva(
         white: "[--face:var(--y2k-gel-white)] [--rim:var(--y2k-button-rim-white)]",
         tone: "[--face:var(--y2k-tone-button)] [--rim:var(--y2k-button-rim-tone)]",
         metal: [
-          "[--face:var(--y2k-metal-button)] [--drop:0_0_0_1px_rgba(0,0,0,0.1),0_1px_1px_rgba(0,0,0,0.2),0_3px_3px_rgba(0,0,0,0.3)]",
+          "[--face:var(--y2k-metal-button)] [--drop:0_0_0_1px_rgba(0,0,0,0.1),0_1px_1px_rgba(0,0,0,0.2),0_2px_2px_rgba(0,0,0,0.18)]",
           "[--rim:inset_1px_0_0_rgba(0,0,0,0.25),inset_-1px_0_0_rgba(0,0,0,0.25),inset_4px_0_4px_-2px_rgba(0,0,0,0.25),inset_-4px_0_4px_-2px_rgba(0,0,0,0.25)]",
         ],
         link: "",
@@ -64,7 +64,7 @@ const packVariants = cva(
         ],
         icon: [
           "size-(--y2k-button-h) rounded-full px-0 text-[11px] text-[#262626]",
-          "shadow-[var(--rim),0_2px_3px_rgba(0,0,0,0.35)] [&_svg:not([class*='size-'])]:size-3",
+          "shadow-[var(--rim),0_1px_2px_rgba(0,0,0,0.3)] [&_svg:not([class*='size-'])]:size-3",
         ],
         "icon-sm": "size-[17px] rounded-full px-0 shadow-[var(--rim),var(--y2k-shadow-button-small)] [&_svg:not([class*='size-'])]:size-3",
       },

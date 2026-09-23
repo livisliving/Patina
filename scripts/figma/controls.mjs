@@ -40,7 +40,7 @@ const pressed = (face) => [face, S("Aqua/Gel Pressed")]
 
 /* ── Button ──────────────────────────────────────────────────────── */
 const RIM = { white: fx(tokens["--y2k-button-rim-white"]), tone: fx(`inset 6px 0 7px -4px ${at(EDGE.gel, 0.7)}, inset -6px 0 7px -4px ${at(EDGE.gel, 0.7)}`), metal: fx("inset 1px 0 0 rgba(0,0,0,0.25), inset -1px 0 0 rgba(0,0,0,0.25), inset 4px 0 4px -2px rgba(0,0,0,0.25), inset -4px 0 4px -2px rgba(0,0,0,0.25)") }
-const DROP = { md: S("Effect/shadow-button"), sm: S("Effect/shadow-button-small"), active: S("Effect/shadow-button-active"), metal: fx("0 0 0 1px rgba(0,0,0,0.1), 0 1px 1px rgba(0,0,0,0.2), 0 3px 3px rgba(0,0,0,0.3)") }
+const DROP = { md: S("Effect/shadow-button"), sm: S("Effect/shadow-button-small"), active: S("Effect/shadow-button-active"), metal: fx("0 0 0 1px rgba(0,0,0,0.1), 0 1px 1px rgba(0,0,0,0.2), 0 2px 2px rgba(0,0,0,0.18)") }
 const FACE = { White: S("Aqua/Gel White"), Tone: S("Tone/Gel"), Metal: S("Aqua/Metal Button") }
 
 function button(variant, size, state, label) {

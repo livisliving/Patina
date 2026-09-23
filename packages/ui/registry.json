@@ -221,6 +221,11 @@
           "path": "src/registry/y2k/icons.tsx",
           "type": "registry:ui",
           "target": "components/ui/icons.tsx"
+        },
+        {
+          "path": "src/registry/y2k/icon-preview.ts",
+          "type": "registry:ui",
+          "target": "components/ui/icon-preview.ts"
         }
       ]
     }

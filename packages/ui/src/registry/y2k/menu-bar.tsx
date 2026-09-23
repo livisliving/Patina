@@ -247,9 +247,10 @@ function SpeakerGlyph({ level }: { level: number }) {
   const waves = level <= 0 ? 0 : level < 34 ? 1 : level < 67 ? 2 : 3
   return (
     <svg viewBox="0 0 16 16" className="size-4" aria-hidden>
-      <path d="M1.5 5.5H4.5L8.5 2V14L4.5 10.5H1.5Z" fill="currentColor" stroke="currentColor" strokeWidth={1} strokeLinejoin="round" />
+      {/* Drawn from x = 0.5, so the loudest wave's stroke ends inside the box. */}
+      <path d="M0.5 5.5H3.5L7.5 2V14L3.5 10.5H0.5Z" fill="currentColor" stroke="currentColor" strokeWidth={1} strokeLinejoin="round" />
       {[3, 5.5, 8].slice(0, waves).map((r) => (
-        <path key={r} d={`M${8.5 + r * 0.55} ${8 - r * 0.8}A${r} ${r} 0 0 1 ${8.5 + r * 0.55} ${8 + r * 0.8}`} fill="none" stroke="currentColor" strokeWidth={1.25} strokeLinecap="round" />
+        <path key={r} d={`M${7.5 + r * 0.55} ${8 - r * 0.8}A${r} ${r} 0 0 1 ${7.5 + r * 0.55} ${8 + r * 0.8}`} fill="none" stroke="currentColor" strokeWidth={1.25} strokeLinecap="round" />
       ))}
     </svg>
   )

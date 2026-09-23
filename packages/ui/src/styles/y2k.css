@@ -54,8 +54,8 @@
      --y2k-listheader, --y2k-check-off …) are generated from the measured
      10.0 controls into the measured:begin block below. */
   /* Push button: a deep soft drop, pulled in when pressed. */
-  --y2k-shadow-button: 0 5px 10px rgba(0, 0, 0, 0.42), 0 2px 4px rgba(0, 0, 0, 0.32), 0 1px 2px rgba(0, 0, 0, 0.24), 0 1px 0 rgba(255, 255, 255, 0.5);
-  --y2k-shadow-button-small: 0 4px 8px rgba(0, 0, 0, 0.38), 0 2px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.22), 0 1px 0 rgba(255, 255, 255, 0.5);
+  --y2k-shadow-button: 0 2px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.24), 0 1px 0 rgba(255, 255, 255, 0.5);
+  --y2k-shadow-button-small: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 1px rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.5);
   --y2k-shadow-button-active: 0 1px 2px rgba(0, 0, 0, 0.28), 0 1px 0 rgba(255, 255, 255, 0.35);
   /* The round ends darken toward the rim: 0.75 of the body at the edge,
      back to 0.97 seven pixels in (white); the tone gel darkens to 0.5. */
@@ -75,8 +75,8 @@
      measured rows, generated below. They sit on the reference's layered
      drop; the sides darken toward a near-black rim. */
   /* The gem drop — the title bar's toolbar oval sits on it too. */
-  --y2k-light-drop: 0 0 1px rgba(0, 0, 0, 0.5), 0 1px 1px rgba(0, 0, 0, 0.55), 0 2px 3px rgba(0, 0, 0, 0.5), 0 3px 5px rgba(0, 0, 0, 0.35);
-  --y2k-light-drop-active: 0 0 1px rgba(0, 0, 0, 0.4), 0 1px 1px rgba(0, 0, 0, 0.3);
+  --y2k-light-drop: 0 0 1px rgba(0, 0, 0, 0.35), 0 1px 1px rgba(0, 0, 0, 0.3), 0 2px 2px rgba(0, 0, 0, 0.18);
+  --y2k-light-drop-active: 0 0 1px rgba(0, 0, 0, 0.3), 0 1px 1px rgba(0, 0, 0, 0.2);
   --y2k-light-rim: inset 0 0 0 1px rgba(0, 0, 0, 0.55), inset 0 0 4px rgba(0, 0, 0, 0.35);
   --y2k-light-shadow: var(--y2k-light-drop), var(--y2k-light-rim);
   --y2k-light-shadow-active: var(--y2k-light-drop-active), var(--y2k-light-rim);

@@ -4,12 +4,14 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+import { PREVIEW_PNG } from "./icon-preview"
+
 /**
  * Patina icons — DESIGN.md › Shapes, Components › Icons.
  *
  * The pack's own icon set, so a restyled page never needs a thin-line icon
- * (Lucide, Heroicons, Feather are forbidden). Every icon is a glossy Aqua
- * object drawn for Patina: light from the top left, a crisp white gloss cap on
+ * (Lucide, Heroicons, Feather are forbidden). Every icon but Preview (a PNG
+ * of Olivia's) is a glossy Aqua object drawn for Patina: light from the top left, a crisp white gloss cap on
  * gel and glass, vertical gradients, a dark hairline so it reads on the
  * pinstripes, and a soft contact shadow under anything that stands on a
  * surface.
@@ -672,36 +674,12 @@ export function IconMusic(props: IconProps) {
   )
 }
 
-/** Picture — a framed photograph, a print in the tone tucked behind it. */
-export function IconPicture(props: IconProps) {
-  const [id, url] = useIds()
+/** Preview — two prints and a loupe: Olivia's own artwork, a PNG (the one
+    icon not drawn here), its shadow in the picture. */
+export function IconPreview(props: IconProps) {
   return (
     <Svg {...props}>
-      <defs>
-        <Lin id={id("frame")} s={PLASTIC} />
-        <Lin id={id("print")} s={[[0, tone(40, "white")], [1, tone(75, "white")]]} />
-        <Lin id={id("sky")} s={[[0, "#3b8be4"], [1, "#d3ecff"]]} />
-        <Lin id={id("far")} s={[[0, "#a9de6e"], [1, "#5ca93b"]]} />
-        <Lin id={id("near")} s={[[0, "#5db73e"], [1, "#2c7a1d"]]} />
-        <Rad id={id("sun")} s={[[0, "#fffbe0"], [0.55, "#ffd84a"], [1, "#f3a21f"]]} />
-        <clipPath id={id("photo")}>
-          <rect x={18} y={40} width={86} height={62} />
-        </clipPath>
-      </defs>
-      <Shadow cy={118} rx={52} />
-      <g transform="rotate(9 72 48)">
-        <rect x={32} y={12} width={82} height={64} rx={2} fill="#f7f8fa" stroke={INK} strokeWidth={1.5} />
-        <rect x={38} y={18} width={70} height={46} fill={url("print")} />
-      </g>
-      <rect x={10} y={32} width={102} height={78} rx={3} fill={url("frame")} stroke={INK} strokeWidth={2} />
-      <g clipPath={url("photo")}>
-        <rect x={18} y={40} width={86} height={62} fill={url("sky")} />
-        <circle cx={85} cy={57} r={9} fill={url("sun")} />
-        <path d="M18 84C34 68 54 70 68 80C80 72 94 70 104 76V102H18Z" fill={url("far")} />
-        <path d="M18 94C40 82 70 84 104 96V102H18Z" fill={url("near")} />
-        <path d="M18 40H72L18 86Z" fill="#fff" fillOpacity={0.2} />
-      </g>
-      <rect x={18} y={40} width={86} height={62} fill="none" stroke="#000" strokeOpacity={0.4} />
+      <image href={PREVIEW_PNG} width={128} height={128} />
     </Svg>
   )
 }
@@ -933,7 +911,7 @@ export const ICONS = {
   lock: IconLock,
   chart: IconChart,
   music: IconMusic,
-  picture: IconPicture,
+  preview: IconPreview,
   download: IconDownload,
   info: IconInfo,
   warning: IconWarning,
@@ -1036,9 +1014,9 @@ export const lucideToPack: Record<string, IconName> = {
   Disc: "music",
   Radio: "music",
   Mic: "music",
-  Image: "picture",
-  Images: "picture",
-  Camera: "picture",
+  Image: "preview",
+  Images: "preview",
+  Camera: "preview",
   Download: "download",
   ArrowDownToLine: "download",
   CloudDownload: "download",

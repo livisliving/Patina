@@ -649,13 +649,13 @@ cards.
   button's 20 rows run #7C7C7C, #B4B4B4, #D2D2D2 … #D6D6D6 … white, #F8F8F8:
   a dark rim, a pale cap, a dip, the glow. Other tones keep each row's
   lightness offset and chroma ratio in their own hue. A push button's round
-  ends darken toward the rim, and it floats on
-  `0 5px 10px rgba(0,0,0,.42), 0 2px 4px rgba(0,0,0,.32), 0 1px 2px rgba(0,0,0,.24), 0 1px 0 rgba(255,255,255,.5)`.
+  ends darken toward the rim, and it sits on a short, tight drop,
+  `0 2px 3px rgba(0,0,0,.3), 0 1px 2px rgba(0,0,0,.24), 0 1px 0 rgba(255,255,255,.5)`.
   Pressed lays the original's grey press over the fill and pulls the shadow
   in to `0 1px 2px rgba(0,0,0,.28)`.
 - **Traffic lights** are 13px gems, 5px apart: the original's 13 rows each —
   a near-black rim, a white glint, the colour, a glow at the foot — on a
-  layered drop. Unfocused, they turn graphite at 55%. Glyphs (×, –, +)
+  light, 2px drop. Unfocused, they turn graphite at 55%. Glyphs (×, –, +)
   appear only on hover.
 - **An unfocused window's title bar** is 75% grey rows with nothing under
   them, so the desktop shows faintly through it (brushed metal stays opaque).
