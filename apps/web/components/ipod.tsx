@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import {
-  BevelButton,
   Button,
   Checkbox,
   SearchField,
@@ -20,10 +19,10 @@ import {
   cn,
   parseColor,
 } from "@patina/ui"
-import { ChromeReflection } from "@patina/shaders"
 
 import { STATIONS, TRACKS, createPlayer, duration, type Player, type Track } from "./ipod-synth"
 import { asset } from "./asset"
+import { Visualiser } from "./ipod-visualiser"
 import { useVolume } from "./volume"
 import { useTone } from "./use-tone"
 
@@ -31,7 +30,7 @@ import { useTone } from "./use-tone"
  * The iPod: iTunes 2 on 10.1 (Olivia's screenshot), rebuilt from the pack's
  * parts on brushed metal — round buttons for the transport, the slider for
  * volume, a status display, the search field, the source list, the list view
- * and bevel buttons along the foot. Sized off the 1× screenshot and put on the
+ * and iTunes 4's rounded buttons along the foot. Sized off the 1× screenshot and put on the
  * 4px grid: a 64px control strip, 16px margins round the panes, 18px rows.
  * The Apple logo in the idle display is the Patina star.
  */
@@ -69,27 +68,20 @@ const NEXT = "M0 0v9l8-4.5zM8 0v9l8-4.5z"
 const PLAY = "M0 0l13 7.5L0 15z"
 const PAUSE = "M0 0h4v15H0zM8 0h4v15H8z"
 
-/** The foot's glyphs: 16×14, in the tone's deepest row, as the reference's
- *  are in its blue. */
+/** The foot's glyphs, 16×14, as iTunes 4 draws them: a heavy plus, arrows
+ *  with solid heads. */
 const FOOT = {
-  add: (
-    <>
-      <path d="M1 7h6M4 4v6" strokeWidth="1.8" />
-      <path d="M13 2.5v7" strokeWidth="1.5" />
-      <circle cx="11.2" cy="10.2" r="1.9" fill="currentColor" stroke="none" />
-      <path d="M13 2.5h2v2" strokeWidth="1.5" />
-    </>
-  ),
+  add: <path d="M8 1.5v11M2.5 7h11" strokeWidth="2.6" strokeLinecap="butt" />,
   shuffle: (
     <>
-      <path d="M1 4h3l6 6h4M1 10h3l6-6h4" strokeWidth="1.6" />
-      <path d="M12 2l2 2-2 2M12 8l2 2-2 2" strokeWidth="1.6" />
+      <path d="M1 4h3l6 6h2M1 10h3l6-6h2" strokeWidth="1.8" />
+      <path d="M11.5 1.5l4 2.5-4 2.5zM11.5 7.5l4 2.5-4 2.5z" fill="currentColor" stroke="none" />
     </>
   ),
   repeat: (
     <>
-      <path d="M2 8V5.5A1.5 1.5 0 0 1 3.5 4H13M14 6v2.5A1.5 1.5 0 0 1 12.5 10H3" strokeWidth="1.6" />
-      <path d="M11 2l2 2-2 2M5 12l-2-2 2-2" strokeWidth="1.6" />
+      <path d="M2 8.5V6.5A2.5 2.5 0 0 1 4.5 4H11M14 5.5v2A2.5 2.5 0 0 1 11.5 10H5" strokeWidth="1.8" />
+      <path d="M10.5 1.5l4 2.5-4 2.5zM5.5 7.5L1.5 10l4 2.5z" fill="currentColor" stroke="none" />
     </>
   ),
   visuals: (
@@ -100,6 +92,30 @@ const FOOT = {
   ),
   eject: <path d="M8 2l6 6H2zM2 10h12v2H2z" fill="currentColor" stroke="none" />,
 } satisfies Record<string, React.ReactNode>
+
+/** A button of the foot, as iTunes 4 draws them: 32×24, 4px corners, a #666
+ *  rim round a pale bevel (#f0f0f0 and white at the top, #dedede to #bababa,
+ *  then two dark rows), a white line under it on the metal; the glyph
+ *  near-black, embossed. On (shuffle, repeat, the visualiser), the glyph
+ *  lights up in the tone. */
+function FootButton({ on, className, ...props }: React.ComponentProps<"button"> & { on?: boolean }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={on}
+      className={cn(
+        "flex h-6 w-8 shrink-0 cursor-default items-center justify-center rounded-[4px] border border-[#666] outline-none",
+        "bg-[linear-gradient(to_bottom,#f0f0f0_0_1px,#fff_1px_2px,#fdfdfd_2px_3px,#dedede_3px,#bababa_20px,#9f9f9f_20px_21px,#858585_21px)]",
+        "shadow-[0_1px_0_rgba(255,255,255,0.75),0_0_0_1px_rgba(0,0,0,0.1)] active:brightness-90",
+        "text-[#2b2b2b] [&_svg]:drop-shadow-[0_1px_0_rgba(255,255,255,0.8)]",
+        "aria-pressed:text-(--y2k-tone) aria-pressed:[&_svg]:drop-shadow-[0_0_2px_color-mix(in_srgb,var(--y2k-tone)_70%,transparent)]",
+        "focus-visible:outline-3 focus-visible:outline-offset-1 focus-visible:outline-(--y2k-tone-focus)",
+        className
+      )}
+      {...props}
+    />
+  )
+}
 
 function FootGlyph({ name }: { name: keyof typeof FOOT }) {
   return (
@@ -224,9 +240,9 @@ const WELL = { backgroundImage: `linear-gradient(to bottom, ${WELL_STOPS.map(([a
 const VOLUME = "mx-[5px] min-w-0 flex-1"
 
 /** A control over its 11px label, as the reference sets Search and Browse. */
-function Labeled({ label, children }: { label: string; children: React.ReactNode }) {
+function Labeled({ label, className, children }: { label: string; className?: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col items-center gap-[3px]">
+    <div className={cn("flex flex-col items-center gap-[3px]", className)}>
       {children}
       <span className="text-[11px] leading-none text-(--y2k-ink)">{label}</span>
     </div>
@@ -437,14 +453,15 @@ export const IPod = React.memo(function IPod({ onEject, hidden }: { onEject: () 
     pick(id)
   }
 
-  const foot = "h-6 w-7 px-0 text-(--y2k-tone-button-edge)"
   const columns = radio ? 3 : 5
 
   return (
     <div className="flex min-h-[360px] flex-1 flex-col md:min-h-0">
       {/* The control strip: transport and volume · the display · search and browse. */}
       {/* A pixel up: the reference's controls start on the title bar's last row. */}
-      <div className="-mt-px flex shrink-0 flex-wrap items-start justify-between gap-y-2 px-6 pb-2 md:grid md:h-16 md:grid-cols-[1fr_auto_1fr] md:pb-0">
+      {/* The display keeps its 244px while it can, centred, 16px clear of
+          the columns either side, which share what is left. */}
+      <div className="-mt-px flex shrink-0 flex-wrap items-start justify-between gap-x-4 gap-y-2 px-6 pb-2 md:grid md:h-16 md:grid-cols-[minmax(108px,1fr)_minmax(0,244px)_minmax(0,1fr)] md:pb-0">
         <div className="flex w-27 flex-col">
           {/* The discs sit where the reference's do (centres 19, 52 and 85px
               in; prev and next a pixel low), in one recessed well 5.5px wider
@@ -481,21 +498,25 @@ export const IPod = React.memo(function IPod({ onEject, hidden }: { onEject: () 
           </div>
         </div>
 
-        <Display key={current?.title} track={current} player={player} ticking={playing && !hidden} className="order-last w-full md:order-none md:w-61" />
+        <Display key={current?.title} track={current} player={player} ticking={playing && !hidden} className="order-last w-full md:order-none" />
 
-        <div className="flex items-start gap-2 justify-self-end">
-          <Labeled label="Search">
-            <span style={WELL} className="my-1 flex h-8 w-22 items-center justify-center rounded-full">
-              <SearchField value={query} onChange={setQuery} placeholder="" aria-label="Search songs" className="w-18" />
-            </span>
-          </Labeled>
-          <Labeled label="Browse">
-            <span style={WELL} className="flex size-10 items-center justify-center rounded-full">
-              <Button variant="metal" size="icon" aria-label="Browse" aria-pressed={browse} onClick={() => setBrowse((v) => !v)} className="size-7">
-                <Eye />
-              </Button>
-            </span>
-          </Labeled>
+        {/* Search takes the width its column leaves, up to 176px, with Browse
+            beside it; once its well would be under 80px, both go. */}
+        <div className="@container min-w-0 flex-1">
+          <div className="flex items-start justify-end gap-2 @max-[128px]:hidden">
+            <Labeled label="Search" className="max-w-44 min-w-0 flex-1">
+              <span style={WELL} className="my-1 flex h-8 w-full items-center rounded-full px-2">
+                <SearchField value={query} onChange={setQuery} placeholder="" aria-label="Search songs" className="w-full" />
+              </span>
+            </Labeled>
+            <Labeled label="Browse">
+              <span style={WELL} className="flex size-10 items-center justify-center rounded-full">
+                <Button variant="metal" size="icon" aria-label="Browse" aria-pressed={browse} onClick={() => setBrowse((v) => !v)} className="size-7">
+                  <Eye />
+                </Button>
+              </span>
+            </Labeled>
+          </div>
         </div>
       </div>
 
@@ -537,7 +558,7 @@ export const IPod = React.memo(function IPod({ onEject, hidden }: { onEject: () 
             </WindowScrollArea>
           )}
           {visuals ? (
-            !hidden && <ChromeReflection className="min-h-0 flex-1" />
+            !hidden && <Visualiser track={current} tone={tone} className="min-h-0 flex-1" />
           ) : (
             <WindowScrollArea viewportRef={viewport}>
               <Table className="table-fixed leading-[14px] [&_td:not(:last-child)]:border-r [&_td]:border-[#dedede]">
@@ -642,33 +663,32 @@ export const IPod = React.memo(function IPod({ onEject, hidden }: { onEject: () 
         </WindowWell>
       </div>
 
-      {/* The foot: a new playlist, shuffle, repeat · the visualizer, eject. */}
-      <div className="flex h-9 shrink-0 items-center justify-between px-8">
-        <div className="flex gap-3">
-          <BevelButton aria-label="New playlist" onClick={addPlaylist} className={foot}>
+      {/* The foot: a new playlist, shuffle, repeat · the visualiser, eject. */}
+      <div className="flex h-9 shrink-0 items-center justify-between px-5">
+        <div className="flex gap-2">
+          <FootButton aria-label="New playlist" onClick={addPlaylist}>
             <FootGlyph name="add" />
-          </BevelButton>
-          <BevelButton aria-label="Shuffle" pressed={shuffle} onClick={toggleShuffle} className={foot}>
+          </FootButton>
+          <FootButton aria-label="Shuffle" on={shuffle} onClick={toggleShuffle}>
             <FootGlyph name="shuffle" />
-          </BevelButton>
-          <BevelButton aria-label="Repeat" pressed={repeat} onClick={() => setRepeat((v) => !v)} className={foot}>
+          </FootButton>
+          <FootButton aria-label="Repeat" on={repeat} onClick={() => setRepeat((v) => !v)}>
             <FootGlyph name="repeat" />
-          </BevelButton>
+          </FootButton>
         </div>
-        <div className="flex gap-3">
-          <BevelButton aria-label="Visualiser" pressed={visuals} onClick={() => setVisuals((v) => !v)} className={foot}>
+        <div className="flex gap-2">
+          <FootButton aria-label="Visualiser" on={visuals} onClick={() => setVisuals((v) => !v)}>
             <FootGlyph name="visuals" />
-          </BevelButton>
-          <BevelButton
+          </FootButton>
+          <FootButton
             aria-label="Eject"
             onClick={() => {
               stop()
               onEject()
             }}
-            className={foot}
           >
             <FootGlyph name="eject" />
-          </BevelButton>
+          </FootButton>
         </div>
       </div>
     </div>

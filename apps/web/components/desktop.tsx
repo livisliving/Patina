@@ -1250,7 +1250,11 @@ export function Desktop() {
               .filter(Boolean)
               .join(", ")}
             toolbar={finderToolbar && 
-              <WindowToolbar className="flex-wrap">
+              // Sized to the window, not the screen: as the window narrows,
+              // the search field gives up its width (160px down to 96px),
+              // then goes, once the items and a 96px field no longer fit
+              // (they take 368px with their labels).
+              <WindowToolbar className="@container">
                 <WindowToolbarControl label="Back">
                   <Button size="icon" aria-label="Back" disabled={!finderHistory.length} onClick={goBack} className="[&_svg]:h-2 [&_svg]:w-[13px]">
                     <BackGlyph />
@@ -1269,7 +1273,7 @@ export function Desktop() {
                 <WindowToolbarItem icon={<ComputerIcon />} onClick={() => navigate([])}>Computer</WindowToolbarItem>
                 <WindowToolbarItem icon={<HomeIcon />} onClick={() => navigate(HOME)}>Home</WindowToolbarItem>
                 <WindowToolbarItem icon={<HeartIcon />} onClick={() => navigate(FAVOURITES)}>Favourites</WindowToolbarItem>
-                <WindowToolbarControl label="Search" className="order-last w-full sm:order-none sm:ml-auto sm:w-40">
+                <WindowToolbarControl label="Search" className="ml-auto w-40 min-w-24 @max-[480px]:hidden">
                   <SearchField ref={finderSearch} value={finderQuery} onChange={setFinderQuery} placeholder="" className="w-full" />
                 </WindowToolbarControl>
               </WindowToolbar>
@@ -2122,7 +2126,7 @@ export function Desktop() {
                   return <p className="py-4 text-center text-[12px] text-(--y2k-ink-secondary)">No tones match “{toneQuery}”.</p>
                 }
                 return (
-                  <div className="flex flex-wrap justify-center gap-4 rounded-[8px] bg-white px-3 py-4 shadow-[inset_0_1px_2px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.2)]" role="radiogroup" aria-label="Tone">
+                  <div className="flex justify-center gap-2 rounded-[8px] bg-white px-3 py-4 sm:gap-4 shadow-[inset_0_1px_2px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.2)]" role="radiogroup" aria-label="Tone">
                     {shown.map((t) => (
                       <button
                         key={t.id}
@@ -2131,7 +2135,7 @@ export function Desktop() {
                         aria-checked={tone === t.id}
                         onClick={() => setTone(t.id)}
                         data-tone={t.id}
-                        className="group flex w-[60px] cursor-default flex-col items-center gap-1 outline-none"
+                        className="group flex max-w-[60px] min-w-0 flex-1 cursor-default flex-col items-center gap-1 outline-none"
                       >
                         <span
                           className={cn(
@@ -2141,7 +2145,7 @@ export function Desktop() {
                             tone === t.id && "outline-3 outline-offset-1 outline-black/40"
                           )}
                         />
-                        <span className="text-[11px]">{t.label}</span>
+                        <span className="text-[11px] whitespace-nowrap">{t.label}</span>
                       </button>
                     ))}
                   </div>
