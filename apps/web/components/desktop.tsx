@@ -58,6 +58,7 @@ import { TONES, type Tone } from "./tones"
 import { useDrag } from "./use-drag"
 import { useMarqueeSelect } from "./use-marquee-select"
 import { useMediaQuery } from "./use-media-query"
+import { MiddleTruncate } from "./middle-truncate"
 import { useResize } from "./use-resize"
 import { Stars } from "./stars"
 import { asset } from "./asset"
@@ -214,10 +215,13 @@ function FileRow({
       className={cn("cursor-default aria-disabled:opacity-45", className)}
       {...props}
     >
-      <TableCell>
+      {/* The name takes the width the other columns leave (max-w-0 keeps
+          it from widening the table), 96px at least, and is cut from the
+          middle to fit; narrower still, the list scrolls sideways. */}
+      <TableCell className="w-full max-w-0 min-w-24">
         <span className="flex items-center gap-2">
           <span className="size-4 shrink-0 [&_svg]:size-full">{item.icon}</span>
-          {item.label}
+          <MiddleTruncate text={item.label} lines={1} className="flex-1" />
         </span>
       </TableCell>
       {children}
@@ -347,7 +351,7 @@ function ColumnRow({
       )}
     >
       <span className={cn("shrink-0 [&_svg]:size-full", volume ? "size-8" : "size-4")}>{item.icon}</span>
-      <span className="min-w-0 flex-1 truncate">{item.label}</span>
+      <MiddleTruncate text={item.label} lines={1} className="flex-1" />
       {chevron && <DisclosureGlyph />}
     </button>
   )
@@ -1214,14 +1218,16 @@ export function Desktop() {
               className="group flex w-[84px] cursor-default flex-col items-center gap-0.5 outline-none"
             >
               <span className="size-14 [&_svg]:size-full [&_svg]:drop-shadow-[0_2px_3px_rgba(0,0,0,0.4)]">{it.icon}</span>
-              <span
-                className={cn(
-                  "rounded-[3px] px-1.5 py-[1px] text-[12px] text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]",
+              {/* Two lines at most, then cut from the middle, as in the Finder. */}
+              <MiddleTruncate
+                text={it.label}
+                lines={2}
+                className="w-full text-center"
+                labelClassName={cn(
+                  "inline-block max-w-full rounded-[3px] px-1.5 py-[1px] text-[12px] text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]",
                   selected.has(key) && "bg-(--y2k-tone-selection)"
                 )}
-              >
-                {it.label}
-              </span>
+              />
             </button>
           )
         })}
@@ -1367,15 +1373,17 @@ export function Desktop() {
                         className="group relative z-[2] flex cursor-default flex-col items-center gap-1 outline-none disabled:opacity-45"
                       >
                         <span className="size-12 [&_svg]:size-full">{it.icon}</span>
-                        <span
-                          className={cn(
-                            "rounded-[3px] px-1.5 py-[1px] text-[12px]",
+                        {/* Two lines at most, then cut from the middle. */}
+                        <MiddleTruncate
+                          text={it.label}
+                          lines={2}
+                          className="w-full text-center"
+                          labelClassName={cn(
+                            "inline-block max-w-full rounded-[3px] px-1.5 py-[1px] text-[12px]",
                             // The light tone under black ink, the same in every tone.
                             selected.has(key) && "bg-(--y2k-tone-focus) text-(--y2k-ink)"
                           )}
-                        >
-                          {it.label}
-                        </span>
+                        />
                       </button>
                     )
                   })}
