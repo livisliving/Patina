@@ -9,6 +9,7 @@ import type { Person } from "@/lib/content"
 
 import { asset } from "./asset"
 import { Blocks } from "./blocks"
+import { useReducedMotion } from "./use-media-query"
 
 /**
  * What the owner's About box shows: the portrait (with the greeting typed
@@ -32,16 +33,6 @@ const TYPE_MS = 45
 /** Phosphor mint on a black screen: the picture's own colours, not the
  *  desktop's chrome. */
 const SCREEN_INK = "#9EE9C8"
-
-const REDUCE = "(prefers-reduced-motion: reduce)"
-const subscribeReduce = (cb: () => void) => {
-  const mq = window.matchMedia(REDUCE)
-  mq.addEventListener("change", cb)
-  return () => mq.removeEventListener("change", cb)
-}
-/** Whether the visitor asked for less motion: then the whole greeting is
- *  there at once and the cursor does not blink. False on the server. */
-const useReducedMotion = () => React.useSyncExternalStore(subscribeReduce, () => window.matchMedia(REDUCE).matches, () => false)
 
 /** How many characters of `text` have been typed so far. */
 function useTypewriter(text: string, on: boolean) {
@@ -72,6 +63,7 @@ function Cursor({ blink }: { blink: boolean }) {
 /** The lines typed onto the portrait's screen, placed in percent of the
  *  picture. */
 function Screen({ screen, lines }: { screen: { x: number; y: number; w: number; h: number }; lines: string[] }) {
+  // Less motion: the whole greeting is there at once, the cursor still.
   const reduce = useReducedMotion()
   const text = lines.join("\n")
   const shown = useTypewriter(text, !reduce)

@@ -25,30 +25,11 @@ import readline from "node:readline/promises"
 import { spawnSync } from "node:child_process"
 import { fileURLToPath } from "node:url"
 
+import { COMPONENTS, COPIES, aliasDir, childEnv, projectDirs, readComponentsJson, skip, stop, tick } from "./project.mjs"
+import { MANIFEST, recordInstall } from "./update.mjs"
+
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 
-/** The registry items installed by default, in dependency order (theme
- *  first), and the file each one writes under the project's ui folder — what
- *  the install is checked against afterwards. */
-export const COMPONENTS = {
-  button: "button.tsx",
-  window: "window.tsx",
-  sidebar: "window-sidebar.tsx",
-  group: "group.tsx",
-  progress: "progress.tsx",
-  tabs: "tabs.tsx",
-  toast: "toast.tsx",
-  marquee: "marquee.tsx",
-  "visitor-counter": "visitor-counter.tsx",
-  forms: "forms.tsx",
-  table: "table.tsx",
-  popup: "popup.tsx",
-  segmented: "segmented.tsx",
-  "menu-bar": "menu-bar.tsx",
-  dock: "dock.tsx",
-  wallpaper: "wallpaper.tsx",
-  icons: "icons.tsx",
-}
 const ITEMS = ["theme", ...Object.keys(COMPONENTS)]
 
 /** `--desktop`: the Content model and the OS layer that renders it, and the
@@ -168,42 +149,9 @@ function assetRoot() {
   throw new Error("cannot find the pack's files (no assets/ and no DESIGN.md above the package).")
 }
 
-/** Files copied verbatim: [source relative to assetRoot, target relative to cwd]. */
-export const COPIES = [
-  ["DESIGN.md", "DESIGN.md"],
-  ["scripts/check-y2k.mjs", "scripts/check-y2k.mjs"],
-  [".claude/skills/check-y2k/SKILL.md", ".claude/skills/check-y2k/SKILL.md"],
-  [".claude/skills/y2k-ify/SKILL.md", ".claude/skills/y2k-ify/SKILL.md"],
-]
 
-const tick = (s) => `  ✓ ${s}`
-const skip = (s) => `  · ${s}`
-const stop = (s) => `  ✗ ${s}`
 
-/** The environment for a child npx: npm leaks the flags of the npx that ran
- *  us into it as npm_config_*, and `--package=` would make the child resolve
- *  our package instead of shadcn. */
-export function childEnv() {
-  const env = { ...process.env }
-  delete env.npm_config_package
-  return env
-}
 
-/** Where shadcn puts an alias's files (`ui`, `lib`, `components`):
- *  components.json's alias, resolved against the root and src/ (the two
- *  layouts create-next-app makes). */
-export function aliasDir(cwd, key = "ui") {
-  const fallback = { ui: "@/components/ui", lib: "@/lib", components: "@/components" }[key]
-  let alias = fallback
-  try {
-    alias = JSON.parse(fs.readFileSync(path.join(cwd, "components.json"), "utf8"))?.aliases?.[key] ?? alias
-  } catch {
-    /* no components.json yet: shadcn init will write the default */
-  }
-  const rel = alias.replace(/^@\//, "")
-  const candidates = [path.join(cwd, rel), path.join(cwd, "src", rel)]
-  return candidates.find((d) => fs.existsSync(d)) ?? (fs.existsSync(path.join(cwd, "src")) ? candidates[1] : candidates[0])
-}
 const uiDir = (cwd) => aliasDir(cwd, "ui")
 
 /** The `--desktop` items' files that are not there: item names. A file may
@@ -215,22 +163,6 @@ function missingDesktop(cwd) {
     .map(([item]) => item)
 }
 
-/** The folder `@/` points at (tsconfig's `@/*`: the root or src/), where
- *  content/ goes; and the App Router folder, where page.tsx is. */
-export function projectDirs(cwd) {
-  let base = null
-  try {
-    const ts = fs.readFileSync(path.join(cwd, "tsconfig.json"), "utf8")
-    const target = JSON.parse(ts)?.compilerOptions?.paths?.["@/*"]?.[0]
-    if (target) base = path.join(cwd, target.replace(/\*$/, ""))
-  } catch {
-    /* a tsconfig with comments, or none: guess from the folders below */
-  }
-  const src = fs.existsSync(path.join(cwd, "src", "app"))
-  base ??= src ? path.join(cwd, "src") : cwd
-  const app = [path.join(cwd, "app"), path.join(cwd, "src", "app")].find((d) => fs.existsSync(d)) ?? null
-  return { base, app }
-}
 
 /** create-next-app's own page, untouched: its only import is next/image and
  *  it still carries the template's links. Anything else is the user's. */
@@ -326,14 +258,7 @@ function findThemes(cwd, depth = 4) {
  * paths, so it repairs the line here.
  */
 function fixThemeImport(cwd, themes, { dryRun }) {
-  const cfgPath = path.join(cwd, "components.json")
-  if (!fs.existsSync(cfgPath)) return
-  let cssRel
-  try {
-    cssRel = JSON.parse(fs.readFileSync(cfgPath, "utf8"))?.tailwind?.css
-  } catch {
-    return
-  }
+  const cssRel = readComponentsJson(cwd)?.tailwind?.css
   if (!cssRel) return
 
   const cssPath = path.join(cwd, cssRel)
@@ -501,8 +426,7 @@ export async function init({ cwd, registry, components, desktop, force, dryRun, 
       desktopReady = desktop
       // What was installed, and each file as it was written: `update` reads
       // it to know which items are the pack's and which files were changed
-      // since. (Imported here: update.mjs imports this module's helpers.)
-      const { recordInstall, MANIFEST } = await import("./update.mjs")
+      // since.
       await recordInstall(cwd, { registry: base, items })
       console.log(tick(`${MANIFEST} — the items and files installed, for \`patina update\``))
     }

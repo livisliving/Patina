@@ -22,7 +22,7 @@ import path from "node:path"
 import crypto from "node:crypto"
 import { spawnSync } from "node:child_process"
 
-import { COMPONENTS, COPIES, aliasDir, childEnv, projectDirs } from "./init.mjs"
+import { COMPONENTS, COPIES, aliasDir, childEnv, projectDirs, readComponentsJson, skip, tick } from "./project.mjs"
 
 /** The pack's own repository, and where its built registry sits in it. */
 const REPO = "livisliving/Patina"
@@ -31,8 +31,6 @@ export const MANIFEST = "patina.json"
 const NOTE =
   "Written by @pat1na/cli. `npx @pat1na/cli update` reads it: which of the pack's items this project has, the Patina version they came from, and each file as the pack wrote it (a file that no longer matches is kept on update)."
 
-const tick = (s) => `  ✓ ${s}`
-const skip = (s) => `  · ${s}`
 const warn = (s) => `  ! ${s}`
 
 const fingerprint = (text) => crypto.createHash("sha256").update(text).digest("hex").slice(0, 16)
@@ -51,9 +49,9 @@ async function latestRelease() {
   return (await res.json()).tag_name
 }
 
-/** Where the pack's files are read from: the repository's root, as a URL
- *  (raw.githubusercontent.com at a tag) or a folder (a checkout). `read`
- *  returns a file's text, or null when this version has no such file. */
+/** Where files are read from: a URL (raw.githubusercontent.com at a tag, a
+ *  registry) or a folder (a checkout). `read` returns a file's text, or
+ *  null when there is no such file. */
 function sourceAt(root) {
   const remote = /^https?:\/\//.test(root)
   const base = root.replace(/\/+$/, "")
@@ -72,38 +70,38 @@ function sourceAt(root) {
   }
 }
 
-/** Where a registry target lands in this project: under the alias its
- *  components.json names (and src/ when the project has one), as shadcn
- *  puts it. */
-function targetPath(cwd, target) {
-  const places = [
-    ["components/ui/", () => aliasDir(cwd, "ui")],
-    ["lib/", () => aliasDir(cwd, "lib")],
-    ["components/", () => aliasDir(cwd, "components")],
-    ["app/", () => projectDirs(cwd).app ?? path.join(cwd, "app")],
-  ]
-  for (const [prefix, dir] of places) if (target.startsWith(prefix)) return path.join(dir(), target.slice(prefix.length))
-  return path.join(cwd, target)
+/** Where this project keeps things, worked out once per run: the folder a
+ *  registry target lands in (under components.json's aliases, and src/ when
+ *  the project has one, as shadcn puts it), and the aliases the pack's
+ *  imports are rewritten to when they are not the defaults. */
+function layoutOf(cwd) {
+  const aliases = readComponentsJson(cwd)?.aliases ?? {}
+  return {
+    cwd,
+    places: [
+      ["components/ui/", aliasDir(cwd, "ui")],
+      ["lib/", aliasDir(cwd, "lib")],
+      ["components/", aliasDir(cwd, "components")],
+      ["app/", projectDirs(cwd).app ?? path.join(cwd, "app")],
+    ],
+    imports: [
+      ["@/components/ui", aliases.ui],
+      ["@/lib/utils", aliases.utils],
+      ["@/lib", aliases.lib],
+      ["@/components", aliases.components],
+    ].filter(([from, to]) => to && to !== from),
+  }
 }
 
-/** The pack's files import from the default aliases; a project with other
- *  ones gets its own, as shadcn rewrites them on install. */
-function rewriteImports(cwd, text) {
-  let aliases = {}
-  try {
-    aliases = JSON.parse(fs.readFileSync(path.join(cwd, "components.json"), "utf8"))?.aliases ?? {}
-  } catch {
-    return text
-  }
-  const pairs = [
-    ["@/components/ui", aliases.ui],
-    ["@/lib/utils", aliases.utils],
-    ["@/lib", aliases.lib],
-    ["@/components", aliases.components],
-  ].filter(([from, to]) => to && to !== from)
-  if (!pairs.length) return text
+function targetPath(layout, target) {
+  const hit = layout.places.find(([prefix]) => target.startsWith(prefix))
+  return hit ? path.join(hit[1], target.slice(hit[0].length)) : path.join(layout.cwd, target)
+}
+
+function rewriteImports(layout, text) {
+  if (!layout.imports.length) return text
   return text.replace(/(from\s*|import\s*\(\s*)(["'])(@\/[^"']+)\2/g, (whole, lead, quote, spec) => {
-    const hit = pairs.find(([from]) => spec === from || spec.startsWith(`${from}/`))
+    const hit = layout.imports.find(([from]) => spec === from || spec.startsWith(`${from}/`))
     return hit ? `${lead}${quote}${hit[1]}${spec.slice(hit[0].length)}${quote}` : whole
   })
 }
@@ -118,14 +116,20 @@ function readManifest(cwd) {
   }
 }
 
+/** patina.json: the items, the version, and each file's fingerprint. */
+function writeManifest(cwd, { version, items, files }) {
+  const record = { $comment: NOTE, version, items, files: Object.fromEntries(Object.entries(files).sort(([a], [b]) => a.localeCompare(b))) }
+  fs.writeFileSync(path.join(cwd, MANIFEST), `${JSON.stringify(record, null, 2)}\n`)
+}
+
 /** A project with no patina.json: the theme and the default components
  *  whose files are under its ui folder. */
-function inferItems(cwd) {
-  const ui = aliasDir(cwd, "ui")
+function inferItems(layout) {
+  const ui = targetPath(layout, "components/ui/")
   const items = Object.entries(COMPONENTS)
     .filter(([, file]) => fs.existsSync(path.join(ui, file)))
     .map(([item]) => item)
-  if (fs.existsSync(targetPath(cwd, "app/y2k.css"))) items.unshift("theme")
+  if (fs.existsSync(targetPath(layout, "app/y2k.css"))) items.unshift("theme")
   return items
 }
 
@@ -157,13 +161,14 @@ function installCommand(cwd, packages) {
  * What a version of the pack would write, file by file, for these items
  * (and the items they depend on) and the copied files: each with its state
  * against the project — same, new, update, or edited (changed here since it
- * was installed, so kept).
+ * was installed, so kept). The items are fetched a round at a time, all of
+ * a round at once: the listed items, then what they depend on.
  */
-async function plan(cwd, source, items, manifest, force) {
+async function plan(layout, source, items, manifest, force) {
+  const { cwd } = layout
   const files = []
   const deps = new Set()
   const done = new Set()
-  const queue = [...items]
   const absent = []
   const judge = (abs, next) => {
     const rel = path.relative(cwd, abs)
@@ -179,55 +184,45 @@ async function plan(cwd, source, items, manifest, force) {
             : "update"
     files.push({ rel, abs, have, next, state, recorded })
   }
-  while (queue.length) {
-    const name = queue.shift()
-    if (done.has(name)) continue
-    done.add(name)
-    const json = await source.read(`${REGISTRY_DIR}/${name}.json`)
-    if (!json) {
-      absent.push(name)
-      continue
-    }
-    const item = JSON.parse(json)
-    for (const dep of item.dependencies ?? []) deps.add(dep)
-    for (const dep of item.registryDependencies ?? []) {
-      const n = itemName(dep)
-      if (!done.has(n) && !queue.includes(n)) queue.push(n)
-    }
-    for (const file of item.files ?? []) judge(targetPath(cwd, file.target ?? file.path), rewriteImports(cwd, file.content))
+  const copies = Promise.all(COPIES.map(([from]) => source.read(from)))
+  let round = [...new Set(items)]
+  while (round.length) {
+    round.forEach((name) => done.add(name))
+    const jsons = await Promise.all(round.map((name) => source.read(`${REGISTRY_DIR}/${name}.json`)))
+    const next = new Set()
+    jsons.forEach((json, i) => {
+      if (!json) return absent.push(round[i])
+      const item = JSON.parse(json)
+      for (const dep of item.dependencies ?? []) deps.add(dep)
+      for (const dep of item.registryDependencies ?? []) if (!done.has(itemName(dep))) next.add(itemName(dep))
+      for (const file of item.files ?? []) judge(targetPath(layout, file.target ?? file.path), rewriteImports(layout, file.content))
+    })
+    round = [...next]
   }
-  for (const [from, to] of COPIES) {
-    const text = await source.read(from)
-    if (text !== null) judge(path.join(cwd, to), text)
-  }
+  ;(await copies).forEach((text, i) => text !== null && judge(path.join(cwd, COPIES[i][1]), text))
   return { files, deps, items: [...done].filter((n) => !absent.includes(n)), absent }
 }
 
 export async function update({ cwd, to, source: sourceArg, force, dryRun, add = [] }) {
+  const layout = layoutOf(cwd)
   const manifest = readManifest(cwd)
-  let items = manifest?.items ?? inferItems(cwd)
-  if (!items.length && !add.length) {
-    console.log(warn(`no ${MANIFEST} and none of the pack's components under ${path.relative(cwd, aliasDir(cwd, "ui")) || "."} — nothing to update. Install with: npx @pat1na/cli init`))
+  const listed = manifest?.items ?? inferItems(layout)
+  if (!listed.length && !add.length) {
+    console.log(warn(`no ${MANIFEST} and none of the pack's components under ${path.relative(cwd, targetPath(layout, "components/ui/")) || "."} — nothing to update. Install with: npx @pat1na/cli init`))
     return 1
   }
-  items = [...new Set([...items, ...add])]
+  const items = [...new Set([...listed, ...add])]
 
-  // The version: a folder or URL given outright, else a tag (--to, or the
-  // latest release), else main when Patina has published none yet.
-  // With --source, --to only names the version the files are (a checkout
-  // of a tag, say).
-  let version = sourceArg ? (to ?? null) : null
-  let root = sourceArg
-  if (!root) {
-    version = to ?? (await latestRelease()) ?? "main"
-    root = `https://raw.githubusercontent.com/${REPO}/${version}`
-  }
-  const source = sourceAt(root)
+  // The version: a tag (--to, or the latest release), else main when Patina
+  // has published none yet. With --source (a folder or URL of the repo's
+  // root, a checkout of a tag, say), --to only names the version it is.
+  const version = sourceArg ? (to ?? null) : (to ?? (await latestRelease()) ?? "main")
+  const source = sourceAt(sourceArg ?? `https://raw.githubusercontent.com/${REPO}/${version}`)
   const from = sourceArg ? `${source.root}${version ? ` (${version})` : ""}` : version
   console.log(`\n  Patina ${from}${manifest?.version ? ` (this project: ${manifest.version})` : manifest ? "" : ` — no ${MANIFEST} yet, so the items are the ones found here`}`)
   console.log(`  items: ${items.join(", ")}\n`)
 
-  const { files, deps, items: resolved, absent } = await plan(cwd, source, items, manifest, force)
+  const { files, deps, items: resolved, absent } = await plan(layout, source, items, manifest, force)
   for (const name of absent) console.log(warn(`${name} — not in this version of the pack; left as it is`))
   const added = resolved.filter((n) => !items.includes(n))
   if (added.length) console.log(tick(`also ${added.join(", ")} — what the items above now need`))
@@ -265,54 +260,36 @@ export async function update({ cwd, to, source: sourceArg, force, dryRun, add = 
 
   // The record: what is installed, at which version, and each file's
   // fingerprint as it now is on disk — a file kept as edited keeps the
-  // fingerprint it had, so it stays marked until it is replaced.
-  const record = {
-    $comment: NOTE,
-    version: version ?? manifest?.version ?? null,
-    // An item this version lacks stays listed, its files' fingerprints
-    // with it, for the next version that has it again.
-    items: [...new Set([...items, ...added])],
-    files: Object.fromEntries(
-      Object.entries({
+  // fingerprint it had, so it stays marked until it is replaced. An item
+  // this version lacks stays listed, its files' fingerprints with it, for
+  // the next version that has it again.
+  if (!dryRun)
+    writeManifest(cwd, {
+      version: version ?? manifest?.version ?? null,
+      items: [...items, ...added],
+      files: {
         ...manifest?.files,
         ...Object.fromEntries(files.map((f) => [f.rel, f.state === "edited" ? f.recorded : fingerprint(f.state === "same" ? f.have : f.next)])),
-      }).sort(([a], [b]) => a.localeCompare(b))
-    ),
-  }
-  if (!dryRun) fs.writeFileSync(path.join(cwd, MANIFEST), `${JSON.stringify(record, null, 2)}\n`)
+      },
+    })
   console.log(`\n  ${dryRun ? "Dry run — nothing written." : `${MANIFEST} written.`} ${count.update} updated, ${count.new} added, ${count.edited} kept, ${count.same} unchanged.\n`)
   return 0
 }
 
 /** After init: record what it installed, so the first update knows which
  *  items are the pack's and what each file looked like. The files are
- *  hashed as they are on disk now, just written. */
+ *  hashed as they are on disk now, just written; the items' file lists
+ *  come from the registry init installed from, all at once. */
 export async function recordInstall(cwd, { registry, items }) {
-  const files = {}
-  const base = registry.replace(/\/+$/, "")
-  for (const name of items) {
-    let item
-    try {
-      const res = /^https?:\/\//.test(base) ? await fetch(`${base}/${name}.json`) : null
-      item = res ? (res.ok ? await res.json() : null) : JSON.parse(fs.readFileSync(path.join(base, `${name}.json`), "utf8"))
-    } catch {
-      item = null
-    }
-    for (const file of item?.files ?? []) {
-      const abs = targetPath(cwd, file.target ?? file.path)
-      if (fs.existsSync(abs)) files[path.relative(cwd, abs)] = fingerprint(fs.readFileSync(abs, "utf8"))
-    }
-  }
-  for (const [, to] of COPIES) {
-    const abs = path.join(cwd, to)
-    if (fs.existsSync(abs)) files[to] = fingerprint(fs.readFileSync(abs, "utf8"))
-  }
-  const record = {
-    $comment: NOTE,
-    version: null,
-    items,
-    files: Object.fromEntries(Object.entries(files).sort(([a], [b]) => a.localeCompare(b))),
-  }
-  fs.writeFileSync(path.join(cwd, MANIFEST), `${JSON.stringify(record, null, 2)}\n`)
-  return record
+  const layout = layoutOf(cwd)
+  const registrySource = sourceAt(registry)
+  const jsons = await Promise.all(items.map((name) => registrySource.read(`${name}.json`).catch(() => null)))
+  const targets = [
+    ...jsons.flatMap((json) => (json ? JSON.parse(json).files ?? [] : [])).map((file) => targetPath(layout, file.target ?? file.path)),
+    ...COPIES.map(([, to]) => path.join(cwd, to)),
+  ]
+  const files = Object.fromEntries(
+    targets.filter((abs) => fs.existsSync(abs)).map((abs) => [path.relative(cwd, abs), fingerprint(fs.readFileSync(abs, "utf8"))])
+  )
+  writeManifest(cwd, { version: null, items, files })
 }

@@ -91,7 +91,7 @@ try {
           cwd: process.cwd(),
           to: value("to", undefined),
           source: value("source", undefined),
-          add: (value("add", "") || "").split(",").map((s) => s.trim()).filter(Boolean),
+          add: value("add", "").split(",").map((s) => s.trim()).filter(Boolean),
           force: flag("force"),
           dryRun: flag("dry-run"),
         })

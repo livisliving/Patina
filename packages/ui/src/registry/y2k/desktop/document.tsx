@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import type { DocumentEntry } from "@/lib/content"
 
 import { Blocks, Inlines, countMovies, countPictures, countSections, plural } from "./blocks"
+import { prefersReducedMotion } from "./use-media-query"
 import { DocumentWindow, type WinEntry } from "./windows"
 
 /**
@@ -34,7 +35,6 @@ const IN_VIEW = 24
 const OUTLINE_MIN = 3
 
 const VIEWPORT = '[data-slot="window-scroll-viewport"]'
-const reducedMotion = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
 export function DocumentView({ win, doc }: { win: WinEntry; doc: DocumentEntry }) {
   const toc = doc.outline && doc.outline.length >= OUTLINE_MIN ? doc.outline : null
@@ -97,7 +97,7 @@ export function DocumentView({ win, doc }: { win: WinEntry; doc: DocumentEntry }
     held.current = true
     setCurrent(id)
     const top = heading.getBoundingClientRect().top - vp.getBoundingClientRect().top + vp.scrollTop - PAGE_PADDING
-    vp.scrollTo({ top: Math.max(0, top), behavior: reducedMotion() ? "auto" : "smooth" })
+    vp.scrollTo({ top: Math.max(0, top), behavior: prefersReducedMotion() ? "auto" : "smooth" })
   }
 
   const outline = toc && (
