@@ -167,20 +167,10 @@ function DesktopWindow({ id, title, initial, z, zoomed, opened, active, onRaise,
   const isDesktop = useMediaQuery("(min-width: 768px)")
   const toggleZoom = React.useCallback(() => onZoom(id), [onZoom, id])
   // On a phone the windows are one column, and a window just opened (or
-  // brought back) goes to its top, the latest first, and is scrolled to —
-  // else it would land under all the others and the tap seem to do nothing.
-  // `order` moves it without moving it in the DOM, so nothing in it restarts.
-  // The scroll goes by the window's place in the layout (offsetTop), not its
-  // box on screen: a new one is still scaling in from 95%, and a 5000px
-  // document mid-animation starts 120px lower than it will.
-  React.useEffect(() => {
-    if (isDesktop || !opened) return
-    const el = document.querySelector<HTMLElement>(`[data-window-id="${id}"]`)
-    if (!el) return
-    let top = 0
-    for (let n: HTMLElement | null = el; n; n = n.offsetParent as HTMLElement | null) top += n.offsetTop
-    window.scrollTo({ top: Math.max(0, top - parseFloat(getComputedStyle(el).scrollMarginTop)), behavior: prefersReducedMotion() ? "auto" : "smooth" })
-  }, [isDesktop, opened, id])
+  // brought back) goes to its top, the latest first — else it would land
+  // under all the others and the tap seem to do nothing (the desktop scrolls
+  // to it). `order` moves it without moving it in the DOM, so nothing in it
+  // restarts.
   // Only float (apply left/top/size) on desktop. Below md the window is in
   // normal flow (w-full) — applying the drag offsets to a relative element
   // would push it off-screen.
@@ -1069,6 +1059,26 @@ export function Desktop() {
   const dsNoResults = dsq && !DS_GROUPS.some(dsMatch)
 
   const isDesktop = useMediaQuery("(min-width: 768px)")
+  // On a phone, scroll to a window as it opens (it goes to the top of the
+  // column: DesktopWindow's `order`) — only when a newer one opens, so
+  // closing the latest leaves the page where it is. By its place in the
+  // layout (offsetTop), not its box on screen: it is still scaling in from
+  // 95%, and a 5000px document mid-animation sits 120px lower than it will.
+  const latestId = (Object.keys(wins) as WinId[]).reduce<WinId | undefined>(
+    (a, id) => ((wins[id].opened ?? 0) > (a ? (wins[a].opened ?? 0) : 0) ? id : a),
+    undefined
+  )
+  const latestOpened = latestId ? (wins[latestId].opened ?? 0) : 0
+  const scrolledTo = React.useRef(0)
+  React.useEffect(() => {
+    if (isDesktop || !latestId || latestOpened <= scrolledTo.current) return
+    scrolledTo.current = latestOpened
+    const el = document.querySelector<HTMLElement>(`[data-window-id="${latestId}"]`)
+    if (!el) return
+    let top = 0
+    for (let n: HTMLElement | null = el; n; n = n.offsetParent as HTMLElement | null) top += n.offsetTop
+    window.scrollTo({ top: Math.max(0, top - parseFloat(getComputedStyle(el).scrollMarginTop)), behavior: prefersReducedMotion() ? "auto" : "smooth" })
+  }, [isDesktop, latestId, latestOpened])
   // A phone, or any screen without a pointer that hovers (a touch screen):
   // a tap in the Finder opens a file, as a double-click does with a mouse —
   // there is no double-tap to find out about.
