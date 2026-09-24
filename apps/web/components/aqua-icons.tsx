@@ -45,8 +45,10 @@ const tone = (pct: number, mix: "white" | "black") =>
 
 /** The wrapper fills the caller's sized box, whether the caller sizes the icon
     directly (className="size-16") or sizes a parent box and expects the icon to
-    fill it (the `[&_svg]:size-full` call sites). */
-const WRAP = "inline-flex h-full w-full items-center justify-center"
+    fill it (the `[&_svg]:size-full` call sites). A block, as an <img> or <svg>
+    is: inline, it would sit on the text's baseline, and in a box shorter than
+    the line (a 16px icon by a 13px title) drop 2px below it. */
+const WRAP = "flex h-full w-full items-center justify-center"
 
 function PngIcon({ src, alt, className, style, ...props }: ImgProps & { src: string; alt: string }) {
   return (

@@ -504,10 +504,13 @@ export function Finder({
       // The window is named for the folder it shows, its icon before the
       // name, as 10.1 titles a Finder window.
       title={
-        <>
-          <span className="mr-1 inline-block size-4 align-middle [&_svg]:size-full">{here?.icon ?? <ComputerIcon />}</span>
-          {here?.label ?? "Computer"}
-        </>
+        // A row, so the icon is centred on the title bar, as the name's
+        // capitals are (`align-middle` centres it on the x-height instead,
+        // a pixel low); the name alone gives way to an ellipsis.
+        <span className="flex h-full items-center gap-1">
+          <span className="size-4 shrink-0 [&_svg]:size-full">{here?.icon ?? <ComputerIcon />}</span>
+          <span className="truncate">{here?.label ?? "Computer"}</span>
+        </span>
       }
       material="metal"
       onToolbarToggle={onToolbarToggle}

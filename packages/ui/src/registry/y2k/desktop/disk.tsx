@@ -209,10 +209,11 @@ export const everyNode = (nodes: Node[]): Node[] => nodes.flatMap((n) => [n, ...
 /** A picture as its icon: the picture at the box's size, kept in shape,
  *  behind a hairline. An alias wears the badge on the picture's
  *  bottom-left corner (the picture's, not the square's, so it sits on it
- *  whatever its shape). */
+ *  whatever its shape). A block, as the other icons are: inline, a
+ *  picture wider than tall sat on the line's baseline, below the middle. */
 export function Thumb({ img, alias }: { img: Img; alias?: boolean }) {
   return (
-    <span className="inline-flex size-full items-center justify-center">
+    <span className="flex size-full items-center justify-center">
       <span className={cn("relative", img.w >= img.h ? "w-full" : "h-full")} style={{ aspectRatio: `${img.w} / ${img.h}` }}>
         {/* eslint-disable-next-line @next/next/no-img-element -- an icon-sized thumbnail of a file already in public/ */}
         <img src={asset(img.src)} alt="" draggable={false} className="block size-full border border-black/40 bg-white" />

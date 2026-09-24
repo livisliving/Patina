@@ -22,8 +22,10 @@ type IconProps = { className?: string; style?: React.CSSProperties }
 
 /** The wrapper fills the caller's box, whether the caller sizes the icon
  *  (className="size-16") or sizes a parent and expects it to fill that (the
- *  `[&_svg]:size-full` call sites). */
-const WRAP = "inline-flex h-full w-full items-center justify-center"
+ *  `[&_svg]:size-full` call sites). A block, as an <img> or <svg> is:
+ *  inline, it would sit on the text's baseline, and in a box shorter than the
+ *  line (a 16px icon by a 13px title) drop 2px below it. */
+const WRAP = "flex h-full w-full items-center justify-center"
 
 function Png({ src, alt, className, style }: IconProps & { src: string; alt: string }) {
   return (
