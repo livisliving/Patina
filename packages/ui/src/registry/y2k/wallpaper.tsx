@@ -17,32 +17,56 @@ import { cn } from "@/lib/utils"
 
 type WallpaperPhoto = { desktop: string; mobile?: string }
 
-/** The tone on <html data-tone>, kept current; pink until it is set. */
-function subscribeTone(cb: () => void) {
-  const obs = new MutationObserver(cb)
-  obs.observe(document.documentElement, { attributes: true, attributeFilter: ["data-tone"] })
-  return () => obs.disconnect()
+/** The tones, as y2k.css names them on <html data-tone> (pink when unset). */
+const TONES = ["pink", "aqua", "lime", "tangerine", "grape"] as const
+type ToneId = (typeof TONES)[number]
+
+/** Which picture shows is CSS's choice, not React's: each tone's pictures
+ *  are custom properties on the element, and the tone on <html> picks one.
+ *  So the server's HTML already paints the right one (it cannot know the
+ *  tone; the stylesheet can), a tone change needs no render, and only the
+ *  picture in use is fetched. Class names are spelled out for Tailwind. */
+const PICK =
+  "[--wp:var(--wp-pink,none)] [--wp-m:var(--wp-m-pink,none)] " +
+  "[html[data-tone=aqua]_&]:[--wp:var(--wp-aqua,none)] [html[data-tone=aqua]_&]:[--wp-m:var(--wp-m-aqua,none)] " +
+  "[html[data-tone=lime]_&]:[--wp:var(--wp-lime,none)] [html[data-tone=lime]_&]:[--wp-m:var(--wp-m-lime,none)] " +
+  "[html[data-tone=tangerine]_&]:[--wp:var(--wp-tangerine,none)] [html[data-tone=tangerine]_&]:[--wp-m:var(--wp-m-tangerine,none)] " +
+  "[html[data-tone=grape]_&]:[--wp:var(--wp-grape,none)] [html[data-tone=grape]_&]:[--wp-m:var(--wp-m-grape,none)]"
+/** The swoosh steps aside for a tone that has a picture (the picture would
+ *  cover it anyway; hidden, it is not drawn). */
+const HIDE_SWOOSH: Record<ToneId, string> = {
+  pink: "[html:not([data-tone])_&]:hidden [html[data-tone=pink]_&]:hidden",
+  aqua: "[html[data-tone=aqua]_&]:hidden",
+  lime: "[html[data-tone=lime]_&]:hidden",
+  tangerine: "[html[data-tone=tangerine]_&]:hidden",
+  grape: "[html[data-tone=grape]_&]:hidden",
 }
-const toneNow = () => document.documentElement.getAttribute("data-tone") ?? "pink"
 
 function Wallpaper({ photos, className }: { photos?: Partial<Record<string, WallpaperPhoto>>; className?: string }) {
-  const tone = React.useSyncExternalStore(subscribeTone, toneNow, () => "pink")
-  const photo = photos?.[tone]
-
-  if (photo) {
-    return (
-      <div
-        aria-hidden="true"
-        data-slot="wallpaper"
-        className={cn(
-          "pointer-events-none fixed inset-0 -z-10 size-full bg-(image:--wallpaper-mobile) bg-cover bg-center bg-no-repeat md:bg-(image:--wallpaper)",
-          className
-        )}
-        style={{ "--wallpaper": `url(${photo.desktop})`, "--wallpaper-mobile": `url(${photo.mobile ?? photo.desktop})` } as React.CSSProperties}
-      />
-    )
-  }
-  return <WallpaperSwoosh className={className} />
+  const toned = TONES.filter((t) => photos?.[t])
+  const vars = Object.fromEntries(
+    toned.flatMap((t) => [
+      [`--wp-${t}`, `url(${photos![t]!.desktop})`],
+      [`--wp-m-${t}`, `url(${photos![t]!.mobile ?? photos![t]!.desktop})`],
+    ])
+  ) as React.CSSProperties
+  return (
+    <>
+      <WallpaperSwoosh className={cn(toned.map((t) => HIDE_SWOOSH[t]), className)} />
+      {toned.length > 0 && (
+        <div
+          aria-hidden="true"
+          data-slot="wallpaper"
+          className={cn(
+            "pointer-events-none fixed inset-0 -z-10 size-full bg-(image:--wp-m) bg-cover bg-center bg-no-repeat md:bg-(image:--wp)",
+            PICK,
+            className
+          )}
+          style={vars}
+        />
+      )}
+    </>
+  )
 }
 
 /** The swoosh: translucent curved sheets of the tone, one dark fold,

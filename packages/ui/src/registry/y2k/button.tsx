@@ -37,7 +37,7 @@ const packVariants = cva(
   [
     "relative inline-flex shrink-0 cursor-default select-none items-center justify-center gap-1.5 whitespace-nowrap",
     "border-0 font-(family-name:--y2k-font-ui) font-normal leading-none text-(--y2k-ink) antialiased outline-none",
-    "focus-visible:outline-3 focus-visible:outline-offset-1 focus-visible:outline-(--y2k-tone-focus)",
+    "focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-offset-1 focus-visible:outline-(--y2k-tone-focus)",
     "disabled:pointer-events-none disabled:text-(--y2k-ink-disabled) disabled:opacity-55 disabled:shadow-(--rim)",
     // The body is --face; a press lays the original's grey over it.
     "bg-(image:--face) active:bg-[image:var(--y2k-gel-pressed),var(--face)] aria-pressed:bg-[image:var(--y2k-gel-pressed),var(--face)]",
@@ -165,7 +165,7 @@ function BevelButton({ className, pressed, ...props }: React.ComponentProps<"but
         "bg-(image:--y2k-bevel) shadow-(--y2k-shadow-bevel)",
         "active:bg-[image:var(--y2k-gel-pressed),var(--y2k-bevel)] aria-pressed:bg-[image:var(--y2k-gel-pressed),var(--y2k-bevel)]",
         "disabled:bg-(image:--y2k-bevel-disabled) disabled:text-(--y2k-ink-disabled) disabled:shadow-none",
-        "focus-visible:outline-3 focus-visible:outline-offset-1 focus-visible:outline-(--y2k-tone-focus)",
+        "focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-offset-1 focus-visible:outline-(--y2k-tone-focus)",
         className
       )}
       {...props}

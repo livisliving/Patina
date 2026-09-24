@@ -48,7 +48,7 @@ function Nudge({
       data-slot="nudge"
       className={cn(
         // A mini Aqua window: pinstripe frame, rounded top, deep shadow.
-        "relative overflow-hidden rounded-(--y2k-window-radius) border-[0.5px] border-(--y2k-window-border)",
+        "relative overflow-hidden rounded-(--y2k-window-radius) border border-(--y2k-window-border)/50",
         "bg-(image:--y2k-pinstripe) font-(family-name:--y2k-font-ui) text-(--y2k-ink) shadow-(--y2k-shadow-window)",
         "data-[state=open]:animate-[y2k-nudge-in_600ms_var(--y2k-ease-aqua)]",
         "data-[state=closed]:animate-[y2k-nudge-out_180ms_ease-in]",

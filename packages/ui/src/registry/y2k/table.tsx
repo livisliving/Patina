@@ -39,7 +39,8 @@ function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
 
 /** A header cell. Pass `sorted` for the column the list sorts by: it takes
  *  the tone, and a 7×6 triangle 4px from its right edge points up
- *  (ascending) or down. */
+ *  (ascending) or down. With `onClick` (a header that sorts) its name is a
+ *  button, so the keyboard reaches it; the click it makes lands on the cell. */
 function TableHead({ className, sorted, children, ...props }: React.ComponentProps<"th"> & { sorted?: "ascending" | "descending" }) {
   return (
     <th
@@ -55,7 +56,16 @@ function TableHead({ className, sorted, children, ...props }: React.ComponentPro
       )}
       {...props}
     >
-      {children}
+      {props.onClick ? (
+        <button
+          type="button"
+          className="block w-full cursor-default text-left outline-none focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-(--y2k-tone-focus)"
+        >
+          {children}
+        </button>
+      ) : (
+        children
+      )}
       {sorted && (
         <svg
           viewBox="0 0 7 6"
@@ -96,7 +106,7 @@ function TableRow({
         // Every other row the pale tone; the selected row the tone selection.
         "even:bg-(--y2k-tone-zebra) aria-selected:bg-(--y2k-tone-selection) aria-selected:text-(--y2k-tone-selection-text)",
         // A focusable (tabIndex) row shows the ring inside its edge.
-        "outline-none focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-(--y2k-tone-focus)",
+        "outline-none focus-visible:outline-3 focus-visible:outline-solid focus-visible:-outline-offset-3 focus-visible:outline-(--y2k-tone-focus)",
         className
       )}
       {...props}
@@ -132,7 +142,7 @@ function TreeItem({ node, depth }: { node: TreeNode; depth: number }) {
             type="button"
             aria-label={open ? "Collapse" : "Expand"}
             onClick={() => setOpen((o) => !o)}
-            className="mr-[5px] flex size-[7px] shrink-0 cursor-default items-center justify-center outline-none"
+            className="mr-[5px] flex size-[7px] shrink-0 cursor-default items-center justify-center outline-none focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-(--y2k-tone-focus)"
           >
             <svg viewBox="0 0 7 9" className={cn("h-[9px] w-[7px] transition-transform", open && "rotate-90")} aria-hidden>
               <path d="M0 0l7 4.5L0 9z" fill="#1a1a1a" />

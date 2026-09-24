@@ -445,11 +445,25 @@ export async function init({ cwd, registry, components, desktop, force, dryRun, 
   /* 4 — the tone on <html>, and the pointer for the coding agent. */
   applyTone(cwd, tone, { dryRun })
   const note = agentNote(tone, desktop || fs.existsSync(path.join(projectDirs(cwd).base, "content", "site.ts")))
+  const agents = fs.existsSync(path.join(cwd, "AGENTS.md"))
   for (const name of ["CLAUDE.md", "AGENTS.md"]) {
     const target = path.join(cwd, name)
     const exists = fs.existsSync(target)
     if (name === "AGENTS.md" && !exists) continue
     const have = exists ? fs.readFileSync(target, "utf8") : ""
+    // A CLAUDE.md that brings in AGENTS.md (`@AGENTS.md`, as create-next-app
+    // writes it) reads the note there; a second copy is only noise. One an
+    // earlier run left in it is taken out.
+    if (name === "CLAUDE.md" && agents && /^@AGENTS\.md\s*$/m.test(have)) {
+      if (!NOTE_BLOCK.test(have)) {
+        console.log(skip("CLAUDE.md reads AGENTS.md, which carries the note"))
+        continue
+      }
+      if (!dryRun) fs.writeFileSync(target, `${have.replace(/\n*<!-- BEGIN:patina -->[\s\S]*?<!-- END:patina -->/, "").trimEnd()}\n`)
+      console.log(tick("CLAUDE.md — its copy of the note taken out: it reads AGENTS.md, which carries it"))
+      written++
+      continue
+    }
     // A re-run with another tone rewrites the note in place.
     const next = NOTE_BLOCK.test(have) ? have.replace(NOTE_BLOCK, note) : have ? `${have.trimEnd()}\n\n${note}\n` : `${note}\n`
     if (next === have) {

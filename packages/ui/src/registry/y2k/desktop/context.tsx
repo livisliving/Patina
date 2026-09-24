@@ -8,7 +8,7 @@ import type { DocumentEntry, Entry, Img, Movie, Site } from "@/lib/content"
 
 import { findNode, indexSite, type Node } from "./disk"
 import { DocIcon, FaceIcon, IPodIcon, NoteIcon } from "./icons"
-import { WindowActionsProvider, useWindows, type Point, type WinEntry, type WinSpec } from "./windows"
+import { WindowActionsProvider, useWindows, type Place, type Point, type WinEntry, type WinSpec } from "./windows"
 
 /**
  * The desktop's state, for anything that opens a window from anywhere — a
@@ -66,6 +66,25 @@ export function loadLayout(ipod = true): { finder: Point & { w: number; h: numbe
   }
   return { finder, ipod: at }
 }
+
+/** loadLayout's sums in CSS, for the first paint (see `Place`): the same
+ *  numbers out of 100vw and 100dvh, rounded down to the grid, so the
+ *  windows paint where they will stay instead of in a heap at the top left
+ *  until the page wakes. Keep the two in step. */
+const RIGHT = `(100vw - ${ICON_COLUMN + 16}px)`
+const FLOOR = `(100dvh - var(--y2k-dock-h, 70px) - 16px)`
+const IPOD_Y = `round(down, max(32px, ${FLOOR} - ${IPOD_SIZE.h}px), 4px)`
+const FINDER_W = `round(down, max(${FINDER_MIN_W}px, min(${FINDER_SIZE.w}px, ${RIGHT} - ${40 + ABOUT_W + 24}px)), 4px)`
+const loadPlace = (ipod: boolean): Record<"about" | "finder" | "ipod", Place> => ({
+  about: { left: "40px", top: "56px" },
+  finder: {
+    left: `round(down, max(64px, min(${40 + ABOUT_W + 24}px, ${RIGHT} - ${FINDER_W})), 4px)`,
+    top: "56px",
+    width: FINDER_W,
+    height: `round(down, min(${FINDER_SIZE.h}px, max(288px, ${ipod ? `${IPOD_Y} + 48px` : FLOOR} - 56px)), 4px)`,
+  },
+  ipod: { left: `round(down, max(16px, ${RIGHT} - ${IPOD_SIZE.w}px), 4px)`, top: IPOD_Y },
+})
 
 /** An id inside a quoted attribute selector: only the quote and the
  *  backslash need escaping (a Preview's id carries a path). */
@@ -151,11 +170,14 @@ export function DesktopProvider({ site, volume, ipod = false, children }: { site
   // At load: the About box in front, the Finder at the volume beside it,
   // the iPod under the Finder. They stay in this order in the registry, so
   // on a phone they stack as they always have.
-  const { wins, focus, open: place, close, minimize: park, zoom, frontId } = useWindows(() => [
-    { ...finderSpec, at: () => loadLayout(ipod).finder, z: 1, minimized: false },
-    ...(ipod ? [{ ...ipodSpec, at: ipodAt, z: 2, minimized: false }] : []),
-    { ...aboutSpec, at: { x: 40, y: 56 }, z: 3, minimized: false },
-  ])
+  const { wins, focus, open: place, close, minimize: park, zoom, frontId } = useWindows(() => {
+    const at = loadPlace(ipod)
+    return [
+      { ...finderSpec, at: () => loadLayout(ipod).finder, place: at.finder, z: 1, minimized: false },
+      ...(ipod ? [{ ...ipodSpec, at: ipodAt, place: at.ipod, z: 2, minimized: false }] : []),
+      { ...aboutSpec, at: { x: 40, y: 56 }, place: at.about, z: 3, minimized: false },
+    ]
+  })
   // The registry as the handlers last saw it: they run after a commit, so
   // reading it through a ref keeps them stable.
   const winsRef = React.useRef(wins)

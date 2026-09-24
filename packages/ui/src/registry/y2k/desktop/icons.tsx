@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils"
 
 import { BIN, DISK, DOC, FINDER, FOLDER_AQUA, FOLDER_GRAPE, FOLDER_LIME, FOLDER_PINK, FOLDER_TANGERINE, IPOD, NOTE } from "./icon-data"
 import type { Tone } from "./tones"
-import { useTone } from "./use-tone"
 
 /**
  * The desktop's icons: Olivia's own PNG artwork, inlined by
@@ -65,10 +64,25 @@ const FOLDER_BY_TONE: Record<Tone, string> = {
   grape: FOLDER_GRAPE,
 }
 
+/** Each tone's folder as CSS, keyed to the tone on <html> (pink when
+ *  unset). The server's HTML then paints the right folder — it cannot know
+ *  the tone; the stylesheet can — and a tone change needs no render. React
+ *  hoists the one <style> into the head, however many folders there are. */
+const FOLDER_CSS = [
+  `.y2k-folder{background:url(${FOLDER_BY_TONE.pink}) center/contain no-repeat}`,
+  ...(["aqua", "lime", "tangerine", "grape"] as const).map((t) => `html[data-tone="${t}"] .y2k-folder{background-image:url(${FOLDER_BY_TONE[t]})}`),
+].join("\n")
+
 /** An Aqua folder in the tone's colour. */
-export function FolderIcon(props: IconProps) {
-  const t = useTone()
-  return <Png src={FOLDER_BY_TONE[t] ?? FOLDER_PINK} alt="Folder" {...props} />
+export function FolderIcon({ className, style }: IconProps) {
+  return (
+    <>
+      <style href="y2k-folder" precedence="default">
+        {FOLDER_CSS}
+      </style>
+      <span role="img" aria-label="Folder" className={cn(WRAP, "y2k-folder", className)} style={style} />
+    </>
+  )
 }
 
 /** The Patina star, flat in the current colour: where a display has its

@@ -112,8 +112,8 @@ function MenuRows({ items }: { items: MenuRow[] }) {
   )
 }
 
-/** A title in the bar: the tone highlight and white ink under the pointer
- *  and while its menu is open. */
+/** A title in the bar: the tone highlight and white ink under the pointer,
+ *  under the keyboard's focus and while its menu is open. */
 function MenuBarTitle({ className, ...props }: React.ComponentProps<typeof Menu.Trigger>) {
   return (
     <Menu.Trigger
@@ -121,6 +121,7 @@ function MenuBarTitle({ className, ...props }: React.ComponentProps<typeof Menu.
       className={cn(
         "flex h-full shrink-0 cursor-default items-center rounded-[3px] px-2 whitespace-nowrap outline-none select-none",
         "hover:bg-(image:--y2k-tone-highlight) hover:text-(--y2k-tone-highlight-text)",
+        "focus-visible:bg-(image:--y2k-tone-highlight) focus-visible:text-(--y2k-tone-highlight-text)",
         "data-[state=open]:bg-(image:--y2k-tone-highlight) data-[state=open]:text-(--y2k-tone-highlight-text)",
         className
       )}
@@ -267,7 +268,15 @@ function MenuBarVolume({ value, onValueChange }: { value: number; onValueChange:
         <SpeakerGlyph level={value} />
       </MenuBarTitle>
       <Menu.Portal>
-        <Menu.Content align="center" sideOffset={0} className={cn(menuContentClass, "min-w-0 px-2 py-3")} {...menu.content}>
+        <Menu.Content
+          align="center"
+          sideOffset={0}
+          className={cn(menuContentClass, "min-w-0 px-2 py-3")}
+          // The menu takes the focus as it opens; the slider is all there is
+          // in it, and a menu keeps Tab to itself, so hand the focus on.
+          onFocus={(e) => e.target === e.currentTarget && e.currentTarget.querySelector("input")?.focus()}
+          {...menu.content}
+        >
           <div className="relative h-[124px] w-6">
             <Slider
               min={0}

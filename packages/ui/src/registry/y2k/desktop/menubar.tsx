@@ -48,7 +48,7 @@ export function MenuBar({ tone, onToneChange, owner, about, places, home, menus 
                 <Menu.ItemIndicator className={menuTickClass}>✓</Menu.ItemIndicator>
                 <span
                   data-tone={t.id}
-                  className="inline-block size-3 rounded-full bg-(--y2k-tone) shadow-[inset_0_1px_1px_rgba(255,255,255,0.6),0_0_0_0.5px_rgba(0,0,0,0.35)]"
+                  className="inline-block size-3 rounded-full bg-(--y2k-tone) shadow-[inset_0_1px_1px_rgba(255,255,255,0.6),0_0_0_1px_rgba(0,0,0,0.18)]"
                 />
                 {t.label}
               </span>

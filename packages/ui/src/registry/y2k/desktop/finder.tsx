@@ -512,7 +512,9 @@ export function Finder({
       material="metal"
       onToolbarToggle={onToolbarToggle}
       defaultSize={size}
-      className="md:h-[400px] md:w-[768px]"
+      // Its load-time size before the page wakes (the window's `place`),
+      // else 768 × 400; the px of `size` take over once awake.
+      className="md:h-[var(--win-h,400px)] md:w-[var(--win-w,768px)]"
       status={narrowed ? `${visible.length} of ${hereItems.length} items` : `${hereItems.length} ${hereItems.length === 1 ? "item" : "items"}`}
       toolbar={
         toolbar && (

@@ -7,10 +7,9 @@
  * Tone adaptation:
  *   • StarIcon (Patina brand mark) recolours the single pink gel PNG via the
  *     CSS var --y2k-star-filter, set per tone in y2k.css — zero JS.
- *   • FolderIcon/HeartIcon swap the PNG *file* per tone (real per-colour art),
- *     so they read the active tone. They share ONE document-level tone
- *     subscription (the `useTone` hook, also used by the wallpaper) instead of
- *     one MutationObserver per icon.
+ *   • FolderIcon/HeartIcon swap the PNG *file* per tone (real per-colour art)
+ *     in CSS: one stylesheet rule per tone on <html data-tone>, so the first
+ *     paint is right and only the file in use is fetched — zero JS too.
  *
  * Two document icons: DocIcon = simple clean-paper doc (INSIDE windows / file
  * lists), NoteIcon = detailed letter+pen scene (the DOCK).
@@ -28,7 +27,6 @@ import { cn } from "@patina/ui"
 
 import type { Tone } from "./tones"
 import { asset } from "./asset"
-import { useTone } from "./use-tone"
 
 type IconProps = React.ComponentProps<"svg">
 type ImgProps = Omit<React.ComponentProps<"img">, "src" | "alt">
@@ -94,23 +92,39 @@ const HEART_BY_TONE: Record<Tone, string> = {
   grape: "/icons/heart-red.png",
 }
 
+/** Each tone's picture as CSS, keyed to the tone on <html> (pink when
+ *  unset): the server's HTML paints the right one — it cannot know the
+ *  tone; the stylesheet can — a tone change needs no render, and only the
+ *  file in use is fetched. React hoists each <style> into the head once. */
+const tonedCss = (cls: string, byTone: Record<Tone, string>) =>
+  [
+    `.${cls}{background:url(${asset(byTone.pink)}) center/contain no-repeat}`,
+    ...(["aqua", "lime", "tangerine", "grape"] as const).map((t) => `html[data-tone="${t}"] .${cls}{background-image:url(${asset(byTone[t])})}`),
+  ].join("\n")
+const FOLDER_CSS = tonedCss("y2k-folder", FOLDER_BY_TONE)
+const HEART_CSS = tonedCss("y2k-heart", HEART_BY_TONE)
+
 /** Aqua folder — tone-matched to the active data-tone. */
 export function FolderIcon({ className, style }: IconProps) {
-  const t = useTone()
   return (
-    <span className={cn(WRAP, className)} style={style}>
-      <PngIcon src={FOLDER_BY_TONE[t]} alt="Folder" />
-    </span>
+    <>
+      <style href="y2k-folder" precedence="default">
+        {FOLDER_CSS}
+      </style>
+      <span role="img" aria-label="Folder" className={cn(WRAP, "y2k-folder", className)} style={style} />
+    </>
   )
 }
 
 /** Gel heart — tone-matched. Favourites + the Window demo. */
 export function HeartIcon({ className, style }: IconProps) {
-  const t = useTone()
   return (
-    <span className={cn(WRAP, className)} style={style}>
-      <PngIcon src={HEART_BY_TONE[t]} alt="Heart" />
-    </span>
+    <>
+      <style href="y2k-heart" precedence="default">
+        {HEART_CSS}
+      </style>
+      <span role="img" aria-label="Heart" className={cn(WRAP, "y2k-heart", className)} style={style} />
+    </>
   )
 }
 

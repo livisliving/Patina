@@ -62,7 +62,7 @@ function TrafficLight({
     />
   )
   return (
-    <div className="relative size-(--y2k-light-size)" data-kind={kind}>
+    <div className="group/light relative size-(--y2k-light-size) rounded-full has-focus-visible:shadow-(--y2k-focus-ring)" data-kind={kind}>
       <div
         aria-hidden="true"
         className={cn(
@@ -71,11 +71,12 @@ function TrafficLight({
         )}
         style={{ backgroundImage: lit ? `var(--y2k-light-${light.color})` : "var(--y2k-light-off)" }}
       >
-        {/* The glyph shows while the pointer is over the group. */}
+        {/* The glyph shows while the pointer is over the group, and on the
+            light the keyboard is on. */}
         {lit && (
           <svg
             viewBox="0 0 10 10"
-            className="pointer-events-none absolute inset-0 z-[1] size-full opacity-0 group-hover/lights:opacity-100"
+            className="pointer-events-none absolute inset-0 z-[1] size-full opacity-0 group-hover/lights:opacity-100 group-has-focus-visible/light:opacity-100"
             style={{ color: `var(--y2k-light-${light.color}-glyph)` }}
             aria-hidden="true"
           >
@@ -154,7 +155,8 @@ function WindowToolbarToggle({ className, active = true, ...props }: React.Compo
       onPointerDown={(e) => e.stopPropagation()}
       className={cn(
         "relative z-10 ml-auto h-[12px] w-[20px] shrink-0 cursor-default rounded-[6px] outline-none",
-        "bg-(image:--y2k-toolbar-toggle) shadow-[var(--y2k-light-drop),inset_0_0_0_0.5px_rgba(0,0,0,0.5)]",
+        "focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-offset-1 focus-visible:outline-(--y2k-tone-focus)",
+        "bg-(image:--y2k-toolbar-toggle) shadow-[var(--y2k-light-drop),inset_0_0_0_1px_rgba(0,0,0,0.25)]",
         "active:bg-[image:var(--y2k-gel-pressed),var(--y2k-toolbar-toggle)] active:shadow-(--y2k-light-drop-active)",
         !active && "opacity-50",
         className
@@ -645,11 +647,16 @@ function WindowFrame({
   ...props
 }: WindowFrameProps) {
   const metal = material === "metal"
+  // A window is a region named by its title, so a screen reader can say
+  // which one it is in. A dialog's frame (titleAs) is named by its Dialog.
+  const titleId = React.useId()
   return (
     <div
       data-slot="window"
       data-active={active}
       data-material={material}
+      role={titleAs ? undefined : "region"}
+      aria-labelledby={titleAs ? undefined : titleId}
       className={cn(
         // The system face on the frame itself, so text set straight into a
         // window (a toolbar's, a status bar's) is Aqua's without the app
@@ -686,7 +693,7 @@ function WindowFrame({
           zoomable={zoomable}
           closeAs={closeAs}
         />
-        <WindowTitleText as={titleAs} active={active}>
+        <WindowTitleText as={titleAs} active={active} id={titleAs ? undefined : titleId}>
           {title}
         </WindowTitleText>
         {onToolbarToggle && <WindowToolbarToggle active={active} onClick={onToolbarToggle} />}

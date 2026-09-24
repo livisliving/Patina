@@ -44,7 +44,13 @@ export type WinSpec = {
  *  or brought back (from the Dock, a menu, a click in the Finder); the
  *  windows there at load have none. A focus does not change it: on a phone
  *  that is a tap to scroll. */
-export type WinEntry = WinSpec & { z: number; minimized: boolean; zoomed?: boolean; at: Point | (() => Point); opened?: number }
+export type WinEntry = WinSpec & { z: number; minimized: boolean; zoomed?: boolean; at: Point | (() => Point); opened?: number; place?: Place }
+
+/** Where a window that opens with the page stands before the page wakes,
+ *  as CSS: the server cannot see the screen, so these work `at` (and the
+ *  size) out of the viewport with the same sums. Once awake, the px from
+ *  `at` take over, and they agree. */
+export type Place = { left: string; top: string; width?: string; height?: string }
 
 /** New windows open cascaded 24px right and down from the last one placed;
  *  past the screen's lower right the cascade starts again at the top left. */
@@ -170,6 +176,16 @@ export function DesktopWindow({ win, title, defaultSize, min = MIN, className, s
     : win.zoomed
       ? ZOOMED
       : { left: pos.x, top: pos.y, ...(box ? { width: box.w, height: box.h } : null) }
+  // Until then (the server's HTML, painted before the page wakes, and the
+  // first render after it) isDesktop is false and there is no placement: a
+  // window that opens with the page stands at its `place` instead, through
+  // md:-only classes, so a phone's column is untouched. A shell with a size
+  // reads --win-w / --win-h the same way (the Finder).
+  const early = win.place && ({
+    "--win-left": win.place.left,
+    "--win-top": win.place.top,
+    ...(win.place.width ? { "--win-w": win.place.width, "--win-h": win.place.height } : null),
+  } as React.CSSProperties)
   // When zoomed, the maximized geometry comes from inline `placement`. The
   // per-window fixed-size classes (md:w-[...]/md:h-[...]) are NOT !important, so
   // inline width/height already override them — we just must not re-assert an
@@ -192,12 +208,13 @@ export function DesktopWindow({ win, title, defaultSize, min = MIN, className, s
       className={cn(
         // scroll-mt: scrolled to on a phone, it clears the menu bar.
         "w-full scroll-mt-8 animate-[y2k-window-in_var(--y2k-duration-window)_var(--y2k-ease-aqua)] motion-reduce:animate-none md:absolute",
+        win.place && "md:top-(--win-top) md:left-(--win-left)",
         // A minimised window stays mounted (its place, its size and what it
         // was doing survive the Dock) and hidden until it comes back.
         win.minimized && "hidden",
         className
       )}
-      style={{ ...placement, zIndex: win.z, ...(isDesktop ? null : { order: -(win.opened ?? 0) }), ...style }}
+      style={{ ...early, ...placement, zIndex: win.z, ...(isDesktop ? null : { order: -(win.opened ?? 0) }), ...style }}
       {...props}
     />
   )

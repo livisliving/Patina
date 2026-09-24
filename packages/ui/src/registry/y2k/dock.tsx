@@ -212,6 +212,8 @@ type GenieTarget = Element | DOMRect | string
 
 /** Marks the copies, so hiding the window being restored leaves them alone. */
 const COPY = "y2k-genie-copy"
+/** Safari, and every browser on iOS (all WebKit underneath). */
+const WEBKIT = typeof navigator !== "undefined" && /AppleWebKit/.test(navigator.userAgent) && !/Chrome|Chromium/.test(navigator.userAgent)
 
 const frame = () => new Promise<number>((resolve) => requestAnimationFrame(resolve))
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
@@ -295,7 +297,9 @@ async function genie(windowTarget: GenieTarget, tileTarget: GenieTarget, { rever
     // so play that to the end, or it is measured (and copied) mid-zoom.
     for (const a of el.getAnimations()) if (Number.isFinite(a.effect?.getComputedTiming().endTime)) a.finish()
     const rect = el.getBoundingClientRect()
-    const n = Math.max(16, Math.min(40, Math.round(rect.height / 12)))
+    // Safari takes longer to lay out forty strips than the genie lasts, and
+    // starts it late; sixteen draw the same funnel there without the wait.
+    const n = Math.max(16, Math.min(WEBKIT ? 16 : 40, Math.round(rect.height / 12)))
     const strip = rect.height / n
 
     // What a copy doesn't carry over: where the window is scrolled, and the
@@ -305,6 +309,7 @@ async function genie(windowTarget: GenieTarget, tileTarget: GenieTarget, { rever
       .filter((e) => (e.scrollHeight > e.clientHeight || e.scrollWidth > e.clientWidth) && /auto|scroll/.test(getComputedStyle(e).overflow))
       .map((e) => ({ path: pathTo(e, el), top: e.scrollTop, left: e.scrollLeft, gutter: e instanceof HTMLElement && e.offsetWidth - e.clientWidth > e.clientLeft * 2 }))
     const stills = [...el.querySelectorAll("canvas, video")]
+    const frames = [...el.querySelectorAll("iframe")].map((f) => ({ w: f.offsetWidth, h: f.offsetHeight, display: getComputedStyle(f).display }))
     const model = el.cloneNode(true) as HTMLElement
     model.classList.add(COPY)
     for (const e of [model, ...model.querySelectorAll("[id]")]) e.removeAttribute("id")
@@ -327,6 +332,16 @@ async function genie(windowTarget: GenieTarget, tileTarget: GenieTarget, { rever
       const still = Object.assign(document.createElement("canvas"), { width: movie.videoWidth, height: movie.videoHeight, className: e.className })
       still.style.cssText = e.style.cssText
       e.replaceWith(still)
+    })
+    // A frame (an embedded board) would load its page again in every strip:
+    // forty requests, and Safari stalls for seconds. The copies get a white
+    // box its size.
+    model.querySelectorAll("iframe").forEach((f, i) => {
+      const box = document.createElement("div")
+      box.className = f.className
+      box.style.cssText = f.style.cssText
+      Object.assign(box.style, { display: frames[i].display, width: `${frames[i].w}px`, height: `${frames[i].h}px`, background: "#fff" })
+      f.replaceWith(box)
     })
     Object.assign(model.style, {
       position: "absolute", left: "0", right: "auto", bottom: "auto",

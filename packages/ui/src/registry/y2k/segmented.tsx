@@ -58,7 +58,7 @@ function SegmentedControl({ items, className, ...props }: Omit<React.ComponentPr
               "first:shadow-[inset_1px_0_0_var(--rim)] last:shadow-[inset_-1px_0_0_var(--rim)]",
               "not-last:after:absolute not-last:after:inset-y-0 not-last:after:right-0 not-last:after:w-px not-last:after:bg-(image:--y2k-segment-divider) not-last:after:content-['']",
               "disabled:text-(--y2k-ink-disabled) disabled:[&_svg]:opacity-50",
-              "focus-visible:z-[2] focus-visible:outline-3 focus-visible:outline-(--y2k-tone-focus)",
+              "focus-visible:z-[2] focus-visible:outline-3 focus-visible:outline-solid focus-visible:-outline-offset-3 focus-visible:outline-(--y2k-tone-focus)",
               "[&_svg]:h-2.5 [&_svg]:w-auto [&_svg]:text-black"
             )}
           >

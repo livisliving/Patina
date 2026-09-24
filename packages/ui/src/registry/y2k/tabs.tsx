@@ -45,7 +45,7 @@ function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPr
         "[--face:var(--y2k-gel-white)] [--rim:#8a8a8a]",
         "data-[state=active]:[--face:var(--y2k-tone-tab)] data-[state=active]:[--rim:var(--y2k-tone-tab-edge)]",
         "disabled:text-(--y2k-ink-disabled)",
-        "focus-visible:outline-3 focus-visible:outline-(--y2k-tone-focus)",
+        "focus-visible:outline-3 focus-visible:outline-solid focus-visible:-outline-offset-3 focus-visible:outline-(--y2k-tone-focus)",
         className
       )}
       {...props}
