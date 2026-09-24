@@ -148,9 +148,9 @@ export function DocumentView({ win, doc }: { win: WinEntry; doc: DocumentEntry }
     .join(", ")
 
   return (
-    // With an outline it opens 752px wide: room for the outline and a page
-    // of pictures; without, TextEdit's 640.
-    <DocumentWindow win={win} outline={outline} status={status} className={toc ? "md:w-[752px]" : undefined}>
+    // With an outline it opens 900px wide (DESIGN.md's window-document):
+    // room for the outline and a page of pictures; without, TextEdit's 640.
+    <DocumentWindow win={win} outline={outline} status={status} className={toc ? "md:w-[900px]" : undefined}>
       <div ref={bodyRef}>
         {/* The page header: the title as a document heading, then the
             entry's comment (the line its card carried) and the subtitle in

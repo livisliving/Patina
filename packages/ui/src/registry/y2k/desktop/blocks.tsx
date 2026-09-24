@@ -4,7 +4,7 @@ import * as React from "react"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/forms"
-import { IconGlobe, IconWarning } from "@/components/ui/icons"
+import { IconGlobe, IconInfo, IconWarning } from "@/components/ui/icons"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { WindowScrollArea, WindowWell } from "@/components/ui/window"
@@ -15,7 +15,8 @@ import { asset } from "./asset"
 import { cropStyle, croppedSize } from "./crop"
 import { Code, DataTable, Faq, ProgressBlock, Quote, Steps } from "./blocks-more"
 import { useDesktop } from "./context"
-import { findNode, withOpen } from "./disk"
+import { findNode } from "./disk"
+import { withOpen } from "./redirects"
 import { useReducedMotion } from "./use-media-query"
 
 /**
@@ -103,7 +104,7 @@ export function Inlines({ text }: { text: Text }) {
             </EntryLink>
           )
         return run.href ? (
-          <a key={i} href={run.href} target="_blank" rel="noreferrer" className={LINK}>
+          <a key={i} href={run.href} {...linkTarget(run.href)} className={LINK}>
             {run.a}
           </a>
         ) : (
@@ -128,6 +129,11 @@ function Caption({ className, ...props }: React.ComponentProps<"figcaption">) {
   return <figcaption className={cn("mt-1 text-[11px] leading-[1.35] text-(--y2k-ink-secondary)", className)} {...props} />
 }
 
+/** Where a link opens: another site's address in a new tab, as a link out
+ *  of a document did; the site's own routes (`/reservations`), mail and
+ *  phone links where they are. */
+export const linkTarget = (href: string) => (/^https?:\/\//i.test(href) ? { target: "_blank", rel: "noreferrer" } : {})
+
 /** A strip's height, and the width a long screenshot is cropped to (3:4). */
 const STRIP_H = 240
 const CROP_W = 180
@@ -143,10 +149,13 @@ const CROP_W = 180
  * reads as a rendering fault, and TextEdit set a picture into the page
  * bare. The file's width and height are on the element, so the box has
  * its proportions before the picture loads and the page (and the
- * outline's scroll targets) never jump as each one arrives.
+ * outline's scroll targets) never jump as each one arrives. A picture
+ * smaller than its box (a 240 × 80 logo) stands at its own size: scaled
+ * down to fit, never up.
  */
 function Thumb({ img, strip }: { img: Img; strip?: boolean }) {
   const crop = strip && isLong(img)
+  const small = strip && !crop && img.h < STRIP_H
   return (
     // eslint-disable-next-line @next/next/no-img-element -- a thumbnail of a file already in public/, sized by the document
     <img
@@ -157,8 +166,8 @@ function Thumb({ img, strip }: { img: Img; strip?: boolean }) {
       loading="lazy"
       decoding="async"
       draggable={false}
-      style={strip ? { width: crop ? CROP_W : Math.round((STRIP_H * img.w) / img.h) } : undefined}
-      className={cn("block", strip ? cn("h-60 max-w-none", crop && "object-cover object-top") : "h-auto w-full")}
+      style={strip ? { width: crop ? CROP_W : small ? img.w : Math.round((STRIP_H * img.w) / img.h) } : { maxWidth: img.w }}
+      className={cn("block", strip ? cn("max-w-none", !small && "h-60", crop && "object-cover object-top") : "h-auto w-full")}
     />
   )
 }
@@ -192,7 +201,7 @@ function Strip({ images }: { images: Img[] }) {
   return (
     <WindowWell className="block">
       <WindowScrollArea>
-        <div className="flex gap-2 p-2">
+        <div className="flex items-center gap-2 p-2">
           {images.map((img) => (
             <Picture key={img.src} img={img} strip />
           ))}
@@ -254,6 +263,27 @@ function Problems({ intro, items }: { intro?: Text; items: { title: string; body
           </li>
         ))}
       </ul>
+    </div>
+  )
+}
+
+/**
+ * callout → an alert's grammar, as problems are: the 32px Note icon for a
+ * note or a tip, the Caution icon for a warning, a bold title when the
+ * source gives one, the text beside it — set apart by its icon, never by
+ * a tinted box.
+ */
+function Callout({ kind, title, text }: { kind: "note" | "caution"; title?: string; text: Text }) {
+  const Icon = kind === "caution" ? IconWarning : IconInfo
+  return (
+    <div role="note" className="flex items-start gap-3">
+      <Icon className="size-8 shrink-0" />
+      <div>
+        {title && <p className="font-bold">{title}</p>}
+        <p>
+          <Inlines text={text} />
+        </p>
+      </div>
     </div>
   )
 }
@@ -474,7 +504,7 @@ function Embed({ title, href, src, image, caption }: { title: string; href: stri
         <p className="mt-1 flex items-center gap-1">
           <IconGlobe className="size-4" />
           {href ? (
-            <a href={href} target="_blank" rel="noreferrer" title={title} className={LINK}>
+            <a href={href} {...linkTarget(href)} title={title} className={LINK}>
               {open}
             </a>
           ) : (
@@ -581,7 +611,7 @@ function Links({ items }: { items: { label: string; href?: string }[] }) {
       {items.map((l) =>
         l.href ? (
           <Button key={l.label} variant="white" asChild>
-            <a href={l.href} target="_blank" rel="noreferrer">
+            <a href={l.href} {...linkTarget(l.href)}>
               {l.label}
             </a>
           </Button>
@@ -645,6 +675,8 @@ function BlockView({ block, anchorPrefix }: { block: Block; anchorPrefix?: strin
       return <Problems intro={block.intro} items={block.items} />
     case "checklist":
       return <Checklist items={block.items} />
+    case "callout":
+      return <Callout kind={block.kind} title={block.title} text={block.text} />
     case "figure":
       return <Figure image={block.image} caption={block.caption} />
     case "gallery":

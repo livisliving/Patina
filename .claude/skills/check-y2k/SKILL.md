@@ -41,11 +41,20 @@ Errors (`✗`):
   table cell — a field named `body`, `text`, `description`, `summary` … ,
   an item of an array in the same file whose longest string is over 12
   words, or `{p}` mapped into a `<p>`; a heading (`h1`–`h6`) over a
-  paragraph, list or table; or a picture. A group of controls (check boxes,
+  paragraph, list or table; a picture; or a table or a `<dl>` with no
+  control beside it (a Results table, a spec list). A group of controls (check boxes,
   radio buttons, fields, sliders, pop-ups, labels) passes, and so does a
   dialog's small print (11px or smaller, or the secondary ink) and a type
   specimen (a `style={{ fontSize | fontFamily }}` from data). An article's
   section is a document (DESIGN.md › Content).
+- `empty-document` (warning) — a `document` in the content that opens to
+  nothing: no blocks and no `comment` or `subtitle`, or only a link to
+  nowhere (a card's "Read more" to `#` or `""`). An item with no page of
+  its own holds what its card held (DESIGN.md › Content).
+- `pack-modified` (warning) — one of the pack's own files, changed since
+  the pack wrote it (its fingerprint in `patina.json`). `patina update`
+  keeps an edited file, so it stops getting the pack's fixes; if the pack
+  lacked something, the report says so.
 - `link-arrow` — →, ←, ↗, ↘, » or « (or `&rarr;`, `&larr;`, `&raquo;`,
   `&laquo;`, `\u2192` …) at the start or end of a link's or a button's
   label: the text of `<a>`, `<Link>`, `<Button>` or any `…Button`, its

@@ -438,7 +438,7 @@ export function Finder({
     onSelect(key)
     if (tapOpens) onOpenItem(it, placePath)
   }
-  // Its size when it first opens: 768 × 400, narrower or shorter on a small screen
+  // Its size when it first opens: 640 × 400, narrower or shorter on a small screen
   // (see loadLayout).
   const [size] = React.useState(initialSize)
 
@@ -513,8 +513,8 @@ export function Finder({
       onToolbarToggle={onToolbarToggle}
       defaultSize={size}
       // Its load-time size before the page wakes (the window's `place`),
-      // else 768 × 400; the px of `size` take over once awake.
-      className="md:h-[var(--win-h,400px)] md:w-[var(--win-w,768px)]"
+      // else 640 × 400; the px of `size` take over once awake.
+      className="md:h-[var(--win-h,400px)] md:w-[var(--win-w,640px)]"
       status={narrowed ? `${visible.length} of ${hereItems.length} items` : `${hereItems.length} ${hereItems.length === 1 ? "item" : "items"}`}
       toolbar={
         toolbar && (

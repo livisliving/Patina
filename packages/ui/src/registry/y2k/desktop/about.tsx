@@ -129,7 +129,9 @@ export function AboutPerson({ person }: { person: Person }) {
     <>
       {person.portrait && <Portrait portrait={person.portrait} />}
       <div>
-        <p className="leading-[1.3] font-bold">{person.name}</p>
+        {/* The page's h1: the desktop is one page, and it is theirs. It
+            looks as it did — the heading takes the box's type. */}
+        <h1 className="leading-[1.3] font-bold">{person.name}</h1>
         {person.role && <p className="text-[11px] leading-[1.35]">{person.role}</p>}
       </div>
       {pane && (

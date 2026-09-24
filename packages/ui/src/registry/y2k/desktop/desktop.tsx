@@ -12,11 +12,12 @@ import type { Img, Movie, Site } from "@/lib/content"
 import { AboutPerson } from "./about"
 import { asset } from "./asset"
 import { APP_ICONS, DesktopProvider, loadLayout, samePath, useDesktop, type DocumentPayload } from "./context"
-import { buildDisk, everyNode, findNode, findOpen, iconOf, readOpen, withOpen, type FinderItem, type Node } from "./disk"
+import { buildDisk, everyNode, findNode, findOpen, iconOf, type FinderItem, type Node } from "./disk"
 import { DocumentView } from "./document"
 import { Band, Finder, finderKey, kindsOf, resolveFinder, type FinderView, type Sort, type SortCol } from "./finder"
 import { DiskIcon, DocIcon, FaceIcon, FolderIcon, IPodIcon, TrashIcon } from "./icons"
 import { MenuBar, type MenuRow, type MenuSpec } from "./menubar"
+import { readOpen, withOpen } from "./redirects"
 import type { Tone } from "./tones"
 import { useMarqueeSelect } from "./use-marquee-select"
 import { prefersReducedMotion, useMediaQuery } from "./use-media-query"
@@ -292,7 +293,7 @@ function DesktopShell({ wallpaper, IPod, className }: { wallpaper?: DesktopProps
 
   /* ── The address: ?open=<path> ── */
 
-  // At load, the window the address names (disk.tsx › readOpen) opens in
+  // At load, the window the address names (redirects.ts › readOpen) opens in
   // front of the desktop's own — a page's old URL, redirected here, opens
   // its window. A path that leads nowhere opens nothing.
   const linked = React.useRef<"opened" | "arrived" | null>(null)

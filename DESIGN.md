@@ -689,14 +689,17 @@ icon for content.
 menu, the desktop icons (the volume, then the featured entries, top-right)
 and the Dock (Finder · featured documents · top-level collections ·
 resident apps | minimised windows | Bin). The home page is the desktop's
-state at load, never a window of its own: the About box in front at the
+state at load, never a window of its own. The page's title is the
+person's name and role (`Name — Role`) and its description the site's own
+sentence, never the pack's name; the name in the About box is the page's
+h1. The desktop at load: the About box in front at the
 left, the Finder open at the volume beside it, a resident app (the iPod)
 under the Finder — laid out from the viewport, clear of the icon column
 and the Dock. Footer links and the copyright live in the About box; the
 live site is one row of the ★ menu. There is no footer, no scroll-to-top,
 no scroll-in animation and no browser window showing the whole site. A
 page's old URL opens its window on the desktop: it redirects to
-`/?open=‹its Finder path›` (`/?open=Archive/Tidewater.rtf`), and the
+`/?open=‹its Finder path›` (`/?open=Journal/First%20frost.txt`), and the
 address follows the front window, so a visitor can copy a link to it.
 
 **Page → window.** Ask in this order; the first yes decides.
@@ -718,17 +721,24 @@ are gel, the pictures are the owner's.
   where the section in view is selected. Subheading (`h3`) → 13px bold,
   close to its paragraph.
 - Paragraph, list → 13px black; emphasis bold; links OS blue, underlined,
-  no arrows; a link to another entry of the site opens its window.
+  no arrows; a link to another entry of the site opens its window. A link
+  to another site opens in a new tab; the site's own routes, mail and
+  phone open in place.
 - Facts (timeline, team, role, client) → right-aligned 11px labels beside
   13px values, as Show Info lists properties.
 - Problems → the 32px Warning icon, a bold title, the line.
+- A note set apart (`callout`: a tip, an aside, a banner, a warning) → an
+  alert's grammar: the 32px Note icon, or the Caution icon for a warning,
+  a bold title if the source gives one, the text beside it — never a
+  tinted box.
 - What was done or delivered (`checklist`) → checked check boxes,
   read-only.
 - Steps → a Setup Assistant pane (*Aqua Human Interface Guidelines*, 2002,
   ch. 14): one step to a pane, an Introduction first when the source has
   one, Go Back and Continue at
   the foot, and a progress bar to the left of Go Back — the one honest
-  progress bar in a document.
+  progress bar in a document. A step's command (`code`) sits in Monaco
+  under its text, on the pane.
 - Quote → a Stickies note in Stickies' own yellow (`note-paper`,
   `note-strip`, `note-rim`), never the tone.
 - Questions and answers (`faq`) → disclosure triangles (HIG ch. 7): a
@@ -742,10 +752,11 @@ are gel, the pictures are the owner's.
 - A true fraction (`progress`: 3 of 5, 72% complete) → Progress.
 - A picture (`figure`) → set bare into the page at the page's width,
   scaling with the window, no border and no frame, with an 11px caption;
-  it opens Preview. Several pictures (`gallery`, a
+  it opens Preview. One narrower than the page stands at its own width. Several pictures (`gallery`, a
   carousel, a stack) → a strip in a well that scrolls sideways, the Aqua
   scrollbar along its foot: each picture 240px tall and whole, bare like a
-  single picture; a long screenshot shows its top (180 × 240); each opens
+  single picture; one shorter than that (a logo) at its own size, never
+  scaled up; a long screenshot shows its top (180 × 240); each opens
   Preview. Never a stack that hides all but the first, never a wrapped wall.
 - An embedded board (`embed`: FigJam, Figma, YouTube) → inline, sunk in a
   well, with `Open in ‹app›`; without an embed address, its picture. A
@@ -762,6 +773,11 @@ are gel, the pictures are the owner's.
 
 A block this list does not name stays a paragraph and is reported as
 unmapped; never invent a component for it.
+
+**An item with no page.** An item the site lists but never gave a page of
+its own (a card that links nowhere, `href="#"`) is still a file: a
+document holding only what its card held — its picture, its line as the
+`comment`, its date — never padded, and never a "Read more" to nowhere.
 
 **Names.** A file is named after its entry, with a suffix that says it
 opens: `.rtf` for a document with pictures, `.txt` for text only; the owner

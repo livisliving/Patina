@@ -32,7 +32,7 @@ export const APP_ICONS: Record<string, React.ReactNode> = {
 
 /** The desktop at load, worked out from the screen so a 1280 × 800 one gets
  *  the same picture: the About box at the left (x 40, y 56, 448 wide), the
- *  Finder beside it (768 wide, or down to 640 on a narrower screen), the
+ *  Finder beside it (640 wide, or down to 512 on a narrower screen), the
  *  iPod (when there is one) under the Finder, 16px above the Dock — the
  *  Finder and the iPod both clear of the desktop icons (84px, 12px from the
  *  right edge, so 96px). A screen too short for the Finder's 400 over the
@@ -41,10 +41,10 @@ export const APP_ICONS: Record<string, React.ReactNode> = {
  *  windows stack. Every value on the 4px grid. */
 const ICON_COLUMN = 96
 const ABOUT_W = 448
-const FINDER_SIZE = { w: 768, h: 400 }
-/** The narrowest the Finder opens: below this a folder's Name column
- *  (beside the Kind sidebar) is too tight. */
-const FINDER_MIN_W = 640
+const FINDER_SIZE = { w: 640, h: 400 }
+/** The narrowest the Finder opens: names cut from the middle, so a
+ *  folder's Name column still reads beside the Kind sidebar down to here. */
+const FINDER_MIN_W = 512
 const IPOD_SIZE = { w: 600, h: 400 }
 const down4 = (n: number) => Math.floor(n / 4) * 4
 
@@ -54,7 +54,7 @@ export function loadLayout(ipod = true): { finder: Point & { w: number; h: numbe
   // The windows' right edge: 16px short of the icons.
   const right = window.innerWidth - ICON_COLUMN - 16
   const at = { x: down4(Math.max(16, right - IPOD_SIZE.w)), y: down4(Math.max(32, window.innerHeight - dock - IPOD_SIZE.h - 16)) }
-  // 768 wide where the screen has room beside the About box, down to 640.
+  // 640 wide where the screen has room beside the About box, down to 512.
   const w = down4(Math.max(FINDER_MIN_W, Math.min(FINDER_SIZE.w, right - (40 + ABOUT_W + 24))))
   // With no iPod under it, the Finder may run down to 16px above the Dock.
   const foot = ipod ? at.y + 48 : window.innerHeight - dock - 16

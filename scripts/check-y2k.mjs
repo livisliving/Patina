@@ -31,6 +31,7 @@
  * check-y2k: ignore-file
  */
 
+import crypto from "node:crypto"
 import fs from "node:fs"
 import path from "node:path"
 
@@ -489,6 +490,10 @@ function mappedProse(text, at, ident, prop, tag) {
   return !field && tag === "p" ? `\`${expr}\` mapped into a <p>` : null
 }
 
+/** Something to operate: what a group box is for. */
+const CONTROL =
+  /<(?:input|select|textarea|button|Button|BevelButton|PopupButton|Checkbox|RadioGroup|Radio|TextField|SearchField|Slider|Stepper|SegmentedControl|Switch|Input|Textarea|Select|[A-Z][\w]*(?:Button|Field|Picker|Checkbox))(?![\w.:-])/
+
 /** Why a group box's own body is an article's section, or null. `body` is
  *  the group's inside with its nested groups and its small print blanked;
  *  `base` is where it starts in `text`. */
@@ -517,6 +522,10 @@ function articleIn(body, base, text) {
   }
   const path = body.match(/=\s*\{?\s*["'`]([^"'`\s]+\.(?:jpe?g|png|webp|avif|gif))["'`]/i)
   if (path && !/icon|thumb/i.test(path[1])) return `a picture (${path[1]})`
+  // A table or a list of figures with no control beside it: the group box
+  // groups nothing, it frames a section (a Results table, a spec list).
+  const data = body.match(/<(table|Table|dl)(?![\w.:-])/)
+  if (data && !CONTROL.test(body)) return `a <${data[1]}> and no control`
   return null
 }
 
@@ -568,6 +577,30 @@ const THUMBNAIL_FILE = /(?:^|[\\/])(?:finder|disk|icons?|dock|inspector|column[\
 const FRAME_ONLY = new Set(["div", "span", "figure", "figcaption", "picture", "source", "img", "Image", "a", "Link"])
 
 const FILE_RULES = [
+  {
+    id: "empty-document",
+    severity: "warn",
+    design: /never padded, and never a "Read more" to nowhere/,
+    test(text) {
+      const out = []
+      for (const m of text.matchAll(/\btype\s*:\s*["']document["']/g)) {
+        const obj = objectAround(text, m.index)
+        const b = obj && /\bblocks\s*:\s*\[/.exec(obj)
+        if (!b) continue
+        const open = b.index + b[0].length - 1
+        const close = balance(obj, open, "[", "]")
+        if (close === -1) continue
+        const blocks = obj.slice(open + 1, close)
+        const types = [...blocks.matchAll(/\btype\s*:\s*["'](\w+)["']/g)].map((t) => t[1])
+        if (!types.length && !/\b(?:comment|subtitle)\s*[:,}\n]/.test(obj)) {
+          out.push({ index: m.index, msg: "A document with nothing in it: it opens to a blank page. Give it what its card held (its picture, its line as `comment`, its date), or leave it out and list it." })
+        } else if (types.length && types.every((t) => t === "links") && !/\bhref\s*:\s*(["'`])(?!#?\1)/.test(blocks)) {
+          out.push({ index: m.index, msg: "A document whose only content is a link to nowhere (a card's \"Read more\" to #). Leave that link out: the document holds what its card held." })
+        }
+      }
+      return out
+    },
+  },
   {
     id: "article-in-group",
     severity: "error",
@@ -854,6 +887,30 @@ function main(argv) {
           })
         }
       }
+    }
+  }
+
+  // The pack's own files, against what it wrote (patina.json, the CLI's
+  // fingerprints): an edited one is kept by `patina update`, so it stops
+  // getting the pack's fixes — and a missing piece belongs in the report.
+  for (const root of roots) {
+    const manifest = path.join(root, "patina.json")
+    if (!fs.existsSync(manifest)) continue
+    let files = {}
+    try {
+      files = JSON.parse(fs.readFileSync(manifest, "utf8")).files ?? {}
+    } catch {
+      continue
+    }
+    for (const [rel, print] of Object.entries(files)) {
+      const abs = path.join(root, rel)
+      if (!fs.existsSync(abs)) continue
+      const now = crypto.createHash("sha256").update(fs.readFileSync(abs, "utf8")).digest("hex").slice(0, 16)
+      if (now === print) continue
+      findings.push({
+        file: abs, line: 1, col: 1, rule: "pack-modified", severity: "warn",
+        msg: "The pack's own file, changed since the pack wrote it (patina.json). `patina update` will keep this copy and skip the pack's fixes to it. If the pack lacked something, say so in your report rather than editing its files.",
+      })
     }
   }
 

@@ -77,26 +77,40 @@ paint.
       window on that desktop: one `WindowFrame` per thing it is about, a
       `WindowWell` for a sunken area (a list, a preview, a field's
       background), a `WindowGroup` only around a dialog's controls.
-   f. **Old URLs open their windows.** Once every page is classified,
-      redirect each old route to `/?open=<its path>` — never to `/`. The
-      path is the entry's Finder path: file names from the volume,
-      `/`-joined, each URL-encoded (a space is `%20`); a title without its
-      suffix works too (`?open=Northwind`). The desktop opens that window
-      at load and keeps the address in step with the front window. A page
-      that became the desktop itself or the About box (home, about)
-      redirects to `/`. In Next, in `next.config`, not permanent — the
-      mapping may change as the content does:
+   f. **Old URLs open their windows.** Give each entry its old address as
+      `route` (`route: "/journal/first-frost"`) — a collection's too, when
+      the site had an index page for it — and let the `desktop` item write
+      the redirects with `desktopRedirects`. Never redirect a page to `/`
+      when it became a window, and never write `?open=` addresses by hand:
+      a name with `&`, `+`, `%` or an accent must be encoded twice for
+      Next, which the helper does. Routes that were not one entry go in its
+      second argument, each to a path of titles, or to `null` for a page
+      that became the desktop itself (home, or about when there is no
+      About entry). In `next.config.ts`:
 
       ```ts
-      async redirects() {
-        return [
-          { source: "/work/northwind", destination: "/?open=Northwind.rtf", permanent: false },
-          { source: "/archive", destination: "/?open=Archive", permanent: false },
-          { source: "/archive/tidewater", destination: "/?open=Archive/Tidewater.rtf", permanent: false },
-          { source: "/about", destination: "/", permanent: false },
-        ]
-      },
+      import type { NextConfig } from "next"
+      import { desktopRedirects } from "@/components/desktop/redirects"
+      import { SITE } from "@/content/site"
+
+      const nextConfig: NextConfig = {
+        async redirects() {
+          return desktopRedirects(SITE, { "/journal/page/:n": ["Journal"], "/home": null })
+        },
+      }
+
+      export default nextConfig
       ```
+
+      `next.config` now reads `content/`: there, import values by relative
+      path (`../lib/links`, `./posts`). Next compiles the config's imports
+      with `@/` rewritten to `./`, which resolves from the importing file's
+      folder, so `@/lib/links` in `content/site.ts` fails the build. Type-only
+      imports (`import type … from "@/lib/content"`) are erased and fine.
+
+      The desktop opens the named window at load and keeps the address in
+      step with the front window; `openHref(path)` is a link to a window
+      from anywhere on the site.
 2. **Controls.** Swap the defaults for the pack's components, one for one —
    see the table below. Do not restyle a `<button>` by hand when the pack
    exports `Button`.
@@ -145,7 +159,7 @@ of them. DESIGN.md › Content is the authority; this is the lookup.
 | The source has… | Write | The desktop shows |
 | --- | --- | --- |
 | a portfolio, an archive, a blog index | `collection` | a Finder folder; a Kind source list when the items have two categories or more |
-| a case study, a post, a doc page | `document` (`outline` for its table of contents) | TextEdit, 752 wide with an outline (three sections or more), 640 without |
+| a case study, a post, a doc page | `document` (`outline` for its table of contents) | TextEdit, 900 wide with an outline (three sections or more), 640 without |
 | about me, a team, the product's "about" | `site.person`, and an `about` entry at the site's root so the person appears in the Finder (recommended — the About box works either way) | the About box, panes on a pop-up button |
 | a picture, a movie | `picture`, `movie` | Preview, QuickTime Player |
 | an item that is another entry (an archive's case study) | `alias` | an alias that opens the original |
@@ -156,8 +170,9 @@ of them. DESIGN.md › Content is the authority; this is the lookup.
 | a link to another page of the site ("See more in the archive →") | `{ a, to: [titles] }` in the text, the arrow dropped | an OS-blue link that opens that entry's window |
 | timeline, team, role, client | `facts` | right-aligned labels beside values |
 | problems, risks, pain points | `problems` | Warning-icon rows |
+| a note, a tip, an aside, a warning, a banner | `callout` (`kind: "note"`, or `"caution"` for a warning; `title` if it has one) | the Note or Caution icon beside the text |
 | what was done, features | `checklist` | checked, read-only check boxes |
-| step 1… step n | `steps` | a Setup Assistant pane: Go Back / Continue, a progress bar |
+| step 1… step n | `steps` (a step's command or snippet in its `code`) | a Setup Assistant pane: Go Back / Continue, a progress bar |
 | a quotation, a testimonial | `quote` | a Stickies note |
 | an FAQ, an accordion | `faq` | disclosure triangles |
 | before / after, variants | `compare` (`initial`: the tab the site shows first) | folder tabs |
@@ -165,13 +180,15 @@ of them. DESIGN.md › Content is the authority; this is the lookup.
 | any other table | `table` | the Table |
 | a true fraction ("3 of 5 done") | `progress` | Progress |
 | one picture with a caption | `figure` | the picture, bare, opening Preview |
-| a row of pictures, a carousel | `gallery` | 160px thumbnails |
+| a row of pictures, a carousel, a logo strip | `gallery` | a strip of 240px-tall pictures that scrolls sideways; a smaller one (a logo) at its own size |
 | a FigJam, Figma or YouTube embed | `embed` | inline in a well, `Open in ‹app›` |
 | a video | `video` | its poster, opening QuickTime Player |
 | a picture you don't have yet | `placeholder` | a pinstripe plate, `Picture to come` |
 | "View…" buttons | `links` | white push buttons |
 | code | `code` | Monaco 11px |
 | tags, badges | a `facts` row, or `category` | a fact, or the Finder's Kind — never pills |
+| an item listed with no page of its own (a card that links to `#`) | a `document` holding only what its card held — its picture, its line as `comment`, its date; its "Read more" to nowhere left out | a file that opens to its card |
+| the site's name, role and meta description | `site.person.name`, `site.person.role`, `site.description` | the page's title, `Name — Role` (the page template writes it) |
 
 ## What maps to what
 
@@ -239,6 +256,11 @@ the machine are someone's work.
 
 ## Do not
 
+- Edit the pack's own files (`components/ui/*`, `components/desktop/*`,
+  `y2k.css`, DESIGN.md, these skills). `patina update` keeps an edited file
+  and skips the pack's fixes to it. If the pack lacks something the site
+  needs, put the content in the nearest type and say so in your report;
+  `/check-y2k` warns on an edited file (`pack-modified`).
 - Change the framework, the data layer or any business logic. The one change
   to routing the pack makes is a site's pages becoming one desktop, each old
   route redirecting to its window (step 1f); a tool's routes stay.

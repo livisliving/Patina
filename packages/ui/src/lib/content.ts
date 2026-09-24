@@ -38,8 +38,8 @@ export type Movie = { src: string; name: string; poster?: Img; crop?: Crop }
 
 /** Plain text, a bold run (the site's emphasis), or a link. `href: ""`
  *  means the site links here but the address isn't known. A link to
- *  another entry of the site ("See more projects in the archive") is `to`,
- *  a path of titles from the site's root (["Archive"]): it opens that
+ *  another entry of the site ("Read the rest of the journal") is `to`, a
+ *  path of titles from the site's root (["Journal"]): it opens that
  *  entry's window. */
 export type Inline = string | { b: string } | { a: string; href: string } | { a: string; to: string[] }
 
@@ -62,8 +62,13 @@ export type Block =
   | { type: "checklist"; items: { title: string; body?: Text }[] }
   /** A process in order ("Step 1…", "retire → reorganise → refine").
    *  `intro` is the source's own lead-in, shown as an Introduction pane
-   *  before the steps; without one the first pane is the first step. */
-  | { type: "steps"; title?: string; intro?: Text; items: { title: string; body: Text }[] }
+   *  before the steps; without one the first pane is the first step. A
+   *  step may carry the command or snippet it asks for (`code`). */
+  | { type: "steps"; title?: string; intro?: Text; items: { title: string; body: Text; code?: string }[] }
+  /** A note set apart from the text: `note` for a tip or an aside
+   *  ("Note", "Tip", "Good to know"), `caution` for a warning ("Warning",
+   *  "Before you start"). A banner that announces something is a `note`. */
+  | { type: "callout"; kind: "note" | "caution"; title?: string; text: Text }
   /** A quotation or testimonial. */
   | { type: "quote"; text: Text; by?: string }
   /** Questions with answers that fold (FAQ, accordions). */
@@ -77,8 +82,8 @@ export type Block =
   /** Results under categories ("56% fewer components"). Changes, not
    *  fractions: never drawn as a progress bar. A result is the site's line
    *  as it is, or — where the site sets a number apart from what it counts
-   *  — the number and its label ({ value: "4 min", label: "median time to
-   *  book, down from 40" }). */
+   *  — the number and its label ({ value: "3×", label: "more orders a
+   *  week" }). */
   | { type: "metrics"; rows: { category: string; results: (string | { value: string; label: Text })[] }[] }
   /** Any other table the site has (pricing, specs, schedules). */
   | { type: "table"; head: string[]; rows: Text[][] }
@@ -101,9 +106,10 @@ export type Block =
  *  a coarse category (3–5 per collection; the finer labels go in
  *  `keywords`, which stay searchable), a date, extra lines for its
  *  inspector ("Client: Budweiser"), and `comment` — the one line the site
- *  puts on its card or over its folder ("Rebuilding freight booking for a
- *  haulage firm…", "Smaller projects from the last five years"), which a
- *  file browser shows as the file's comment. */
+ *  puts on its card or over its folder ("A kiln log, one firing at a
+ *  time", "Everything we wrote in 2024"), which a file browser shows as
+ *  the file's comment. `route` is the entry's address on the site before
+ *  ("/journal/first-frost"): it redirects to the entry's window. */
 type EntryMeta = {
   cover?: Img
   category?: string
@@ -111,9 +117,14 @@ type EntryMeta = {
   keywords?: string[]
   info?: { label: string; value: string }[]
   comment?: Text
+  route?: string
 }
 
 /** One text read start to finish: a case study, a post, a project page.
+ *  An item the site lists but never gave a page of its own (a card that
+ *  links nowhere) is a document too, holding only what its card held — its
+ *  picture as a `figure`, its line as `comment`, its date — never padded,
+ *  and never a "Read more" to nowhere.
  *  `outline` (the site's table of contents) lists the h2 ids in order;
  *  a pack shows it when there are three sections or more. `fileName`
  *  overrides the pack's own naming ("Babel.txt"). */
@@ -166,9 +177,13 @@ export type Person = {
 }
 
 /** A whole site: who it is about, what is on it, and which entries
- *  matter most (`featured`, paths of titles — at most three). */
+ *  matter most (`featured`, paths of titles — at most three).
+ *  `description` is the sentence the site gives about itself (its meta
+ *  description): with the person's name and role it makes the page's
+ *  title and share card. */
 export type Site = {
   owner: string
+  description?: string
   person: Person
   entries: Entry[]
   featured: string[][]

@@ -8,85 +8,22 @@ import type { Block, DocumentEntry, Entry, Img, Site, Text } from "@/lib/content
 
 import { asset } from "./asset"
 import { DiskIcon, DocIcon, FaceIcon, FolderIcon } from "./icons"
+import { fileNameOf, titleOf } from "./names"
 import { kb } from "./windows"
+
+export { fileNameOf, findEntry, titleOf } from "./names"
 
 /**
  * The volume the Finder shows, built from a Site. The site is a disk, not a
  * page: a document is a TextEdit file, a collection a folder, a picture a
  * JPEG that opens in Preview, a movie QuickTime's, an alias a second name
  * for another entry, and the About entry an application. Every fact in a
- * row comes from the content — nothing here is invented.
- *
- * Naming: a document is `fileName`, or its title with `.rtf` when it holds
- * a picture (10.0's format for words with pictures) and `.txt` when it is
- * words alone; an alias takes its target's suffix; a picture or a movie
- * keeps its file's name. Kind is the entry's `category`, or what the Finder
- * would call the file.
+ * row comes from the content — nothing here is invented. Names are
+ * names.ts's; Kind is the entry's `category`, or what the Finder would call
+ * the file.
  */
 
-/* ── Naming ───────────────────────────────────────────────────────── */
-
-/** Does a document hold a picture (anything that would open Preview or
- *  QuickTime, or a plate waiting for one)? Then it is rich text. */
-const hasPicture = (blocks: Block[]) =>
-  blocks.some(
-    (b) =>
-      b.type === "figure" ||
-      b.type === "gallery" ||
-      b.type === "compare" ||
-      b.type === "video" ||
-      b.type === "placeholder" ||
-      (b.type === "embed" && !!b.image)
-  )
-
-const documentName = (doc: DocumentEntry) => doc.fileName ?? `${doc.title}${hasPicture(doc.blocks) ? ".rtf" : ".txt"}`
-
-/** An entry's title: what an alias's `to` and `site.featured` name it by. */
-export function titleOf(entry: Entry): string {
-  switch (entry.type) {
-    case "picture":
-      return entry.image.name
-    case "movie":
-      return entry.movie.name
-    default:
-      return entry.title
-  }
-}
-
-/** The entry a path of titles leads to, from the site's root. */
-export function findEntry(entries: Entry[], titles: string[]): Entry | undefined {
-  let level: Entry[] | undefined = entries
-  let found: Entry | undefined
-  for (const title of titles) {
-    found = level?.find((e) => titleOf(e) === title)
-    if (!found) return undefined
-    level = found.type === "collection" ? found.items : undefined
-  }
-  return found
-}
-
-/** An entry's name on the disk. An alias needs the site, to read its
- *  target's suffix. */
-export function fileNameOf(entry: Entry, site: Site): string {
-  switch (entry.type) {
-    case "document":
-      return documentName(entry)
-    case "collection":
-    case "about":
-      return entry.title
-    case "picture":
-      return entry.image.name
-    case "movie":
-      return entry.movie.name
-    case "alias": {
-      if (entry.fileName) return entry.fileName
-      const target = findEntry(site.entries, entry.to)
-      const name = target && target.type !== "alias" ? fileNameOf(target, site) : ""
-      const dot = name.lastIndexOf(".")
-      return `${entry.title}${dot > 0 ? name.slice(dot) : ""}`
-    }
-  }
-}
+/* ── Kind ─────────────────────────────────────────────────────────── */
 
 /** The Finder's Kind column. */
 export function kindOf(entry: Entry): string {
@@ -137,12 +74,11 @@ export function findNode(nodes: Node[], titles: string[], follow = true): Node |
 /* ── Deep links ───────────────────────────────────────────────────── */
 
 /**
- * `?open=<path>`: a window named in the address. The path is the Finder's —
- * file names from the volume, `/`-joined, each URL-encoded
- * (`?open=Archive/Tidewater.rtf`) — and a name may also be a title, in any
- * case, without its suffix (`?open=northwind`). One name that is not at the
- * top finds the first entry of that name anywhere on the disk. A path that
- * leads nowhere finds nothing.
+ * `?open=<path>` (read and written by redirects.ts): a name is a file name
+ * or a title, in any case, with or without its suffix
+ * (`?open=Journal/first%20frost`). One name that is not at the top finds
+ * the first entry of that name anywhere on the disk. A path that leads
+ * nowhere finds nothing.
  */
 const norm = (s: string) => s.trim().toLowerCase()
 const bare = (s: string) => s.replace(/\.[a-z0-9]{1,4}$/i, "")
@@ -151,37 +87,6 @@ const named = (n: Node, seg: string) => {
   const name = norm(n.path.at(-1) ?? "")
   const title = norm(n.titles.at(-1) ?? "")
   return s === name || s === title || bare(s) === bare(name) || bare(s) === title
-}
-
-/** The `open` parameter's names, decoded one by one (so a name may carry
- *  an encoded slash), or null when there is none or it cannot be read. */
-export function readOpen(search: string): string[] | null {
-  const raw = search
-    .replace(/^\?/, "")
-    .split("&")
-    .find((p) => p.startsWith("open="))
-  if (!raw) return null
-  try {
-    const names = raw
-      .slice(5)
-      .split("/")
-      .map((s) => decodeURIComponent(s.replace(/\+/g, " ")))
-      .filter((s) => s.trim())
-    return names.length ? names : null
-  } catch {
-    return null
-  }
-}
-
-/** A search string with `open` set to a Finder path (less the volume), or
- *  taken out (`path` null) — every other parameter kept as it was. */
-export function withOpen(search: string, path: string[] | null): string {
-  const rest = search
-    .replace(/^\?/, "")
-    .split("&")
-    .filter((p) => p && !p.startsWith("open="))
-  if (path?.length) rest.push(`open=${path.map(encodeURIComponent).join("/")}`)
-  return rest.length ? `?${rest.join("&")}` : ""
 }
 
 /** The node a deep link names. */
@@ -292,7 +197,7 @@ export const plainText = (text: Text) =>
  *  of it would weigh. */
 function textBytes(doc: DocumentEntry) {
   const strings = (v: unknown, key?: string): string[] => {
-    if (key === "href" || key === "to" || key === "id" || key === "type" || key === "src" || key === "initial") return []
+    if (key === "href" || key === "to" || key === "id" || key === "type" || key === "src" || key === "initial" || key === "kind") return []
     if (typeof v === "string") return [v]
     if (Array.isArray(v)) return v.flatMap((x) => strings(x))
     if (v && typeof v === "object") {

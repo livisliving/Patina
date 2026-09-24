@@ -91,6 +91,13 @@ export function Steps({ title, intro, items }: Of<"steps">) {
             <p className="mt-1">
               <Inlines text={it.body} />
             </p>
+            {/* The step's command: Monaco 11px, as a code block, on the
+                pane's own white (the pane is already the well). */}
+            {"code" in it && it.code && (
+              <pre tabIndex={0} className={`mt-2 overflow-x-auto font-(family-name:--y2k-font-mono) text-[11px] leading-[1.5] whitespace-pre-wrap ${FOCUS}`}>
+                <code>{it.code}</code>
+              </pre>
+            )}
           </div>
         ))}
       </WindowWell>

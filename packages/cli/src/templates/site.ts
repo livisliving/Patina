@@ -9,6 +9,10 @@ import type { DocumentEntry, Site } from "@/lib/content"
  * links as they are and never inventing one. A link whose address you don't
  * have yet is `href: ""` and shows greyed. DESIGN.md › Content says which
  * block each part of a page becomes.
+ *
+ * next.config reads this file for the redirects: import values from other
+ * files by relative path (`./posts`), never `@/` — only `import type` may
+ * use `@/`.
  */
 
 /** A document read start to finish. Three sections or more, so it gets an
@@ -20,6 +24,9 @@ const CASE_STUDY: DocumentEntry = {
   meta: "2026 · Research, Interaction design",
   category: "Case study",
   date: "2026",
+  // Its address on the old site: next.config sends it to this window
+  // (desktopRedirects, in the desktop item).
+  route: "/work/a-case-study",
   outline: [
     { id: "overview", label: "Overview" },
     { id: "process", label: "Process" },
@@ -55,7 +62,7 @@ const CASE_STUDY: DocumentEntry = {
       items: [
         { title: "Research", body: "Who was asked, and what they said." },
         { title: "Design", body: "What was tried, and what was kept." },
-        { title: "Launch", body: "What shipped, and when." },
+        { title: "Launch", body: "What shipped, and when.", code: "npm run release" },
       ],
     },
     { type: "h2", id: "results", text: "Results" },
@@ -63,7 +70,7 @@ const CASE_STUDY: DocumentEntry = {
     {
       type: "metrics",
       rows: [
-        { category: "Speed", results: [{ value: "4 min", label: "to do the task, down from 40" }, "Fewer steps"] },
+        { category: "Use", results: [{ value: "3×", label: "people each week, a year on" }, "One screen, not four"] },
         { category: "Support", results: ["Half the tickets"] },
       ],
     },
@@ -73,7 +80,7 @@ const CASE_STUDY: DocumentEntry = {
     {
       type: "faq",
       items: [
-        { q: "What would you do differently?", a: "One honest answer." },
+        { q: "A question people ask", a: "Its answer, as the site gives it." },
         { q: "Where can I see it?", a: [{ a: "The live product", href: "" }, " — its address goes here."] },
       ],
     },
@@ -82,6 +89,8 @@ const CASE_STUDY: DocumentEntry = {
 
 export const SITE: Site = {
   owner: "Your Name",
+  // The site's own one-line description (its meta description), as it is.
+  description: "One sentence the site says about itself.",
   person: {
     name: "Your Name",
     role: "What you do",
@@ -121,7 +130,8 @@ export const SITE: Site = {
       title: "Work",
       // The line the site puts over the folder (an archive's intro), or on
       // an item's card: the Finder shows it as the item's comment.
-      comment: "Smaller projects from the last few years.",
+      comment: "The line the site puts over this folder.",
+      route: "/work",
       items: [
         {
           type: "document",
