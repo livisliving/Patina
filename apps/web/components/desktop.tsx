@@ -995,6 +995,10 @@ export function Desktop() {
   const visibleFinderItems = matching(hereItems)
 
   const navigate = (path: string[]) => {
+    // The place the Finder already shows (Patina HD from the desktop, at
+    // first) is no step for Back: it would light the button, and going
+    // back would go nowhere.
+    if (path.length === finderPath.length && path.every((label, i) => label === finderPath[i])) return
     setFinderHistory((h) => [...h, finderPath])
     setFinderPath(path)
     setSelected((sel) => new Set([...sel].filter((k) => !k.startsWith("finder:"))))

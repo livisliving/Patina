@@ -11,7 +11,7 @@ Patina isn't a browser extension and doesn't restyle pages you visit. It changes
 your coding agent writes. After `npx @pat1na/cli init` your agent reads DESIGN.md before
 it builds any UI, and `/y2k-ify` rebuilds a page you already have.
 
-The demo desktop, built with the pack: https://patina-one.vercel.app
+The demo desktop, built with the pack: https://livisliving.github.io/Patina/
 
 ## Layout
 
@@ -57,8 +57,8 @@ npx shadcn@latest add https://livisliving.github.io/Patina/r/window.json
 ```
 
 The registry lives on GitHub Pages, at `https://livisliving.github.io/Patina/r` — the base `registry.json`
-names and `npx @pat1na/cli init` installs from. The Vercel deployment serves the same files
-(https://patina-one.vercel.app/r); `PATINA_REGISTRY` at build time points a copy elsewhere.
+names and `npx @pat1na/cli init` installs from; `PATINA_REGISTRY` at build time points a copy
+elsewhere.
 
 Adding `window` also brings in `button` and `theme` (the CSS variables).
 
