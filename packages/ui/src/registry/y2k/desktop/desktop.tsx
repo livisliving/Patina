@@ -19,7 +19,7 @@ import { DiskIcon, DocIcon, FaceIcon, FolderIcon, IPodIcon, TrashIcon } from "./
 import { MenuBar, type MenuRow, type MenuSpec } from "./menubar"
 import type { Tone } from "./tones"
 import { useMarqueeSelect } from "./use-marquee-select"
-import { useMediaQuery } from "./use-media-query"
+import { prefersReducedMotion, useMediaQuery } from "./use-media-query"
 import { useTone } from "./use-tone"
 import { AboutWindow, DesktopWindow, PlayerWindow, PreviewWindow, type WinEntry } from "./windows"
 
@@ -114,6 +114,23 @@ function DesktopShell({ wallpaper, IPod, className }: { wallpaper?: DesktopProps
   const openItem = (it: FinderItem, where: string[]) => (it.contents ? d.openFinder([...where, it.label]) : it.onClick?.())
 
   const isDesktop = useMediaQuery("(min-width: 768px)")
+  // On a phone, scroll to a window as it opens (it goes to the top of the
+  // column: DesktopWindow's `order`) — only when a newer one opens, so
+  // closing the latest leaves the page where it is. By its place in the
+  // layout (offsetTop), not its box on screen: it is still scaling in from
+  // 95%, and a 5000px document mid-animation sits 120px lower than it will.
+  const latest = windows.reduce<WinEntry | undefined>((a, w) => ((w.opened ?? 0) > (a?.opened ?? 0) ? w : a), undefined)
+  const [latestId, latestOpened] = [latest?.id, latest?.opened ?? 0]
+  const scrolledTo = React.useRef(0)
+  React.useEffect(() => {
+    if (isDesktop || !latestId || latestOpened <= scrolledTo.current) return
+    scrolledTo.current = latestOpened
+    const el = document.querySelector<HTMLElement>(`[data-window-id="${CSS.escape(latestId)}"]`)
+    if (!el) return
+    let top = 0
+    for (let n: HTMLElement | null = el; n; n = n.offsetParent as HTMLElement | null) top += n.offsetTop
+    window.scrollTo({ top: Math.max(0, top - parseFloat(getComputedStyle(el).scrollMarginTop)), behavior: prefersReducedMotion() ? "auto" : "smooth" })
+  }, [isDesktop, latestId, latestOpened])
   const { band, rootProps } = useMarqueeSelect(setSelected, isDesktop, "desktop:")
   // A second, independent marquee scoped to the Finder file area.
   const { band: finderBand, rootProps: finderRootProps } = useMarqueeSelect(setSelected, true, "finder:")

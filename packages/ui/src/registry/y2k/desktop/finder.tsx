@@ -79,26 +79,20 @@ export const finderKey = (placePath: string[], it: FinderItem) => `finder:${plac
 
 /* ── Parts ────────────────────────────────────────────────────────── */
 
-/** A file in a list: selects on click, opens on double-click or Enter (on a
- *  phone or a touch screen, on the tap itself), dims when disabled. Its
- *  first cell is the icon and the name; pass the rest. */
+/** A file in a list: selects on click, opens on double-click or Enter, dims
+ *  when disabled. Its first cell is the icon and the name; pass the rest. */
 function FileRow({
   item,
   onSelect,
   onOpen,
-  tapOpens,
   className,
   children,
   ...props
-}: React.ComponentProps<typeof TableRow> & { item: FinderItem; onSelect: () => void; onOpen: () => void; tapOpens: boolean }) {
+}: React.ComponentProps<typeof TableRow> & { item: FinderItem; onSelect: () => void; onOpen: () => void }) {
   return (
     <TableRow
       aria-disabled={item.disabled || undefined}
-      onClick={() => {
-        if (item.disabled) return
-        onSelect()
-        if (tapOpens) onOpen()
-      }}
+      onClick={() => !item.disabled && onSelect()}
       onOpen={item.disabled ? undefined : onOpen}
       className={cn("cursor-default aria-disabled:opacity-45", className)}
       {...props}
@@ -150,11 +144,9 @@ function ColumnRow({
   focused,
   chevron,
   volume,
-  tapOpens,
   onSelect,
 }: {
   item: FinderItem
-  tapOpens: boolean
   on: boolean
   focused: boolean
   chevron?: boolean
@@ -166,12 +158,7 @@ function ColumnRow({
   return (
     <button
       type="button"
-      // A tap on a file opens it at once on a phone or a touch screen; a
-      // folder's tap already opens its column.
-      onClick={() => {
-        onSelect()
-        if (tapOpens && !item.contents) item.onClick?.()
-      }}
+      onClick={onSelect}
       onDoubleClick={item.onClick}
       className={cn(
         "flex w-full cursor-default items-center gap-1 px-2 text-left text-[12px] outline-none",
@@ -445,6 +432,12 @@ export function Finder({
   // a tap opens a file, as a double-click does with a mouse — there is no
   // double-tap to find out about.
   const tapOpens = useMediaQuery("(max-width: 767px), (hover: none)")
+  // A click in the list or icon view: select the item, and open it too
+  // where a tap is the only click there is.
+  const choose = (key: string, it: FinderItem) => {
+    onSelect(key)
+    if (tapOpens) onOpenItem(it, placePath)
+  }
   // Its size when it first opens: 768 × 400, narrower or shorter on a small screen
   // (see loadLayout).
   const [size] = React.useState(initialSize)
@@ -491,11 +484,15 @@ export function Finder({
   // otherwise leaves an empty one: the folder's own line has a place to be read.
   const last = chain.at(-1)
   const columnShown = !last?.contents || (chain.length > 1 && last.comment) ? last : undefined
-  // Clicking a folder descends into it; clicking a file only selects it.
+  // Clicking a folder descends into it; clicking a file selects it (and, on
+  // a touch screen, opens it).
   const selectColumn = (depth: number, it: FinderItem) => {
     const next = [...path.slice(0, depth), it.label]
     if (it.contents) onNavigate(next)
-    else onSelectPath(next)
+    else {
+      onSelectPath(next)
+      if (tapOpens) it.onClick?.()
+    }
   }
 
   return (
@@ -572,7 +569,6 @@ export function Finder({
                         on={col.on === it.label}
                         focused={depth === chain.length - 1}
                         chevron={it.contents !== undefined}
-                        tapOpens={tapOpens}
                         onSelect={() => selectColumn(depth, it)}
                       />
                     ))}
@@ -615,9 +611,8 @@ export function Finder({
                         item={it}
                         data-select-item={key}
                         selected={selected.has(key)}
-                        onSelect={() => onSelect(key)}
+                        onSelect={() => choose(key, it)}
                         onOpen={() => onOpenItem(it, placePath)}
-                        tapOpens={tapOpens}
                         className="relative z-[2]"
                       >
                         <TableCell>{it.created}</TableCell>
@@ -645,11 +640,7 @@ export function Finder({
                     data-select-item={key}
                     disabled={it.disabled}
                     aria-pressed={selected.has(key)}
-                    onClick={() => {
-                      if (it.disabled) return
-                      onSelect(key)
-                      if (tapOpens) onOpenItem(it, placePath)
-                    }}
+                    onClick={() => !it.disabled && choose(key, it)}
                     onDoubleClick={() => onOpenItem(it, placePath)}
                     className="group relative z-[2] flex max-w-full cursor-default flex-col items-center gap-1 justify-self-center outline-none disabled:opacity-45"
                   >

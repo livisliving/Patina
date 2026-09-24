@@ -9,7 +9,7 @@ import type { Img, Movie } from "@/lib/content"
 import { asset } from "./asset"
 import { cropStyle, croppedSize } from "./crop"
 import { useDrag } from "./use-drag"
-import { prefersReducedMotion, useMediaQuery } from "./use-media-query"
+import { useMediaQuery } from "./use-media-query"
 import { useResize } from "./use-resize"
 
 /* ── Window manager ───────────────────────────────────────────────── */
@@ -158,20 +158,10 @@ export function DesktopWindow({ win, title, defaultSize, min = MIN, className, s
   const isDesktop = useMediaQuery("(min-width: 768px)")
   const box = size ?? defaultSize
   // On a phone the windows are one column, and a window just opened (or
-  // brought back) goes to its top, the latest first, and is scrolled to —
-  // else it would land under all the others and the tap seem to do nothing.
-  // `order` moves it without moving it in the DOM, so nothing in it restarts.
-  // The scroll goes by the window's place in the layout (offsetTop), not its
-  // box on screen: a new one is still scaling in from 95%, and a 5000px
-  // document mid-animation starts 120px lower than it will.
-  React.useEffect(() => {
-    if (isDesktop || !win.opened) return
-    const el = document.querySelector<HTMLElement>(`[data-window-id="${CSS.escape(win.id)}"]`)
-    if (!el) return
-    let top = 0
-    for (let n: HTMLElement | null = el; n; n = n.offsetParent as HTMLElement | null) top += n.offsetTop
-    window.scrollTo({ top: Math.max(0, top - parseFloat(getComputedStyle(el).scrollMarginTop)), behavior: prefersReducedMotion() ? "auto" : "smooth" })
-  }, [isDesktop, win.opened, win.id])
+  // brought back) goes to its top, the latest first — else it would land
+  // under all the others and the tap seem to do nothing. `order` moves it
+  // without moving it in the DOM, so nothing in it restarts; the desktop
+  // scrolls to it.
   // Only float (apply left/top/size) on desktop. Below md the window is in
   // normal flow (w-full) — applying the drag offsets to a relative element
   // would push it off-screen.
