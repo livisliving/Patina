@@ -68,6 +68,64 @@ const WALLPAPERS = Object.fromEntries(
   TONES.map((t) => [t.id, { desktop: asset(`/wallpapers/${t.id}.webp`), mobile: asset(`/wallpapers/${t.id}-mobile.webp`) }])
 )
 
+/** The Changelog window: each release, newest first, as its notes on
+ *  GitHub put it. Add one here when a release is cut: the first is the
+ *  version the About boxes show. */
+const CHANGELOG: { version: string; date?: string; items: string[] }[] = [
+  {
+    version: "0.2.2",
+    date: "24 September 2026",
+    items: [
+      "Keyboard focus shows on every control, and a header that sorts can be reached with Tab and sorted with Return.",
+      "Windows are named for screen readers, and the volume menu opens with its slider focused.",
+      "Minimising no longer stalls in Safari.",
+      "The wallpaper and the folders pick their tone in CSS: the first paint is right, and only the picture in use is downloaded.",
+      "On a phone the desktop scrolls to a window as it opens, and not when one closes.",
+    ],
+  },
+  {
+    version: "0.2.1",
+    date: "24 September 2026",
+    items: [
+      "The Finder's title icon sits on the middle of the folder's name.",
+      "Icons and picture thumbnails sit in the middle of their boxes.",
+      "patina update fetches the registry faster, with the same results.",
+    ],
+  },
+  {
+    version: "0.2.0",
+    date: "24 September 2026",
+    items: [
+      "The iPod's Video screen is a visualiser after Winamp's Tripex and Windows Media Player, in each song's own tone.",
+      "On a phone or a touch screen, one tap opens a file in the Finder.",
+      "On a phone, a window you open comes to the top.",
+      "Window toolbars set their items at the top.",
+    ],
+  },
+  {
+    version: "0.1.0",
+    date: "24 September 2026",
+    items: [
+      "The first release: npx @pat1na/cli init installs DESIGN.md, the theme, the components and the agent skills.",
+      "init --desktop also builds a site as a desktop: Finder, TextEdit, Preview, QuickTime Player and the iPod.",
+      "patina update brings a project up to a new release.",
+    ],
+  },
+  {
+    version: "Before 0.1.0",
+    items: [
+      "The star logo changes colour with the tone.",
+      "A photo wallpaper for each tone, and stars that twinkle on the desktop.",
+      "The Design System window, with the components and the full palette.",
+      "Layout snaps to a 4px grid. Font sizes stay at Aqua's own.",
+      "Windows drag and minimise to the Dock, and you can drag a box in the Finder to select.",
+    ],
+  },
+]
+
+/** Patina's version: the newest release in the Changelog. */
+const VERSION = CHANGELOG[0].version
+
 /* ── Window manager ───────────────────────────────────────────────── */
 
 type WinId = "about" | "appinfo" | "readme" | "help" | "finder" | "buttons" | "tone" | "window" | "design" | "changelog" | "terminal" | "ipod"
@@ -959,11 +1017,11 @@ export function Desktop() {
   // the 10.2 Finder's third column describes the selected file.
   const patinaFiles: FinderItem[] = [
     { label: "Read Me", icon: <DocIcon />, onClick: openWin("readme"), kind: "TextEdit document", size: "12 KB", created: "18/09/26", modified: "20/09/26" },
-    { label: "Design System", icon: <PillIcon />, onClick: openWin("buttons"), kind: "Application", size: "1.8 MB", created: "14/09/26", modified: "20/09/26", version: "1.0" },
-    { label: "Tone", icon: <PrefsIcon />, onClick: openWin("tone"), kind: "Preference pane", size: "248 KB", created: "14/09/26", modified: "19/09/26", version: "1.0" },
+    { label: "Design System", icon: <PillIcon />, onClick: openWin("buttons"), kind: "Application", size: "1.8 MB", created: "14/09/26", modified: "20/09/26", version: VERSION },
+    { label: "Tone", icon: <PrefsIcon />, onClick: openWin("tone"), kind: "Preference pane", size: "248 KB", created: "14/09/26", modified: "19/09/26", version: VERSION },
     { label: "DESIGN.md", icon: <DocIcon />, onClick: openWin("design"), kind: "Markdown document", size: "36 KB", created: "12/09/26", modified: "20/09/26" },
-    { label: "Changelog", icon: <DocIcon />, onClick: openWin("changelog"), kind: "Markdown document", size: "4 KB", created: "18/09/26", modified: "20/09/26" },
-    { label: "Terminal", icon: <TerminalIcon />, onClick: openWin("terminal"), kind: "Application", size: "912 KB", created: "14/09/26", modified: "18/09/26", version: "1.0" },
+    { label: "Changelog", icon: <DocIcon />, onClick: openWin("changelog"), kind: "Markdown document", size: "4 KB", created: "18/09/26", modified: "24/09/26" },
+    { label: "Terminal", icon: <TerminalIcon />, onClick: openWin("terminal"), kind: "Application", size: "912 KB", created: "14/09/26", modified: "18/09/26", version: VERSION },
   ]
   // The Favourites folder collects a few of them, so it lists the same rows.
   const finderItems: FinderItem[] = [
@@ -1461,11 +1519,11 @@ export function Desktop() {
               <dl className="mt-2 grid grid-cols-[auto_auto] gap-x-2 text-[11px]">
                 <dt className="text-right">Taste:</dt><dd className="text-left">Aqua × millennium</dd>
                 <dt className="text-right">Tone:</dt><dd className="text-left">{currentTone.label}</dd>
-                <dt className="text-right">Version:</dt><dd className="text-left">1.0 (Public Beta)</dd>
+                <dt className="text-right">Version:</dt><dd className="text-left">{VERSION} (Public Beta)</dd>
               </dl>
               <p className="mt-2 text-[11px]">
                 Built by{" "}
-                <a href="https://oliviazuo.com" target="_blank" rel="noopener noreferrer" className={LINK}>
+                <a href="https://oliviaforster.com" target="_blank" rel="noopener noreferrer" className={LINK}>
                   Olivia Forster
                 </a>
               </p>
@@ -1480,7 +1538,7 @@ export function Desktop() {
                 {Object.values(WINDOWS).find((w) => w.app === aboutApp)?.icon}
               </span>
               <p>{aboutApp}</p>
-              <p>Patina 1.0 (Public Beta)</p>
+              <p>Patina {VERSION} (Public Beta)</p>
             </WindowBody>
           </DesktopWindow>
         )}
@@ -2133,16 +2191,16 @@ export function Desktop() {
             <WindowScrollArea className="bg-white shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)]">
               <div className="flex flex-col gap-3 px-6 py-5 text-[12px] leading-[1.6]">
                 <h2 className="text-[13px] font-bold">Changelog</h2>
-                <div>
-                  <p className="font-bold">1.0 — Public Beta</p>
-                  <ul className="mt-1 flex list-disc flex-col gap-1 pl-5 text-(--y2k-ink-secondary)">
-                    <li>The star logo changes colour with the tone.</li>
-                    <li>A photo wallpaper for each tone, and stars that twinkle on the desktop.</li>
-                    <li>The Design System window, with the components and the full palette.</li>
-                    <li>Layout snaps to a 4px grid. Font sizes stay at Aqua&apos;s own.</li>
-                    <li>Windows drag and minimise to the Dock, and you can drag a box in the Finder to select.</li>
-                  </ul>
-                </div>
+                {CHANGELOG.map((entry) => (
+                  <div key={entry.version}>
+                    <p className="font-bold">{entry.date ? `${entry.version} — ${entry.date}` : entry.version}</p>
+                    <ul className="mt-1 flex list-disc flex-col gap-1 pl-5 text-(--y2k-ink-secondary)">
+                      {entry.items.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
               </div>
             </WindowScrollArea>
             <WindowFooter>
