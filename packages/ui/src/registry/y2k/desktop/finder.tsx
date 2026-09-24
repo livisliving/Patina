@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils"
 
 import { ComputerIcon, FolderIcon } from "./icons"
 import type { FinderItem } from "./disk"
+import { useMediaQuery } from "./use-media-query"
 import { DesktopWindow, type WinEntry } from "./windows"
 
 /**
@@ -78,20 +79,26 @@ export const finderKey = (placePath: string[], it: FinderItem) => `finder:${plac
 
 /* ── Parts ────────────────────────────────────────────────────────── */
 
-/** A file in a list: selects on click, opens on double-click or Enter, dims
- *  when disabled. Its first cell is the icon and the name; pass the rest. */
+/** A file in a list: selects on click, opens on double-click or Enter (on a
+ *  phone or a touch screen, on the tap itself), dims when disabled. Its
+ *  first cell is the icon and the name; pass the rest. */
 function FileRow({
   item,
   onSelect,
   onOpen,
+  tapOpens,
   className,
   children,
   ...props
-}: React.ComponentProps<typeof TableRow> & { item: FinderItem; onSelect: () => void; onOpen: () => void }) {
+}: React.ComponentProps<typeof TableRow> & { item: FinderItem; onSelect: () => void; onOpen: () => void; tapOpens: boolean }) {
   return (
     <TableRow
       aria-disabled={item.disabled || undefined}
-      onClick={() => !item.disabled && onSelect()}
+      onClick={() => {
+        if (item.disabled) return
+        onSelect()
+        if (tapOpens) onOpen()
+      }}
       onOpen={item.disabled ? undefined : onOpen}
       className={cn("cursor-default aria-disabled:opacity-45", className)}
       {...props}
@@ -143,9 +150,11 @@ function ColumnRow({
   focused,
   chevron,
   volume,
+  tapOpens,
   onSelect,
 }: {
   item: FinderItem
+  tapOpens: boolean
   on: boolean
   focused: boolean
   chevron?: boolean
@@ -157,7 +166,12 @@ function ColumnRow({
   return (
     <button
       type="button"
-      onClick={onSelect}
+      // A tap on a file opens it at once on a phone or a touch screen; a
+      // folder's tap already opens its column.
+      onClick={() => {
+        onSelect()
+        if (tapOpens && !item.contents) item.onClick?.()
+      }}
       onDoubleClick={item.onClick}
       className={cn(
         "flex w-full cursor-default items-center gap-1 px-2 text-left text-[12px] outline-none",
@@ -427,6 +441,10 @@ export function Finder({
   initialSize,
 }: FinderProps) {
   const { chain, placePath, here, hereItems, visible, narrowed } = at
+  // A phone, or any screen without a pointer that hovers (a touch screen):
+  // a tap opens a file, as a double-click does with a mouse — there is no
+  // double-tap to find out about.
+  const tapOpens = useMediaQuery("(max-width: 767px), (hover: none)")
   // Its size when it first opens: 768 × 400, narrower or shorter on a small screen
   // (see loadLayout).
   const [size] = React.useState(initialSize)
@@ -551,6 +569,7 @@ export function Finder({
                         on={col.on === it.label}
                         focused={depth === chain.length - 1}
                         chevron={it.contents !== undefined}
+                        tapOpens={tapOpens}
                         onSelect={() => selectColumn(depth, it)}
                       />
                     ))}
@@ -595,6 +614,7 @@ export function Finder({
                         selected={selected.has(key)}
                         onSelect={() => onSelect(key)}
                         onOpen={() => onOpenItem(it, placePath)}
+                        tapOpens={tapOpens}
                         className="relative z-[2]"
                       >
                         <TableCell>{it.created}</TableCell>
@@ -622,7 +642,11 @@ export function Finder({
                     data-select-item={key}
                     disabled={it.disabled}
                     aria-pressed={selected.has(key)}
-                    onClick={() => !it.disabled && onSelect(key)}
+                    onClick={() => {
+                      if (it.disabled) return
+                      onSelect(key)
+                      if (tapOpens) onOpenItem(it, placePath)
+                    }}
                     onDoubleClick={() => onOpenItem(it, placePath)}
                     className="group relative z-[2] flex max-w-full cursor-default flex-col items-center gap-1 justify-self-center outline-none disabled:opacity-45"
                   >

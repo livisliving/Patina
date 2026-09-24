@@ -9,7 +9,7 @@ import type { Img, Movie } from "@/lib/content"
 import { asset } from "./asset"
 import { cropStyle, croppedSize } from "./crop"
 import { useDrag } from "./use-drag"
-import { useMediaQuery } from "./use-media-query"
+import { prefersReducedMotion, useMediaQuery } from "./use-media-query"
 import { useResize } from "./use-resize"
 
 /* ── Window manager ───────────────────────────────────────────────── */
@@ -40,8 +40,11 @@ export type WinSpec = {
 
 /** A window that is open: its facts, where it stands in the stack, whether
  *  it is in the Dock or zoomed, and where it first opened (a function when
- *  that depends on the screen). */
-export type WinEntry = WinSpec & { z: number; minimized: boolean; zoomed?: boolean; at: Point | (() => Point) }
+ *  that depends on the screen). `opened` counts up each time it is opened
+ *  or brought back (from the Dock, a menu, a click in the Finder); the
+ *  windows there at load have none. A focus does not change it: on a phone
+ *  that is a tap to scroll. */
+export type WinEntry = WinSpec & { z: number; minimized: boolean; zoomed?: boolean; at: Point | (() => Point); opened?: number }
 
 /** New windows open cascaded 24px right and down from the last one placed;
  *  past the screen's lower right the cascade starts again at the top left. */
@@ -64,6 +67,7 @@ export function useWindows(initial: () => WinEntry[]) {
   const [wins, setWins] = React.useState<WinEntry[]>(initial)
   // The stack's top; it starts above whatever the first windows were given.
   const top = React.useRef(wins.reduce((m, w) => Math.max(m, w.z), 0))
+  const opened = React.useRef(0)
   const focus = React.useCallback((id: string) => {
     setWins((w) => {
       const i = w.findIndex((x) => x.id === id)
@@ -75,8 +79,8 @@ export function useWindows(initial: () => WinEntry[]) {
   const open = React.useCallback((spec: WinSpec, at?: Point | (() => Point)) => {
     setWins((w) => {
       const i = w.findIndex((x) => x.id === spec.id)
-      if (i >= 0) return put(w, i, { ...w[i], minimized: false, z: ++top.current })
-      return [...w, { ...spec, at: at ?? cascadeFrom(w), z: ++top.current, minimized: false }]
+      if (i >= 0) return put(w, i, { ...w[i], minimized: false, z: ++top.current, opened: ++opened.current })
+      return [...w, { ...spec, at: at ?? cascadeFrom(w), z: ++top.current, minimized: false, opened: ++opened.current }]
     })
   }, [])
   const close = React.useCallback((id: string) => {
@@ -153,6 +157,21 @@ export function DesktopWindow({ win, title, defaultSize, min = MIN, className, s
   const { size, gripProps } = useResize(min, raise)
   const isDesktop = useMediaQuery("(min-width: 768px)")
   const box = size ?? defaultSize
+  // On a phone the windows are one column, and a window just opened (or
+  // brought back) goes to its top, the latest first, and is scrolled to —
+  // else it would land under all the others and the tap seem to do nothing.
+  // `order` moves it without moving it in the DOM, so nothing in it restarts.
+  // The scroll goes by the window's place in the layout (offsetTop), not its
+  // box on screen: a new one is still scaling in from 95%, and a 5000px
+  // document mid-animation starts 120px lower than it will.
+  React.useEffect(() => {
+    if (isDesktop || !win.opened) return
+    const el = document.querySelector<HTMLElement>(`[data-window-id="${CSS.escape(win.id)}"]`)
+    if (!el) return
+    let top = 0
+    for (let n: HTMLElement | null = el; n; n = n.offsetParent as HTMLElement | null) top += n.offsetTop
+    window.scrollTo({ top: Math.max(0, top - parseFloat(getComputedStyle(el).scrollMarginTop)), behavior: prefersReducedMotion() ? "auto" : "smooth" })
+  }, [isDesktop, win.opened, win.id])
   // Only float (apply left/top/size) on desktop. Below md the window is in
   // normal flow (w-full) — applying the drag offsets to a relative element
   // would push it off-screen.
@@ -181,13 +200,14 @@ export function DesktopWindow({ win, title, defaultSize, min = MIN, className, s
       resizeGripProps={isDesktop && !win.zoomed && !fixed ? gripProps : undefined}
       onPointerDownCapture={raise}
       className={cn(
-        "w-full animate-[y2k-window-in_var(--y2k-duration-window)_var(--y2k-ease-aqua)] motion-reduce:animate-none md:absolute",
+        // scroll-mt: scrolled to on a phone, it clears the menu bar.
+        "w-full scroll-mt-8 animate-[y2k-window-in_var(--y2k-duration-window)_var(--y2k-ease-aqua)] motion-reduce:animate-none md:absolute",
         // A minimised window stays mounted (its place, its size and what it
         // was doing survive the Dock) and hidden until it comes back.
         win.minimized && "hidden",
         className
       )}
-      style={{ ...placement, zIndex: win.z, ...style }}
+      style={{ ...placement, zIndex: win.z, ...(isDesktop ? null : { order: -(win.opened ?? 0) }), ...style }}
       {...props}
     />
   )

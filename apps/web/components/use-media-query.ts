@@ -18,3 +18,6 @@ export function useMediaQuery(query: string) {
   }, [query])
   return matches
 }
+
+/** Whether the visitor asked for less motion, read once (in a handler). */
+export const prefersReducedMotion = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches

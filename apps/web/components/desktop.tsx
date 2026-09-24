@@ -57,7 +57,7 @@ import { MenuBar, type MenuRow, type MenuSpec } from "./menubar"
 import { TONES, type Tone } from "./tones"
 import { useDrag } from "./use-drag"
 import { useMarqueeSelect } from "./use-marquee-select"
-import { useMediaQuery } from "./use-media-query"
+import { prefersReducedMotion, useMediaQuery } from "./use-media-query"
 import { MiddleTruncate } from "./middle-truncate"
 import { useResize } from "./use-resize"
 import { Stars } from "./stars"
@@ -71,7 +71,10 @@ const WALLPAPERS = Object.fromEntries(
 /* ── Window manager ───────────────────────────────────────────────── */
 
 type WinId = "about" | "appinfo" | "readme" | "help" | "finder" | "buttons" | "tone" | "window" | "design" | "changelog" | "terminal" | "ipod"
-type WinState = Record<WinId, { open: boolean; z: number; minimized: boolean; zoomed?: boolean }>
+/** `opened` counts up each time a window is opened or brought back (from
+ *  the Dock, a menu, the Finder); the windows there at load have none. A
+ *  focus does not change it: on a phone that is a tap to scroll. */
+type WinState = Record<WinId, { open: boolean; z: number; minimized: boolean; zoomed?: boolean; opened?: number }>
 
 /** Each window's facts: the app it belongs to (the menu bar's bold name
  *  while it is in front — About Patina is the Finder's, as About This Mac is),
@@ -104,12 +107,13 @@ const INITIAL = Object.fromEntries(
 function useWindows() {
   const [wins, setWins] = React.useState<WinState>(INITIAL)
   const top = React.useRef(1)
+  const opened = React.useRef(0)
   const focus = React.useCallback((id: WinId) => {
     setWins((w) => (w[id].z === top.current ? w : { ...w, [id]: { ...w[id], z: ++top.current } }))
   }, [])
   // Open (or, if minimized, restore) a window and bring it to the front.
   const open = React.useCallback((id: WinId) => {
-    setWins((w) => ({ ...w, [id]: { open: true, z: ++top.current, minimized: false } }))
+    setWins((w) => ({ ...w, [id]: { open: true, z: ++top.current, minimized: false, opened: ++opened.current } }))
   }, [])
   const close = React.useCallback((id: WinId) => {
     setWins((w) => ({ ...w, [id]: { ...w[id], open: false, minimized: false } }))
@@ -146,6 +150,8 @@ type DesktopWindowProps = Omit<
   initial: { x: number; y: number } | (() => { x: number; y: number })
   z: number
   zoomed?: boolean
+  /** How recently it was opened; on a phone the latest goes to the top. */
+  opened?: number
   active: boolean
   onRaise: (id: WinId) => void
   onDismiss: (id: WinId) => void
@@ -153,13 +159,28 @@ type DesktopWindowProps = Omit<
   onZoom: (id: WinId) => void
 }
 
-function DesktopWindow({ id, title, initial, z, zoomed, active, onRaise, onDismiss, onMinimize, onZoom, className, style, ...props }: DesktopWindowProps) {
+function DesktopWindow({ id, title, initial, z, zoomed, opened, active, onRaise, onDismiss, onMinimize, onZoom, className, style, ...props }: DesktopWindowProps) {
   const fixed = WINDOWS[id].closeOnly
   const raise = React.useCallback(() => onRaise(id), [onRaise, id])
   const { pos, handleProps } = useDrag(initial, raise)
   const { size, gripProps } = useResize({ w: 260, h: 180 }, raise)
   const isDesktop = useMediaQuery("(min-width: 768px)")
   const toggleZoom = React.useCallback(() => onZoom(id), [onZoom, id])
+  // On a phone the windows are one column, and a window just opened (or
+  // brought back) goes to its top, the latest first, and is scrolled to —
+  // else it would land under all the others and the tap seem to do nothing.
+  // `order` moves it without moving it in the DOM, so nothing in it restarts.
+  // The scroll goes by the window's place in the layout (offsetTop), not its
+  // box on screen: a new one is still scaling in from 95%, and a 5000px
+  // document mid-animation starts 120px lower than it will.
+  React.useEffect(() => {
+    if (isDesktop || !opened) return
+    const el = document.querySelector<HTMLElement>(`[data-window-id="${id}"]`)
+    if (!el) return
+    let top = 0
+    for (let n: HTMLElement | null = el; n; n = n.offsetParent as HTMLElement | null) top += n.offsetTop
+    window.scrollTo({ top: Math.max(0, top - parseFloat(getComputedStyle(el).scrollMarginTop)), behavior: prefersReducedMotion() ? "auto" : "smooth" })
+  }, [isDesktop, opened, id])
   // Only float (apply left/top/size) on desktop. Below md the window is in
   // normal flow (w-full) — applying the drag offsets to a relative element
   // would push it off-screen.
@@ -186,10 +207,11 @@ function DesktopWindow({ id, title, initial, z, zoomed, active, onRaise, onDismi
       resizeGripProps={isDesktop && !zoomed ? gripProps : undefined}
       onPointerDownCapture={raise}
       className={cn(
-        "w-full animate-[y2k-window-in_var(--y2k-duration-window)_var(--y2k-ease-aqua)] motion-reduce:animate-none md:absolute",
+        // scroll-mt: scrolled to on a phone, it clears the menu bar.
+        "w-full scroll-mt-8 animate-[y2k-window-in_var(--y2k-duration-window)_var(--y2k-ease-aqua)] motion-reduce:animate-none md:absolute",
         className
       )}
-      style={{ ...placement, zIndex: z, ...style }}
+      style={{ ...placement, zIndex: z, ...(isDesktop ? null : { order: -(opened ?? 0) }), ...style }}
       {...props}
     />
   )
@@ -197,20 +219,26 @@ function DesktopWindow({ id, title, initial, z, zoomed, active, onRaise, onDismi
 
 /* ── Aqua controls used by the demo ───────────────────────────────── */
 
-/** A file in a list: selects on click, opens on double-click or Enter, dims
- *  when disabled. Its first cell is the icon and the name; pass the rest. */
+/** A file in a list: selects on click, opens on double-click or Enter (on a
+ *  phone or a touch screen, on the tap itself), dims when disabled. Its
+ *  first cell is the icon and the name; pass the rest. */
 function FileRow({
   item,
   onSelect,
   onOpen,
+  tapOpens,
   className,
   children,
   ...props
-}: React.ComponentProps<typeof TableRow> & { item: FinderItem; onSelect: () => void; onOpen: () => void }) {
+}: React.ComponentProps<typeof TableRow> & { item: FinderItem; onSelect: () => void; onOpen: () => void; tapOpens: boolean }) {
   return (
     <TableRow
       aria-disabled={item.disabled || undefined}
-      onClick={() => !item.disabled && onSelect()}
+      onClick={() => {
+        if (item.disabled) return
+        onSelect()
+        if (tapOpens) onOpen()
+      }}
       onOpen={item.disabled ? undefined : onOpen}
       className={cn("cursor-default aria-disabled:opacity-45", className)}
       {...props}
@@ -327,9 +355,11 @@ function ColumnRow({
   focused,
   chevron,
   volume,
+  tapOpens,
   onSelect,
 }: {
   item: FinderItem
+  tapOpens: boolean
   on: boolean
   focused: boolean
   chevron?: boolean
@@ -341,7 +371,12 @@ function ColumnRow({
   return (
     <button
       type="button"
-      onClick={onSelect}
+      // A tap on a file opens it at once on a phone or a touch screen; a
+      // folder's tap already opens its column.
+      onClick={() => {
+        onSelect()
+        if (tapOpens && !item.contents) item.onClick?.()
+      }}
       onDoubleClick={item.onClick}
       className={cn(
         "flex w-full cursor-default items-center gap-1 px-2 text-left text-[12px] outline-none",
@@ -866,6 +901,7 @@ export function Desktop() {
     id,
     z: wins[id].z,
     zoomed: wins[id].zoomed,
+    opened: wins[id].opened,
     active: frontId === id,
     onRaise: focus,
     onDismiss: close,
@@ -1033,6 +1069,10 @@ export function Desktop() {
   const dsNoResults = dsq && !DS_GROUPS.some(dsMatch)
 
   const isDesktop = useMediaQuery("(min-width: 768px)")
+  // A phone, or any screen without a pointer that hovers (a touch screen):
+  // a tap in the Finder opens a file, as a double-click does with a mouse —
+  // there is no double-tap to find out about.
+  const tapOpens = useMediaQuery("(max-width: 767px), (hover: none)")
   const { band, rootProps } = useMarqueeSelect(setSelected, isDesktop, "desktop:")
   // A second, independent marquee scoped to the Finder file area.
   const { band: finderBand, rootProps: finderRootProps } = useMarqueeSelect(setSelected, true, "finder:")
@@ -1307,6 +1347,7 @@ export function Desktop() {
                             on={col.on === it.label}
                             focused={depth === chain.length - 1}
                             chevron={it.contents !== undefined}
+                            tapOpens={tapOpens}
                             onSelect={() => selectColumn(depth, it)}
                           />
                         ))}
@@ -1345,6 +1386,7 @@ export function Desktop() {
                             selected={selected.has(key)}
                             onSelect={() => selectOnly(key)}
                             onOpen={() => openItem(it, placePath)}
+                            tapOpens={tapOpens}
                             className="relative z-[2]"
                           >
                             <TableCell>{it.modified}</TableCell>
@@ -1368,7 +1410,11 @@ export function Desktop() {
                         data-select-item={key}
                         disabled={it.disabled}
                         aria-pressed={selected.has(key)}
-                        onClick={() => !it.disabled && selectOnly(key)}
+                        onClick={() => {
+                          if (it.disabled) return
+                          selectOnly(key)
+                          if (tapOpens) openItem(it, placePath)
+                        }}
                         onDoubleClick={() => openItem(it, placePath)}
                         className="group relative z-[2] flex cursor-default flex-col items-center gap-1 outline-none disabled:opacity-45"
                       >
