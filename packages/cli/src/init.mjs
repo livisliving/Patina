@@ -361,12 +361,14 @@ async function collectBrief({ cwd, registry, yes, dryRun, terminal, setup, brows
   const defaults = defaultsFrom(project)
   const toneFlag = toneArg === undefined ? undefined : toTone(toneArg)
   if (toneFlag) defaults.look = { ...defaults.look, tone: toneFlag }
-  // --setup: the Setup Assistant without a terminal — an AI agent running
-  // init for a person who answers in the browser.
+  // Who answers, in one place: nobody (--yes, a dry run, or a script with
+  // no terminal and no --setup: flags and the scan), the terminal (only at
+  // one, and only when --terminal asks), or the Setup Assistant (a person
+  // at a terminal, or an AI agent running --setup for one).
   const atTerminal = !!process.stdin.isTTY
-  const interactive = (atTerminal || setup) && !yes && !dryRun
+  const mode = yes || dryRun || !(atTerminal || setup) ? "flags" : terminal && atTerminal ? "terminal" : "setup"
 
-  if (!interactive) {
+  if (mode === "flags") {
     const tone = toneFromFlag({ tone: toneArg, dryRun })
     if (!tone) return null
     const { answers, unanswered, errors } = briefFromFlags({ ...flags, tone, desktop }, project)
@@ -377,7 +379,7 @@ async function collectBrief({ cwd, registry, yes, dryRun, terminal, setup, brows
     return { brief: makeBrief({ answeredBy: "flags", answers, project, unanswered }), tone }
   }
 
-  if (terminal && atTerminal) {
+  if (mode === "terminal") {
     const answers = await askInTerminal(QUESTIONS, defaults, project)
     return { brief: makeBrief({ answeredBy: "terminal", answers, project }), tone: answers.look.tone }
   }

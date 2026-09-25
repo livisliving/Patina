@@ -6,7 +6,7 @@ Installs Patina's Y2K taste pack into a project, so your coding agent (Claude Co
 npx @pat1na/cli init
 ```
 
-No terminal? Send your AI agent https://github.com/livisliving/Patina and ask it to put Patina on your site. It runs `npx @pat1na/cli@latest init --setup`, which opens the Setup Assistant in your browser without a terminal and waits for your answers there.
+No terminal? Send your AI agent https://github.com/livisliving/Patina and ask it to put Patina on your site: it runs `init --setup` (below), and you answer in your browser.
 
 Run it in a React project that uses Tailwind (a new create-next-app is fine). It opens the Setup Assistant (below) and asks six questions about your site and which tone you want (Y2K pink, Aqua, Lime, Tangerine or Grape), then:
 
@@ -71,7 +71,7 @@ npx shadcn@latest add https://livisliving.github.io/Patina/r/content.json https:
 --dry-run          Print what would happen and the brief, write nothing
 --yes              Don't ask anything (then --tone is required)
 --setup            Open the Setup Assistant even without a terminal (what an
-                   AI agent runs): it waits for the answers in the browser
+                   AI agent runs)
 --terminal         Ask the Setup Assistant's questions here, not in a browser
 --no-browser       Start the assistant but only print its address
 ```

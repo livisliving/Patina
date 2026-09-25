@@ -18,6 +18,7 @@ import {
 } from "@patina/ui"
 
 import { asset } from "@/components/asset"
+import { INIT } from "@/components/install"
 import { Mono } from "@/components/mono"
 import { TONES } from "@/components/tones"
 import { SAMPLE, sampleItems } from "./sample"
@@ -650,7 +651,7 @@ export function Assistant() {
               <IconInfo className="size-4" />
               <span>
                 This is a preview. To set up your site, send your AI agent <Mono>github.com/livisliving/Patina</Mono>, or run{" "}
-                <Mono>npx @pat1na/cli init</Mono> in your project.
+                <Mono>{INIT}</Mono> in your project.
               </span>
             </p>
           )}

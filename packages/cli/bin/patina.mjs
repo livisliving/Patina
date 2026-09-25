@@ -28,9 +28,8 @@ Options for init
                      content/site.ts or a page of yours)
   --dry-run          Print what would happen and the brief, write nothing
   --yes              Don't ask anything (then --tone is required)
-  --setup            Open the Setup Assistant even without a terminal: what
-                     an AI agent runs for you. It waits for the answers in
-                     the browser, then installs
+  --setup            Open the Setup Assistant even without a terminal (what
+                     an AI agent runs); it waits for the answers, then installs
   --terminal         Ask the Setup Assistant's questions here, not in a browser
   --no-browser       Start the assistant but only print its address
   --help             This
