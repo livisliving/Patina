@@ -116,9 +116,12 @@ function readManifest(cwd) {
   }
 }
 
-/** patina.json: the items, the version, and each file's fingerprint. */
+/** patina.json: the items, the version, and each file's fingerprint. The
+ *  brief (init's questions and their answers, brief.mjs) is the owner's and
+ *  stays as it is across every write. */
 function writeManifest(cwd, { version, items, files }) {
-  const record = { $comment: NOTE, version, items, files: Object.fromEntries(Object.entries(files).sort(([a], [b]) => a.localeCompare(b))) }
+  const brief = readManifest(cwd)?.brief
+  const record = { $comment: NOTE, version, items, files: Object.fromEntries(Object.entries(files).sort(([a], [b]) => a.localeCompare(b))), ...(brief ? { brief } : {}) }
   fs.writeFileSync(path.join(cwd, MANIFEST), `${JSON.stringify(record, null, 2)}\n`)
 }
 

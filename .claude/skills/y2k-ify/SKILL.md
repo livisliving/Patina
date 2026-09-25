@@ -38,6 +38,36 @@ centred column and three feature cards is still a page after you paint it
 pink — fixing that is most of the job, and doing it last means redoing the
 paint.
 
+0. **The owner's brief.** Read `patina.json › brief` before anything else.
+   `npx @pat1na/cli init` asked the owner a few questions, and their answers
+   (`brief.answers`) are theirs: they override every guess you would make
+   from the pages. `about.kind` (person, team, product, event, show) is the
+   About box's kind — team, event and show mean one document per person,
+   not one About box; `about.name` and `about.role` are the names.
+   `first.goal` and `first.featured` are what opens at load and what sits
+   on the desktop and in the Dock (`SITE.featured`). `scope` and
+   `keepRoutes` say which routes keep their pages (`content`: the listed
+   tools stay pages; `whole`: everything becomes a window; `components`:
+   no desktop at all, restyle the components only). `source` says where to
+   transcribe from (this project, a live URL, an export, a folder) — never
+   anywhere else. `look.volume` and `look.description` are the volume's
+   name and `SITE.description`. `extras.wallpaper` is the owner's own
+   wallpaper folder. `oldUrls` says whether to write `desktopRedirects`
+   (`redirect`) or not (`drop`). `brief.detected` is what the scan found;
+   `brief.unanswered` lists the questions nobody answered. **Ask every
+   unanswered question in one message before you start**, in the words
+   `brief.ask` carries (each one's title, prompt and options — the same the
+   assistant showed), and write the answers back into
+   `patina.json › brief.answers` before going on. No `patina.json`, or one without a `brief`? Ask the gist
+   of all six in one message: who the site is about (one person, a team, a
+   product, an event or a show — and their name and what they do); what a
+   visitor should do first (look at the work, read, find the details, sign
+   up or buy, listen or watch — and up to three pages to keep at hand); how
+   much becomes a desktop (the whole site, its pages to read with tools
+   keeping their pages, or none: components only); where the real content
+   is (this project, a live site, an export, a folder); the tone; and the
+   extras (an iPod, their own wallpaper, a visitor counter, a marquee) and
+   whether old addresses should keep working.
 1. **Content, then structure.** Read DESIGN.md › Content first.
    a. **Inventory** every page in reading order — every heading, paragraph,
       picture, link and number. Take originals and real URLs from the

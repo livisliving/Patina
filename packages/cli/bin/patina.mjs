@@ -23,28 +23,51 @@ Options for init
   --tone <name>      pink, aqua, lime, tangerine or grape (asked when not given)
   --registry <url>   Component registry base URL (default: ${DEFAULT_REGISTRY})
   --no-components    Write DESIGN.md and the skills, skip the shadcn components
-  --desktop          Also install the desktop: the Content model (content), the
-                     OS layer that renders it (desktop, ipod), an example
-                     content/site.ts, and the page — over create-next-app's
-                     starter only
+  --desktop          The whole site becomes a desktop (the same as --scope whole)
   --force            Overwrite the pack's files that already exist (never
                      content/site.ts or a page of yours)
-  --dry-run          Print what would happen, write nothing
+  --dry-run          Print what would happen and the brief, write nothing
   --yes              Don't ask anything (then --tone is required)
+  --terminal         Ask the Setup Assistant's questions here, not in a browser
+  --no-browser       Start the assistant but only print its address
   --help             This
 
+The Setup Assistant
+  At a terminal, init opens a Mac OS X Setup Assistant in your browser
+  (served from 127.0.0.1) and asks six questions about your site: who it
+  is about, what a visitor does first, how much becomes a desktop, where
+  the real content is, the tone, and the small extras. The answers go into
+  patina.json as a "brief": init installs from it (the tone, the desktop or
+  not, the extras) and /y2k-ify reads the rest. Without a terminal (a
+  script, an agent, --yes) the flags below answer instead, and whatever
+  they leave out is listed as unanswered, for /y2k-ify to ask in chat.
+
+  --about <kind>        person, team, product, event or show
+  --name <text>         Their name         --role <text>   What they do
+  --first <goal>        work, read, details, act or listen
+  --featured <routes>   Pages to keep at hand, comma-separated, at most three
+  --scope <how much>    whole, content (tools keep their pages) or components
+  --keep <routes>       The routes that keep their pages, comma-separated
+  --source <where>      project, live=<url>, export=<folder> or folder=<folder>
+  --volume <text>       The volume's name ("Your Name HD")
+  --description <text>  One line about the site
+  --extras <list>       ipod, wallpaper=<folder>, visitor-counter, marquee
+  --old-urls <what>     redirect (old addresses open their windows) or drop
+
 What init does
-  0. Asks which of the five tones you want.
+  0. Asks the six questions and the tone (or takes them from the flags).
   1. Writes DESIGN.md to the project root — the spec your coding agent reads.
   2. Installs the Y2K theme + components from the registry (via shadcn).
   3. Installs the agent skills into .claude/skills/ and the /check-y2k scanner.
   4. Sets data-tone on your <html>, and leaves a note in CLAUDE.md so your
      agent reads DESIGN.md (and keeps the tone) before building UI.
-  With --desktop, step 2 adds the content, desktop and ipod items, then
-  writes content/site.ts if you have none and app/page.tsx if it is still
-  create-next-app's; a page of your own is kept, and init prints the lines
-  that render the desktop in it.
-  5. Writes patina.json: the items installed and each file as written.
+  When the site becomes a desktop (--scope whole or content, --desktop),
+  step 2 adds the content and desktop items (and ipod when it is wanted),
+  then writes content/site.ts with your name in it if you have none, and
+  app/page.tsx if it is still create-next-app's; a page of your own is kept,
+  and init prints the lines that render the desktop in it.
+  5. Writes patina.json: the brief, the items installed and each file as
+     written.
 
 Options for update
   --to <tag>         The Patina release to update to (default: the latest
@@ -104,6 +127,23 @@ try {
           dryRun: flag("dry-run"),
           yes: flag("yes"),
           tone: value("tone", undefined),
+          terminal: flag("terminal"),
+          browser: !flag("no-browser"),
+          // The brief's flags: an answer each, for a run with no terminal.
+          brief: {
+            about: value("about", undefined),
+            name: value("name", undefined),
+            role: value("role", undefined),
+            first: value("first", undefined),
+            featured: value("featured", undefined),
+            scope: value("scope", undefined),
+            keep: value("keep", undefined),
+            source: value("source", undefined),
+            volume: value("volume", undefined),
+            description: value("description", undefined),
+            extras: value("extras", undefined),
+            oldUrls: value("old-urls", undefined),
+          },
         })
   process.exit(code)
 } catch (err) {
