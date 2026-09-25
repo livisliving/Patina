@@ -15,6 +15,8 @@ node scripts/check-y2k.mjs <paths...>
 ```
 
 - Pass the directories you touched; with no paths it scans the whole project.
+  In a git repository it skips what `.gitignore` leaves out (build output such
+  as a Studio or an export in `public/`); a path you name is always checked.
 - `--json` for machine-readable output, `--design <path>` if DESIGN.md is not
   at the project root, `--strict` to fail on warnings too.
 - Exit code 1 means there are errors.

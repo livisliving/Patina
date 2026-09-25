@@ -31,6 +31,7 @@
  * check-y2k: ignore-file
  */
 
+import { execFileSync } from "node:child_process"
 import crypto from "node:crypto"
 import fs from "node:fs"
 import path from "node:path"
@@ -811,18 +812,59 @@ function waived(lines, at, rule) {
   return false
 }
 
+/** A file or folder name the scan passes over: hidden ones (but .claude,
+ *  where the skills live) and the usual build and dependency folders. */
+const skipName = (name) => (name.startsWith(".") && name !== ".claude") || SKIP_DIR.has(name)
+
+/** The files git keeps under `dir`, tracked or new, relative to it: what
+ *  .gitignore leaves out (a Studio or an export built into public/, say) is
+ *  output, not the project's code. Null outside a git repository, without
+ *  git, or when `dir` is itself ignored — then every file counts, since a
+ *  path you name is checked. */
+function gitFiles(dir) {
+  const git = (...args) => execFileSync("git", ["-C", dir, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], maxBuffer: 1 << 28 })
+  try {
+    git("rev-parse", "--is-inside-work-tree")
+  } catch {
+    return null
+  }
+  try {
+    git("check-ignore", "-q", ".")
+    return null
+  } catch {
+    // Not ignored (check-ignore exits 1): list what git keeps.
+  }
+  try {
+    return git("ls-files", "--cached", "--others", "--exclude-standard", "-z").split("\0").filter(Boolean)
+  } catch {
+    return null
+  }
+}
+
+function* walkAll(root) {
+  for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
+    if (skipName(entry.name)) continue
+    const p = path.join(root, entry.name)
+    if (entry.isDirectory()) yield* walkAll(p)
+    else if (SCAN_EXT.has(path.extname(entry.name))) yield p
+  }
+}
+
 function* walk(root) {
-  const st = fs.statSync(root)
-  if (st.isFile()) {
+  if (fs.statSync(root).isFile()) {
     yield root
     return
   }
-  for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
-    if (entry.name.startsWith(".") && entry.name !== ".claude") continue
-    if (SKIP_DIR.has(entry.name)) continue
-    const p = path.join(root, entry.name)
-    if (entry.isDirectory()) yield* walk(p)
-    else if (SCAN_EXT.has(path.extname(entry.name))) yield p
+  const kept = gitFiles(root)
+  if (!kept) {
+    yield* walkAll(root)
+    return
+  }
+  for (const rel of kept) {
+    if (rel.split("/").some(skipName) || !SCAN_EXT.has(path.extname(rel))) continue
+    const p = path.join(root, rel)
+    // A tracked file deleted from the working tree is still listed.
+    if (fs.existsSync(p)) yield p
   }
 }
 
