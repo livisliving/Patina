@@ -122,7 +122,7 @@
     },
     {
       "path": "src/registry/y2k/desktop/patina.ts",
-      "content": "/**\n * Patina OS, as every desktop built with it names it: in the ★ menu's\n * About Patina OS, on About The Finder, in the page's generator tag and\n * once in the browser's console. The version is the pack's own: it is\n * bumped with every release, with the CLI's.\n */\nexport const PATINA = {\n  name: \"Patina OS\",\n  version: \"0.4.1\",\n  taste: \"Aqua × millennium\",\n  by: \"Olivia Forster\",\n  site: \"https://oliviaforster.com\",\n  source: \"https://github.com/livisliving/Patina\",\n} as const\n\n/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */\n",
+      "content": "/**\n * Patina OS, as every desktop built with it names it: in the ★ menu's\n * About Patina OS, on About The Finder, in the page's generator tag and\n * once in the browser's console. The version is the pack's own: it is\n * bumped with every release, with the CLI's.\n */\nexport const PATINA = {\n  name: \"Patina OS\",\n  version: \"0.4.2\",\n  taste: \"Aqua × millennium\",\n  by: \"Olivia Forster\",\n  site: \"https://oliviaforster.com\",\n  source: \"https://github.com/livisliving/Patina\",\n} as const\n\n/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */\n",
       "type": "registry:component",
       "target": "components/desktop/patina.ts"
     },

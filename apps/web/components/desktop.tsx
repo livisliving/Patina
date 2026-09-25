@@ -75,6 +75,13 @@ ${TONES.map(
  *  entry; nothing before 0.1.0 is listed. */
 const CHANGELOG: { version: string; date: string; items: string[] }[] = [
   {
+    version: "0.4.2",
+    date: "26 September 2026",
+    items: [
+      "No terminal needed: send your AI agent github.com/livisliving/Patina and ask it to put Patina on your site. It runs init --setup, and the Setup Assistant opens in your browser for you to answer.",
+    ],
+  },
+  {
     version: "0.4.1",
     date: "26 September 2026",
     items: [
@@ -153,7 +160,7 @@ const ICON_COLUMN = 84 + 12
 
 /** Patina's version, as the About boxes and the Finder show it: the newest
  *  release, listed in the Changelog or not. Bump it with every release. */
-const VERSION = "0.4.1"
+const VERSION = "0.4.2"
 
 /* ── Window manager ───────────────────────────────────────────────── */
 
