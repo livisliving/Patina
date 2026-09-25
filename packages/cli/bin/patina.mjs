@@ -28,6 +28,9 @@ Options for init
                      content/site.ts or a page of yours)
   --dry-run          Print what would happen and the brief, write nothing
   --yes              Don't ask anything (then --tone is required)
+  --setup            Open the Setup Assistant even without a terminal: what
+                     an AI agent runs for you. It waits for the answers in
+                     the browser, then installs
   --terminal         Ask the Setup Assistant's questions here, not in a browser
   --no-browser       Start the assistant but only print its address
   --help             This
@@ -38,9 +41,11 @@ The Setup Assistant
   is about, what a visitor does first, how much becomes a desktop, where
   the real content is, the tone, and the small extras. The answers go into
   patina.json as a "brief": init installs from it (the tone, the desktop or
-  not, the extras) and /y2k-ify reads the rest. Without a terminal (a
-  script, an agent, --yes) the flags below answer instead, and whatever
-  they leave out is listed as unanswered, for /y2k-ify to ask in chat.
+  not, the extras) and /y2k-ify reads the rest. An AI agent runs
+  init --setup, and the person answers in the page it opens. Without a
+  terminal and without --setup (a script, --yes) the flags below answer
+  instead, and whatever they leave out is listed as unanswered, for
+  /y2k-ify to ask in chat.
 
   --about <kind>        person, team, product, event, show or other=<words>
   --name <text>         Their name         --role <text>   What they do
@@ -130,6 +135,7 @@ try {
           yes: flag("yes"),
           tone: value("tone", undefined),
           terminal: flag("terminal"),
+          setup: flag("setup"),
           browser: !flag("no-browser"),
           // The brief's flags: an answer each, for a run with no terminal.
           brief: {

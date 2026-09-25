@@ -649,7 +649,8 @@ export function Assistant() {
             <p className="mb-3 flex items-center gap-2 text-[11px] leading-[1.35]">
               <IconInfo className="size-4" />
               <span>
-                This is a preview. Run <Mono>npx @pat1na/cli init</Mono> in your project to set it up.
+                This is a preview. To set up your site, send your AI agent <Mono>github.com/livisliving/Patina</Mono>, or run{" "}
+                <Mono>npx @pat1na/cli init</Mono> in your project.
               </span>
             </p>
           )}

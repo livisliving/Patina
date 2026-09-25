@@ -356,12 +356,15 @@ function run(cmd, args, cwd) {
  * they leave out is listed as unanswered. Returns null when it cannot go on
  * (no tone, a bad flag, thirty minutes with no answers).
  */
-async function collectBrief({ cwd, registry, yes, dryRun, terminal, browser, tone: toneArg, brief: flags, desktop }, ctx) {
+async function collectBrief({ cwd, registry, yes, dryRun, terminal, setup, browser, tone: toneArg, brief: flags, desktop }, ctx) {
   const project = scanProject(cwd)
   const defaults = defaultsFrom(project)
   const toneFlag = toneArg === undefined ? undefined : toTone(toneArg)
   if (toneFlag) defaults.look = { ...defaults.look, tone: toneFlag }
-  const interactive = process.stdin.isTTY && !yes && !dryRun
+  // --setup: the Setup Assistant without a terminal — an AI agent running
+  // init for a person who answers in the browser.
+  const atTerminal = !!process.stdin.isTTY
+  const interactive = (atTerminal || setup) && !yes && !dryRun
 
   if (!interactive) {
     const tone = toneFromFlag({ tone: toneArg, dryRun })
@@ -374,7 +377,7 @@ async function collectBrief({ cwd, registry, yes, dryRun, terminal, browser, ton
     return { brief: makeBrief({ answeredBy: "flags", answers, project, unanswered }), tone }
   }
 
-  if (terminal) {
+  if (terminal && atTerminal) {
     const answers = await askInTerminal(QUESTIONS, defaults, project)
     return { brief: makeBrief({ answeredBy: "terminal", answers, project }), tone: answers.look.tone }
   }
@@ -388,7 +391,11 @@ async function collectBrief({ cwd, registry, yes, dryRun, terminal, browser, ton
   const server = await startSetupServer({ session: { mode: "live", project, questions, defaults }, registry, open: browser })
   ctx.server = server
   console.log(`  Answer in the browser${browser ? "" : " (open this)"}: ${server.url}`)
-  console.log(`  (or run again with --terminal to answer here)\n`)
+  if (atTerminal) console.log(`  (or run again with --terminal to answer here)\n`)
+  else
+    console.log(
+      `  Waiting for the answers in the browser. Tell the person a page has opened there (or give them the address above);\n  this command exits once they have answered and the install is done — thirty minutes at most.\n`
+    )
   const answers = await server.answers
   if (!answers) {
     console.log(stop("no answers after thirty minutes — nothing installed."))
