@@ -86,9 +86,10 @@ The pack is copied into your project, so a new Patina reaches it only when its f
 npx @pat1na/cli update            # to the latest Patina release (main while there is none)
 npx @pat1na/cli update --to v0.2.0
 npx @pat1na/cli update --dry-run  # say what would change, write nothing
+npx @pat1na/cli outdated          # is there a newer release than this project's?
 ```
 
-`init` writes `patina.json`: the brief, the items it installed and a fingerprint of each file as written (`update` keeps the brief as it is). `update` copies every file of those items again from the release (and `DESIGN.md`, the `/check-y2k` scanner and the skills), installs any npm package the new files need, and records the version. It never touches what is not listed — the `content`, `desktop` and `ipod` items are updated only when `patina.json` names them (or `--add desktop,content,ipod`), since a site often keeps its own desktop in that folder. A file you changed since it was installed is kept and named; `--force` replaces it. A project installed before `patina.json` existed gets one on its first update, from the theme and the components found under its ui folder.
+`init` writes `patina.json`: the brief, the version, the items it installed and a fingerprint of each file as written (`update` keeps the brief as it is). `outdated` compares that version with the latest release and writes nothing; `/y2k-ify` and `/check-y2k` run it first, so your agent tells you when there is a newer Patina. `update` copies every file of those items again from the release (and `DESIGN.md`, the `/check-y2k` scanner and the skills), installs any npm package the new files need, and records the version. It never touches what is not listed — the `content`, `desktop` and `ipod` items are updated only when `patina.json` names them (or `--add desktop,content,ipod`), since a site often keeps its own desktop in that folder. A file you changed since it was installed is kept and named; `--force` replaces it. A project installed before `patina.json` existed gets one on its first update, from the theme and the components found under its ui folder.
 
 `--source <folder|url>` reads the pack from a checkout of the Patina repository instead of GitHub (with `--to` naming the version it is), which is how a CI job updates from a tag it has checked out.
 

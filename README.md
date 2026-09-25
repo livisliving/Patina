@@ -57,6 +57,14 @@ App Router), then run the installer in it; the Setup Assistant asks where the co
 Patina needs a React project with Tailwind (Next.js 15 or 16 is what it is built on) and
 Node 20 or later.
 
+### Keeping it up to date
+
+Patina is copied into your project, so a new release reaches it only when you update.
+Your agent checks when it runs `/y2k-ify` or `/check-y2k` and tells you when there is a
+newer one. To check yourself, run `npx @pat1na/cli@latest outdated` in the project; to
+update, `npx @pat1na/cli@latest update` (files you have changed are kept). To hear of
+every release by email, **Watch** this repository on GitHub → Custom → Releases.
+
 ## Working on Patina
 
 The rest of this page is for working on Patina itself.

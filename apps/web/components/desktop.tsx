@@ -79,6 +79,7 @@ const CHANGELOG: { version: string; date: string; items: string[] }[] = [
     date: "26 September 2026",
     items: [
       "No terminal needed: send your AI agent github.com/livisliving/Patina and ask it to put Patina on your site. It runs init --setup, and the Setup Assistant opens in your browser for you to answer.",
+      "Your agent tells you when Patina has a new release: /y2k-ify and /check-y2k check first (npx @pat1na/cli outdated), and update brings it in.",
     ],
   },
   {

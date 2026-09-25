@@ -10,6 +10,13 @@ anything — that is `/y2k-ify`.
 
 ## Run it
 
+**Is Patina up to date?** First, in the project, run
+`npx @pat1na/cli@latest outdated`. If it says a newer release is out, tell
+the user in one line — the two versions, and that
+`npx @pat1na/cli@latest update` brings it in (files they changed are kept)
+— and ask whether to update. Update only on their yes, then carry on. If it
+cannot check (offline), carry on without it.
+
 ```bash
 node scripts/check-y2k.mjs <paths...>
 ```

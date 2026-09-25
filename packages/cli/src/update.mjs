@@ -43,6 +43,7 @@ const withoutLead = (text) => text.replace(/^\s*(?:\/\*[\s\S]*?\*\/\s*)+/, "")
 async function latestRelease() {
   const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, {
     headers: { accept: "application/vnd.github+json", ...(process.env.GITHUB_TOKEN ? { authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {}) },
+    signal: AbortSignal.timeout(10_000),
   })
   if (res.status === 404) return null
   if (!res.ok) throw new Error(`could not ask GitHub for Patina's latest release (HTTP ${res.status})`)
@@ -283,7 +284,7 @@ export async function update({ cwd, to, source: sourceArg, force, dryRun, add = 
  *  items are the pack's and what each file looked like. The files are
  *  hashed as they are on disk now, just written; the items' file lists
  *  come from the registry init installed from, all at once. */
-export async function recordInstall(cwd, { registry, items }) {
+export async function recordInstall(cwd, { registry, items, version = null }) {
   const layout = layoutOf(cwd)
   const registrySource = sourceAt(registry)
   const jsons = await Promise.all(items.map((name) => registrySource.read(`${name}.json`).catch(() => null)))
@@ -294,5 +295,57 @@ export async function recordInstall(cwd, { registry, items }) {
   const files = Object.fromEntries(
     targets.filter((abs) => fs.existsSync(abs)).map((abs) => [path.relative(cwd, abs), fingerprint(fs.readFileSync(abs, "utf8"))])
   )
-  writeManifest(cwd, { version: null, items, files })
+  writeManifest(cwd, { version, items, files })
+}
+
+/** A release tag as numbers ("v0.4.2" → [0, 4, 2]); null for anything else
+ *  ("main", a missing version). */
+const releaseOf = (tag) => {
+  const m = /^v?(\d+)\.(\d+)\.(\d+)$/.exec(tag ?? "")
+  return m ? m.slice(1).map(Number) : null
+}
+const isNewer = (a, b) => {
+  for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] > b[i]
+  return false
+}
+
+/**
+ * patina outdated — is there a newer Patina release than this project's?
+ * patina.json's version against GitHub's latest release, the one `update`
+ * would take. It writes nothing and never fails: the skills run it before
+ * they start, so a person hears of a release from their agent.
+ */
+export async function outdated({ cwd }) {
+  let manifest
+  try {
+    manifest = readManifest(cwd)
+  } catch (err) {
+    console.log(`Could not check for a newer Patina: ${err.message}`)
+    return 0
+  }
+  if (!manifest) {
+    console.log(`Patina is not installed here (no ${MANIFEST}). Install it: npx @pat1na/cli@latest init`)
+    return 0
+  }
+  let latest
+  try {
+    latest = await latestRelease()
+  } catch (err) {
+    console.log(`Could not check for a newer Patina: ${err.message}`)
+    return 0
+  }
+  const [have, out] = [releaseOf(manifest.version), releaseOf(latest)]
+  if (!out || (have && !isNewer(out, have))) {
+    // Newer than the latest release: installed from npm before its GitHub release.
+    const same = !out || manifest.version === latest
+    console.log(`Up to date: this project has Patina ${manifest.version}${same ? ", the latest release" : `; the latest release is ${latest}`}.`)
+    return 0
+  }
+  console.log(
+    have
+      ? `Patina ${latest} is out; this project has ${manifest.version}.`
+      : `Patina ${latest} is out; this project's version is not recorded (it was installed before Patina kept it).`
+  )
+  console.log("Update: npx @pat1na/cli@latest update (files changed here since they were installed are kept)")
+  return 0
 }

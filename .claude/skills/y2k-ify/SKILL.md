@@ -28,8 +28,18 @@ which one they want:
 5. Grape — 2000–04: iMac Grape, MSN Messenger purple
 
 Then set `data-tone="<pink|aqua|lime|tangerine|grape>"` on `<html>`.
-Installing the pack for someone works the same way: ask first, then run
-`npx @pat1na/cli init --tone <name>`.
+Installing the pack for someone: run `npx @pat1na/cli@latest init --setup`
+in their project, in the background, and tell them to answer in the Setup
+Assistant it opens in their browser (the tone is one of its questions). No
+browser where you run? Ask the questions in chat, then run
+`npx @pat1na/cli@latest init --tone <name>` with the other answers as flags.
+
+**Is Patina up to date?** First, in the project, run
+`npx @pat1na/cli@latest outdated`. If it says a newer release is out, tell
+the user in one line — the two versions, and that
+`npx @pat1na/cli@latest update` brings it in (files they changed are kept)
+— and ask whether to update. Update only on their yes, then carry on. If it
+cannot check (offline), carry on without it.
 
 ## Order of work
 

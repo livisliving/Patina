@@ -33,6 +33,10 @@ import { fileURLToPath } from "node:url"
 
 import { COMPONENTS, COPIES, aliasDir, childEnv, projectDirs, readComponentsJson, skip, stop, tick } from "./project.mjs"
 import { MANIFEST, recordInstall } from "./update.mjs"
+
+/** The release this installer is — the pack's version since 0.4.0, as the
+ *  release tag names it: what patina.json records, for `outdated`. */
+const PACK_VERSION = `v${JSON.parse(fs.readFileSync(new URL("../package.json", import.meta.url), "utf8")).version}`
 import { QUESTIONS, TONES, toTone, scanProject, defaultsFrom, briefFromFlags, askInTerminal, makeBrief, writeBrief, replaceQuestion } from "./brief.mjs"
 import { startSetupServer } from "./setup-server.mjs"
 
@@ -590,7 +594,7 @@ async function install({ cwd, registry, components, force, dryRun, yes, ...rest 
       // What was installed, and each file as it was written: `update` reads
       // it to know which items are the pack's and which files were changed
       // since. The brief written above stays in the file.
-      await recordInstall(cwd, { registry: base, items })
+      await recordInstall(cwd, { registry: base, items, version: PACK_VERSION })
       console.log(tick(`${MANIFEST} — the items and files installed, for \`patina update\``))
     }
   } else {

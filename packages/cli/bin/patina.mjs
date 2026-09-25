@@ -8,7 +8,7 @@
  */
 
 import { init } from "../src/init.mjs"
-import { update } from "../src/update.mjs"
+import { outdated, update } from "../src/update.mjs"
 
 /** The pack's registry on GitHub Pages; registry.json names the same base. */
 const DEFAULT_REGISTRY = "https://livisliving.github.io/Patina/r"
@@ -18,6 +18,7 @@ const USAGE = `patina — Patina OS: Aqua × millennium for coding agents
 Usage
   npx @pat1na/cli init [options]
   npx @pat1na/cli update [options]
+  npx @pat1na/cli outdated          Is there a newer Patina than this project's?
 
 Options for init
   --tone <name>      pink, aqua, lime, tangerine or grape (asked when not given)
@@ -108,14 +109,16 @@ const value = (name, fallback) => {
   return i !== -1 && argv[i + 1] && !argv[i + 1].startsWith("--") ? argv[i + 1] : fallback
 }
 
-if (cmd !== "init" && cmd !== "update") {
+if (cmd !== "init" && cmd !== "update" && cmd !== "outdated") {
   console.error(`patina: unknown command "${cmd}".\n\n${USAGE}`)
   process.exit(1)
 }
 
 try {
   const code =
-    cmd === "update"
+    cmd === "outdated"
+      ? await outdated({ cwd: process.cwd() })
+      : cmd === "update"
       ? await update({
           cwd: process.cwd(),
           to: value("to", undefined),
