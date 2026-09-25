@@ -75,6 +75,15 @@ ${TONES.map(
  *  entry; nothing before 0.1.0 is listed. */
 const CHANGELOG: { version: string; date: string; items: string[] }[] = [
   {
+    version: "0.3.1",
+    date: "25 September 2026",
+    items: [
+      "The demo's first load is less than half the size: icons at the size they are drawn, a phone-sized wallpaper, and the Design System's code when its window opens.",
+      "The pack's inlined pictures are WebP, half the bytes, and the desktop icons show the artwork's own colours.",
+      "check-y2k leaves out what .gitignore leaves out, such as a Studio built into public/.",
+    ],
+  },
+  {
     version: "0.3.0",
     date: "25 September 2026",
     items: [
@@ -124,7 +133,7 @@ const ICON_COLUMN = 84 + 12
 
 /** Patina's version, as the About boxes and the Finder show it: the newest
  *  release, listed in the Changelog or not. Bump it with every release. */
-const VERSION = "0.3.0"
+const VERSION = "0.3.1"
 
 /* ── Window manager ───────────────────────────────────────────────── */
 
