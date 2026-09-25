@@ -1,4 +1,3 @@
-/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 /**
  * Patina OS, as every desktop built with it names it: in the ★ menu's
  * About Patina OS, on About The Finder, in the page's generator tag and
@@ -13,3 +12,5 @@ export const PATINA = {
   site: "https://oliviaforster.com",
   source: "https://github.com/livisliving/Patina",
 } as const
+
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */

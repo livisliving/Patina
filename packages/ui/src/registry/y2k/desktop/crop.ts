@@ -1,4 +1,3 @@
-/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 import type * as React from "react"
 import type { Crop } from "@/lib/content"
 
@@ -10,3 +9,5 @@ export const cropStyle = (crop?: Crop): React.CSSProperties | undefined =>
 
 /** A w × h frame's size once `crop` is cut from it: the picture without its bars. */
 export const croppedSize = (w: number, h: number, crop?: Crop) => (crop ? { w: w * crop.w, h: h * crop.h } : { w, h })
+
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */

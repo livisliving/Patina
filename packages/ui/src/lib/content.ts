@@ -1,4 +1,3 @@
-/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 /**
  * Patina content — what a site says, written down once, independent of any
  * taste pack. DESIGN.md › Content says how to sort a site into these types;
@@ -191,3 +190,5 @@ export type Site = {
   /** The live site or the owner's home page, linked from the pack. */
   home?: { label: string; href: string }
 }
+
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */

@@ -1,4 +1,3 @@
-/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 "use client"
 
 import * as React from "react"
@@ -336,3 +335,5 @@ export function DesktopProvider({ site, volume, ipod = false, children }: { site
     </DesktopContext.Provider>
   )
 }
+
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */

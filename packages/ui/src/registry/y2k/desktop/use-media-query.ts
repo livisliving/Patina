@@ -1,4 +1,3 @@
-/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 "use client"
 
 import * as React from "react"
@@ -42,3 +41,5 @@ const subscribeReduce = (cb: () => void) => {
  *  the safe guess (the TV's typing), true where stillness is (a movie). */
 export const useReducedMotion = (onServer = false) =>
   React.useSyncExternalStore(subscribeReduce, prefersReducedMotion, () => onServer)
+
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */

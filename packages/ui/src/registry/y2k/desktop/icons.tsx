@@ -1,4 +1,3 @@
-/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 "use client"
 
 import * as React from "react"
@@ -104,3 +103,5 @@ export function StarMark({ className }: { className?: string }) {
 
 /** Computer and the Aqua star are the pack's own. */
 export { IconComputer as ComputerIcon, IconStar as StarIcon } from "@/components/ui/icons"
+
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */

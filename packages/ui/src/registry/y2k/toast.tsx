@@ -1,4 +1,3 @@
-/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 "use client"
 
 import * as React from "react"
@@ -78,3 +77,5 @@ function NudgeClose(props: React.ComponentProps<typeof ToastPrimitive.Close>) {
 }
 
 export { NudgeProvider, NudgeViewport, Nudge, NudgeClose }
+
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */

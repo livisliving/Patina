@@ -1,4 +1,3 @@
-/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 "use client"
 
 import * as React from "react"
@@ -43,3 +42,5 @@ export function useDrag(initial: { x: number; y: number } | (() => { x: number; 
     handleProps: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel: onPointerUp, style: { cursor: "default" as const, touchAction: "none" as const } },
   }
 }
+
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */

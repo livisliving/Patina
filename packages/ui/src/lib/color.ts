@@ -1,4 +1,3 @@
-/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 /**
  * Colour parsing for token values read back out of the stylesheet.
  *
@@ -44,3 +43,5 @@ export function parseColor(raw: string): Rgba | null {
   const a = parts.length > 3 ? num(parts[3], 1) : 1
   return { r, g, b, a: Number.isNaN(a) ? 1 : a }
 }
+
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */

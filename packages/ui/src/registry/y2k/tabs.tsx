@@ -1,4 +1,3 @@
-/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 "use client"
 
 import * as React from "react"
@@ -70,3 +69,5 @@ function TabsContent({ className, ...props }: React.ComponentProps<typeof TabsPr
 }
 
 export { Tabs, TabsList, TabsTrigger, TabsContent }
+
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */

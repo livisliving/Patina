@@ -1,4 +1,3 @@
-/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 import type { Entry, Site } from "@/lib/content"
 
 import { fileNameOf } from "./names"
@@ -85,3 +84,5 @@ export function desktopRedirects(site: Site, more: Record<string, string[] | nul
       permanent: false,
     }))
 }
+
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */

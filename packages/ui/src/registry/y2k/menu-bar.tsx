@@ -1,4 +1,3 @@
-/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 "use client"
 
 import * as React from "react"
@@ -385,3 +384,5 @@ function BarMenu({ spec, id, className }: { spec: MenuSpec; id: string; classNam
 }
 
 export { MenuBar, MenuBarTitle, MenuBarClock, MenuBarVolume, MenuRows, type MenuRow, type MenuSpec }
+
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */

@@ -298,7 +298,7 @@ the machine are someone's work.
   and skips the pack's fixes to it. If the pack lacks something the site
   needs, put the content in the nearest type and say so in your report;
   `/check-y2k` warns on an edited file (`pack-modified`).
-- Remove what names Patina OS and Olivia Forster: the first line of every
+- Remove what names Patina OS and Olivia Forster: the last line of every
   pack file (the MIT licence asks that it stay), the ★ menu's About Patina
   OS, the Patina line on About The Finder, the generator tag.
 - Change the framework, the data layer or any business logic. The one change

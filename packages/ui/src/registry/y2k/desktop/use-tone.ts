@@ -1,4 +1,3 @@
-/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 "use client"
 
 import * as React from "react"
@@ -25,3 +24,5 @@ export const getToneSnapshot = () =>
 export function useTone(): Tone {
   return React.useSyncExternalStore(subscribeTone, getToneSnapshot, () => "pink") as Tone
 }
+
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */

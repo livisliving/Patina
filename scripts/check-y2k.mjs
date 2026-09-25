@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 /**
  * /check-y2k — does this code follow the Y2K pack?
  *
@@ -1001,3 +1000,5 @@ try {
   console.error(err.message)
   process.exit(2)
 }
+
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */

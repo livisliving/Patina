@@ -1,4 +1,3 @@
-/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 /** The five millennium colour families. Values live in packages/ui/src/styles/y2k.css (data-tone). */
 export type Tone = "pink" | "aqua" | "lime" | "tangerine" | "grape"
 
@@ -34,3 +33,5 @@ export const TONES: { id: Tone; label: string; era: string; blurb: string }[] = 
     blurb: "iMac Grape, MSN Messenger purple, Lisa Frank, early Frutiger Aero.",
   },
 ]
+
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */

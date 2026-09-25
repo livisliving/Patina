@@ -1,4 +1,3 @@
-/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 "use client"
 
 import { DropdownMenu as Menu } from "radix-ui"
@@ -91,3 +90,5 @@ export function MenuBar({ tone, onToneChange, owner, about, aboutPatina, places,
     </PackMenuBar>
   )
 }
+
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */

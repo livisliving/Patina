@@ -1077,9 +1077,9 @@ line icon.
 ## Licence
 
 Patina OS is by Olivia Forster (https://oliviaforster.com), at
-https://github.com/livisliving/Patina. Every file the pack installs names
-her in its first line; the MIT licence below asks that this notice stay in
-every copy. A desktop built with the pack also names her in the ★ menu's
+https://github.com/livisliving/Patina. Every file the pack installs ends
+with a line naming her (at the end, as shadcn drops a file's opening
+comment); the MIT licence below asks that this notice stay in every copy. A desktop built with the pack also names her in the ★ menu's
 About Patina OS, and itself on About The Finder and in the page's
 generator tag.
 

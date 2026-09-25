@@ -1,4 +1,3 @@
-/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 import * as React from "react"
 
 /** The system volume, 0–100, kept outside the desktop's state: the menu
@@ -22,3 +21,5 @@ export function setVolume(value: number) {
 export function useVolume() {
   return React.useSyncExternalStore(subscribe, () => level, () => 75)
 }
+
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
