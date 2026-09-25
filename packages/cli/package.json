@@ -1,6 +1,6 @@
 {
   "name": "@pat1na/cli",
-  "version": "0.4.1",
+  "version": "0.4.0",
   "description": "Install the Patina taste pack into a project: DESIGN.md, the Y2K components, and the agent skills.",
   "keywords": [
     "shadcn",

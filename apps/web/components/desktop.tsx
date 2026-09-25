@@ -75,12 +75,12 @@ ${TONES.map(
  *  entry; nothing before 0.1.0 is listed. */
 const CHANGELOG: { version: string; date: string; items: string[] }[] = [
   {
-    version: "0.4.1",
+    version: "0.4.0",
     date: "25 September 2026",
     items: [
       "npx @pat1na/cli init opens the Patina Setup Assistant: a few questions about your site — who it is about, what a visitor does first, how much becomes a desktop, where the content is, the tone and the extras — then it installs what the answers ask for, with a true progress bar.",
       "The answers are saved in patina.json, and /y2k-ify reads them before it starts. An agent that runs init without a terminal gets the unanswered questions to ask you in chat.",
-      "The installer on npm is the pack's own version from now on: @pat1na/cli 0.4.1. (0.4.0 lost its command on the way to npm; don't use it.)",
+      "The installer on npm is the pack's own version from now on: @pat1na/cli 0.4.0.",
     ],
   },
   {
@@ -142,7 +142,7 @@ const ICON_COLUMN = 84 + 12
 
 /** Patina's version, as the About boxes and the Finder show it: the newest
  *  release, listed in the Changelog or not. Bump it with every release. */
-const VERSION = "0.4.1"
+const VERSION = "0.4.0"
 
 /* ── Window manager ───────────────────────────────────────────────── */
 
