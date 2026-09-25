@@ -2,7 +2,7 @@
   "name": "patina",
   "private": true,
   "version": "0.0.1",
-  "description": "Patina — taste packs for AI coding agents. Y2K is pack #1.",
+  "description": "Patina OS — Aqua × millennium for coding agents.",
   "workspaces": [
     "apps/*",
     "packages/*"

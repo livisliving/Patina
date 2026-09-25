@@ -13,7 +13,7 @@ import { update } from "../src/update.mjs"
 /** The pack's registry on GitHub Pages; registry.json names the same base. */
 const DEFAULT_REGISTRY = "https://livisliving.github.io/Patina/r"
 
-const USAGE = `patina — taste packs for AI coding agents
+const USAGE = `patina — Patina OS: Aqua × millennium for coding agents
 
 Usage
   npx @pat1na/cli init [options]

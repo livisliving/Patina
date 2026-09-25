@@ -1,6 +1,6 @@
 # Patina
 
-**Taste packs for AI coding agents.** Y2K is the first one.
+**Patina OS — Aqua × millennium for coding agents.**
 
 Put the pack's `DESIGN.md` in a project and what your agent builds there stops looking
 like Inter on a grey card. It comes out as Mac OS X 10.0 Aqua, with pinstripes, traffic
@@ -19,7 +19,7 @@ The demo desktop, built with the pack: https://livisliving.github.io/Patina/
 patina/
 ├── DESIGN.md              # The product. Google DESIGN.md format; Aqua in five tones.
 │                          # Lint: npm run design:lint
-├── apps/web/              # Y2K OS — the demo desktop + registry output (public/r/*.json)
+├── apps/web/              # Patina OS — the demo desktop + registry output (public/r/*.json)
 ├── packages/ui/           # Component sources = shadcn registry source (registry.json)
 │   └── src/registry/y2k/  #   button.tsx, window.tsx …
 │   └── src/styles/y2k.css #   tokens → CSS variables, materials, keyframes, data-tone remaps
@@ -35,7 +35,7 @@ npm workspaces; Node ≥ 20.
 
 ```bash
 npm install
-npm run dev              # Y2K OS at http://localhost:3000
+npm run dev              # Patina OS at http://localhost:3000
 npm run design:lint      # npx @google/design.md lint DESIGN.md
 npm run registry:build   # shadcn build → apps/web/public/r/*.json
 npm run check:y2k        # /check-y2k against DESIGN.md (exit 1 on any violation)

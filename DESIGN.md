@@ -469,7 +469,7 @@ components:
 
 ## Overview
 
-**Y2K is a taste pack for AI coding agents** — pack #1 of [Patina](README.md). It
+**Y2K is the pack of [Patina OS](README.md) — Aqua × millennium for coding agents.** It
 exists because every
 vibe-coded product currently looks the same: Inter, a zinc card, a
 purple-to-blue gradient, 8px corners. This file makes an agent produce the
@@ -502,7 +502,7 @@ surface is colored but doesn't look like you could bite it, it isn't done.
 Spend boldness there; the rest — pinstripes, black Lucida Grande, soft
 shadows — stays quiet and exactly as Apple drew it.
 
-**Y2K OS**, the product's own website, is a desktop built from this pack:
+**Patina OS**, the product's own website, is a desktop built from this pack:
 menu bar, draggable windows, Dock. Everything in this document is what that
 desktop follows.
 

@@ -68,10 +68,21 @@ const WALLPAPERS = Object.fromEntries(
   TONES.map((t) => [t.id, { desktop: asset(`/wallpapers/${t.id}.webp`), mobile: asset(`/wallpapers/${t.id}-mobile.webp`) }])
 )
 
-/** The Changelog window: each release, newest first, as its notes on
- *  GitHub put it. Add one here when a release is cut: the first is the
- *  version the About boxes show. */
-const CHANGELOG: { version: string; date?: string; items: string[] }[] = [
+/** The Changelog window: the releases worth a line, newest first, as their
+ *  notes on GitHub put them. A release too small to mention (0.2.1) has no
+ *  entry; nothing before 0.1.0 is listed. */
+const CHANGELOG: { version: string; date: string; items: string[] }[] = [
+  {
+    version: "0.3.0",
+    date: "25 September 2026",
+    items: [
+      "Any site can be a desktop, not only a portfolio: a page's old address opens its window.",
+      "New blocks for a site's words: a callout (a note or a caution) and code for each step.",
+      "check-y2k warns about an empty document and about pack files changed since they were installed.",
+      "The desktop opens with About Patina at the top right, beside the icons, and the iPod at the bottom left.",
+      "Patina has a star for its icon, and a card for when it is shared.",
+    ],
+  },
   {
     version: "0.2.2",
     date: "24 September 2026",
@@ -81,15 +92,6 @@ const CHANGELOG: { version: string; date?: string; items: string[] }[] = [
       "Minimising no longer stalls in Safari.",
       "The wallpaper and the folders pick their tone in CSS: the first paint is right, and only the picture in use is downloaded.",
       "On a phone the desktop scrolls to a window as it opens, and not when one closes.",
-    ],
-  },
-  {
-    version: "0.2.1",
-    date: "24 September 2026",
-    items: [
-      "The Finder's title icon sits on the middle of the folder's name.",
-      "Icons and picture thumbnails sit in the middle of their boxes.",
-      "patina update fetches the registry faster, with the same results.",
     ],
   },
   {
@@ -111,20 +113,16 @@ const CHANGELOG: { version: string; date?: string; items: string[] }[] = [
       "patina update brings a project up to a new release.",
     ],
   },
-  {
-    version: "Before 0.1.0",
-    items: [
-      "The star logo changes colour with the tone.",
-      "A photo wallpaper for each tone, and stars that twinkle on the desktop.",
-      "The Design System window, with the components and the full palette.",
-      "Layout snaps to a 4px grid. Font sizes stay at Aqua's own.",
-      "Windows drag and minimise to the Dock, and you can drag a box in the Finder to select.",
-    ],
-  },
 ]
 
-/** Patina's version: the newest release in the Changelog. */
-const VERSION = CHANGELOG[0].version
+/** Rounded down to the 4px grid. */
+const down4 = (n: number) => Math.floor(n / 4) * 4
+/** The desktop icons' column: its w-[84px], and right-3 from the edge. */
+const ICON_COLUMN = 84 + 12
+
+/** Patina's version, as the About boxes and the Finder show it: the newest
+ *  release, listed in the Changelog or not. Bump it with every release. */
+const VERSION = "0.3.0"
 
 /* ── Window manager ───────────────────────────────────────────────── */
 
@@ -1020,7 +1018,7 @@ export function Desktop() {
     { label: "Design System", icon: <PillIcon />, onClick: openWin("buttons"), kind: "Application", size: "1.8 MB", created: "14/09/26", modified: "20/09/26", version: VERSION },
     { label: "Tone", icon: <PrefsIcon />, onClick: openWin("tone"), kind: "Preference pane", size: "248 KB", created: "14/09/26", modified: "19/09/26", version: VERSION },
     { label: "DESIGN.md", icon: <DocIcon />, onClick: openWin("design"), kind: "Markdown document", size: "36 KB", created: "12/09/26", modified: "20/09/26" },
-    { label: "Changelog", icon: <DocIcon />, onClick: openWin("changelog"), kind: "Markdown document", size: "4 KB", created: "18/09/26", modified: "24/09/26" },
+    { label: "Changelog", icon: <DocIcon />, onClick: openWin("changelog"), kind: "Markdown document", size: "4 KB", created: "18/09/26", modified: "25/09/26" },
     { label: "Terminal", icon: <TerminalIcon />, onClick: openWin("terminal"), kind: "Application", size: "912 KB", created: "14/09/26", modified: "18/09/26", version: VERSION },
   ]
   // The Favourites folder collects a few of them, so it lists the same rows.
@@ -1508,8 +1506,11 @@ export function Desktop() {
         {wins.about.open && !wins.about.minimized && (
           <DesktopWindow
             {...winProps("about")}
-            initial={{ x: 40, y: 56 }}
-            className="md:w-[300px]"
+            // Top right: its 300px end 16px short of the desktop icons. The
+            // classes paint it there before the page wakes (the same sum in
+            // CSS: 412 = ICON_COLUMN + 16 + 300); then `initial` takes over.
+            initial={() => ({ x: typeof window === "undefined" ? 40 : down4(Math.max(40, window.innerWidth - ICON_COLUMN - 16 - 300)), y: 56 })}
+            className="md:top-14 md:left-[round(down,max(40px,100vw_-_412px),4px)] md:w-[300px]"
           >
             <WindowBody className="flex flex-col items-center gap-2 pt-5 pb-5 text-center">
               <h1>
@@ -1575,7 +1576,7 @@ export function Desktop() {
               >
               <h2 className="text-[13px] font-bold">Read Me</h2>
               <p>
-                Patina makes taste packs for AI coding agents. A pack isn&apos;t a browser extension and doesn&apos;t touch
+                Patina OS is Aqua × millennium for coding agents. A pack isn&apos;t a browser extension and doesn&apos;t touch
                 sites you visit. It changes what your agent builds: install one in a project and whatever Claude Code,
                 Cursor or Codex makes there comes out with some taste, instead of Inter on a grey card. This desktop is
                 built with <strong>Y2K</strong>, the first pack: Aqua in millennium colours.
@@ -1623,7 +1624,7 @@ export function Desktop() {
                   Patina Help
                 </h2>
                 <p>
-                  Patina is a set of taste packs for AI coding agents. Install a pack in a project and whatever Claude
+                  Patina OS is Aqua × millennium for coding agents. Install a pack in a project and whatever Claude
                   Code, Cursor or Codex builds there follows the pack&apos;s style, instead of the usual Inter on a grey
                   card. Y2K is the first pack: Mac OS X Aqua in five millennium colours. This desktop is built with it.
                 </p>
@@ -2193,7 +2194,7 @@ export function Desktop() {
                 <h2 className="text-[13px] font-bold">Changelog</h2>
                 {CHANGELOG.map((entry) => (
                   <div key={entry.version}>
-                    <p className="font-bold">{entry.date ? `${entry.version} — ${entry.date}` : entry.version}</p>
+                    <p className="font-bold">{`${entry.version} — ${entry.date}`}</p>
                     <ul className="mt-1 flex list-disc flex-col gap-1 pl-5 text-(--y2k-ink-secondary)">
                       {entry.items.map((item) => (
                         <li key={item}>{item}</li>
@@ -2296,10 +2297,14 @@ export function Desktop() {
             // Bottom left: 16px in, and its 400px 16px above the Dock's shelf.
             initial={() => {
               if (typeof window === "undefined") return { x: 16, y: 96 }
-              const dock = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--y2k-dock-h"))
-              return { x: 16, y: Math.max(32, window.innerHeight - dock - 400 - 16) }
+              const dock = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--y2k-dock-h")) || 70
+              return { x: 16, y: down4(Math.max(32, window.innerHeight - dock - 400 - 16)) }
             }}
-            className={cn("md:h-[400px] md:w-[600px]", wins.ipod.minimized && "hidden")}
+            // The same place in CSS, for the paint before the page wakes.
+            className={cn(
+              "md:top-[round(down,max(32px,100dvh_-_var(--y2k-dock-h)_-_416px),4px)] md:left-4 md:h-[400px] md:w-[600px]",
+              wins.ipod.minimized && "hidden"
+            )}
           >
             <IPod onEject={ejectIPod} hidden={wins.ipod.minimized} />
           </DesktopWindow>
