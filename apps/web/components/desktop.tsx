@@ -76,7 +76,7 @@ ${TONES.map(
 const CHANGELOG: { version: string; date: string; items: string[] }[] = [
   {
     version: "0.4.1",
-    date: "25 September 2026",
+    date: "26 September 2026",
     items: [
       "The Setup Assistant opens in every browser: its files no longer arrive cut short.",
       "Where no answer fits, choose Other, and your agent settles it with you. Run init again and the page asks whether to replace the files already there, never the terminal.",
