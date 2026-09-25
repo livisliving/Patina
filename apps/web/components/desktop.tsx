@@ -75,6 +75,17 @@ ${TONES.map(
  *  entry; nothing before 0.1.0 is listed. */
 const CHANGELOG: { version: string; date: string; items: string[] }[] = [
   {
+    version: "0.4.1",
+    date: "25 September 2026",
+    items: [
+      "The Setup Assistant opens in every browser: its files no longer arrive cut short.",
+      "Where no answer fits, choose Other, and your agent settles it with you. Run init again and the page asks whether to replace the files already there, never the terminal.",
+      "The desktop the pack installs catches up with this one: the Finder's toolbar keeps to one row, long names are cut from the middle, folders show a date, Enter opens, and a phone held sideways shows two windows.",
+      "White text on the menu highlight in every tone.",
+      "Every desktop built with Patina says so in the ★ menu's About Patina OS.",
+    ],
+  },
+  {
     version: "0.4.0",
     date: "25 September 2026",
     items: [
@@ -142,7 +153,7 @@ const ICON_COLUMN = 84 + 12
 
 /** Patina's version, as the About boxes and the Finder show it: the newest
  *  release, listed in the Changelog or not. Bump it with every release. */
-const VERSION = "0.4.0"
+const VERSION = "0.4.1"
 
 /* ── Window manager ───────────────────────────────────────────────── */
 
