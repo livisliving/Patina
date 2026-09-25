@@ -1,3 +1,4 @@
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 "use client"
 
 import * as React from "react"
@@ -8,7 +9,7 @@ import type { Block, DocumentEntry, Entry, Img, Site, Text } from "@/lib/content
 
 import { asset } from "./asset"
 import { DiskIcon, DocIcon, FaceIcon, FolderIcon } from "./icons"
-import { fileNameOf, titleOf } from "./names"
+import { dateValue, fileNameOf, titleOf } from "./names"
 import { kb } from "./windows"
 
 export { fileNameOf, findEntry, titleOf } from "./names"
@@ -239,6 +240,16 @@ function sizeOf(entry: Entry): string {
   }
 }
 
+/** A folder's Date Created, read off what it holds: the oldest date of
+ *  anything in it, at any depth (a folder is no younger than its first
+ *  file). Nothing dated inside, no date — never a made-up one. */
+function oldestIn(nodes: Node[]): string | undefined {
+  const dates = everyNode(nodes)
+    .map((n) => n.entry.date)
+    .filter((d): d is string => !!d && !Number.isNaN(dateValue(d)))
+  return dates.sort((a, b) => dateValue(a) - dateValue(b))[0]
+}
+
 export type Openers = { open: (node: Node) => void; about: () => void }
 
 /** The disk as the Finder's volumes list: one volume, holding the site. */
@@ -256,7 +267,7 @@ export function buildDisk(nodes: Node[], volume: string, opens: Openers): Finder
       onClick: entry.type === "about" ? opens.about : entry.type === "collection" ? undefined : () => opens.open(node),
       kind: kindOf(entry),
       size: sizeOf(shown),
-      created: entry.date ?? "—",
+      created: entry.date ?? (node.children ? oldestIn(node.children) : undefined) ?? "—",
       info: entry.info,
       comment,
       category: entry.category,

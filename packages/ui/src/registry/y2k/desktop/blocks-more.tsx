@@ -1,3 +1,4 @@
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 "use client"
 
 import * as React from "react"
@@ -29,7 +30,7 @@ type Of<T extends Block["type"]> = Omit<Extract<Block, { type: T }>, "type">
 const SMALL = "text-[11px] leading-[1.35] text-(--y2k-ink-secondary)"
 
 /** The tone focus ring every focusable thing in a document wears. */
-const FOCUS = "outline-none focus-visible:outline-3 focus-visible:outline-(--y2k-tone-focus)"
+const FOCUS = "outline-none focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-(--y2k-tone-focus)"
 
 /* ── steps ────────────────────────────────────────────────────────── */
 

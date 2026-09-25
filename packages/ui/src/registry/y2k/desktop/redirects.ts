@@ -1,3 +1,4 @@
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 import type { Entry, Site } from "@/lib/content"
 
 import { fileNameOf } from "./names"

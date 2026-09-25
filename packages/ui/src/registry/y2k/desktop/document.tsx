@@ -1,13 +1,15 @@
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 "use client"
 
 import * as React from "react"
 
+import { PopupButton } from "@/components/ui/popup"
 import { TreeView } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
 import type { DocumentEntry } from "@/lib/content"
 
 import { Blocks, Inlines, countMovies, countPictures, countSections, plural } from "./blocks"
-import { prefersReducedMotion } from "./use-media-query"
+import { DESKTOP, prefersReducedMotion } from "./use-media-query"
 import { DocumentWindow, type WinEntry } from "./windows"
 
 /**
@@ -36,17 +38,26 @@ const OUTLINE_MIN = 3
 
 const VIEWPORT = '[data-slot="window-scroll-viewport"]'
 
+/** A phone: the page scrolls, not the window (DocumentWindow). */
+const paged = () => !window.matchMedia(DESKTOP).matches
+
+/** On a phone, where the section bar's foot is once it has stuck: the line
+ *  a heading is "in view" at, and the one it is scrolled to. */
+const stuckFoot = (bar: HTMLElement | null) => (bar ? parseFloat(getComputedStyle(bar).top) + bar.offsetHeight : 0)
+
 export function DocumentView({ win, doc }: { win: WinEntry; doc: DocumentEntry }) {
   const toc = doc.outline && doc.outline.length >= OUTLINE_MIN ? doc.outline : null
   const bodyRef = React.useRef<HTMLDivElement>(null)
+  const barRef = React.useRef<HTMLDivElement>(null)
   const [current, setCurrent] = React.useState<string | null>(toc?.[0]?.id ?? null)
   // Set by a click on the outline; cleared by the reader's own scrolling.
   const held = React.useRef(false)
 
   // The section in view, from the headings' positions in the scroll
-  // viewport: the last heading at or above the in-view line, the first
-  // before any has reached it, the last once the page is scrolled to its
-  // end (a short last section never reaches the line).
+  // viewport (on a phone, the screen under the section bar): the last
+  // heading at or above the in-view line, the first before any has reached
+  // it, the last once the page is scrolled to its end (a short last section
+  // never reaches the line).
   React.useEffect(() => {
     const body = bodyRef.current
     const vp = body?.closest<HTMLElement>(VIEWPORT)
@@ -57,12 +68,15 @@ export function DocumentView({ win, doc }: { win: WinEntry; doc: DocumentEntry }
       if (held.current) return
       const headings = Array.from(body.querySelectorAll<HTMLElement>("[data-section]"))
       if (!headings.length) return
+      const onPage = paged()
       const scrolls = vp.scrollHeight > vp.clientHeight + 2
-      const atEnd = scrolls && vp.scrollTop + vp.clientHeight >= vp.scrollHeight - 2
+      const atEnd = onPage
+        ? body.getBoundingClientRect().bottom <= window.innerHeight + 2
+        : scrolls && vp.scrollTop + vp.clientHeight >= vp.scrollHeight - 2
       let id = headings[0].dataset.section!
       if (atEnd) id = headings[headings.length - 1].dataset.section!
       else {
-        const top = vp.getBoundingClientRect().top
+        const top = onPage ? stuckFoot(barRef.current) : vp.getBoundingClientRect().top
         for (const h of headings) if (h.getBoundingClientRect().top - top <= IN_VIEW) id = h.dataset.section!
       }
       setCurrent(id)
@@ -74,18 +88,24 @@ export function DocumentView({ win, doc }: { win: WinEntry; doc: DocumentEntry }
       held.current = false
     }
     vp.addEventListener("scroll", ask, { passive: true })
+    window.addEventListener("scroll", ask, { passive: true })
     // The reader taking over — the wheel, a finger, the keyboard, the
-    // scroll bar (a sibling of the viewport, so the area round both).
+    // scroll bar (a sibling of the viewport, so the area round both); on a
+    // phone a finger or a wheel anywhere, as the whole page scrolls.
     const area = vp.parentElement ?? vp
     const takeovers = ["wheel", "touchstart", "pointerdown", "keydown"] as const
+    const pageTakeovers = ["wheel", "touchstart"] as const
     for (const ev of takeovers) area.addEventListener(ev, release, { passive: true })
+    for (const ev of pageTakeovers) window.addEventListener(ev, release, { passive: true })
     const ro = new ResizeObserver(ask)
     ro.observe(vp)
     spy()
     return () => {
       if (raf) cancelAnimationFrame(raf)
       vp.removeEventListener("scroll", ask)
+      window.removeEventListener("scroll", ask)
       for (const ev of takeovers) area.removeEventListener(ev, release)
+      for (const ev of pageTakeovers) window.removeEventListener(ev, release)
       ro.disconnect()
     }
   }, [toc])
@@ -96,8 +116,14 @@ export function DocumentView({ win, doc }: { win: WinEntry; doc: DocumentEntry }
     if (!heading || !vp) return
     held.current = true
     setCurrent(id)
+    const behavior = prefersReducedMotion() ? "auto" : "smooth"
+    if (paged()) {
+      // The page scrolls: the heading lands 12px under the stuck bar.
+      window.scrollTo({ top: Math.max(0, heading.getBoundingClientRect().top + window.scrollY - stuckFoot(barRef.current) - 12), behavior })
+      return
+    }
     const top = heading.getBoundingClientRect().top - vp.getBoundingClientRect().top + vp.scrollTop - PAGE_PADDING
-    vp.scrollTo({ top: Math.max(0, top), behavior: prefersReducedMotion() ? "auto" : "smooth" })
+    vp.scrollTo({ top: Math.max(0, top), behavior })
   }
 
   const outline = toc && (
@@ -141,6 +167,26 @@ export function DocumentView({ win, doc }: { win: WinEntry; doc: DocumentEntry }
     />
   )
 
+  // The phone's outline: the section in view on a pop-up button, in a bar
+  // on the window's pinstripe under its title bar, stuck below the title
+  // bar (which sticks below the menu bar) while the document is on screen.
+  // Not there on a desktop.
+  const sectionLabel = toc?.find((t) => t.id === current)?.label ?? toc?.[0]?.label ?? ""
+  const sectionBar = toc && (
+    <div ref={barRef} className="sticky top-[calc(var(--y2k-menubar-h)+var(--y2k-titlebar-h))] z-[3] border-b border-(--y2k-separator) bg-(image:--y2k-pinstripe) px-3 py-2 desk:hidden">
+      <PopupButton
+        aria-label="Section"
+        value={sectionLabel}
+        options={toc.map((t) => t.label)}
+        onChange={(label) => {
+          const t = toc.find((x) => x.label === label)
+          if (t) goTo(t.id)
+        }}
+        className="w-full"
+      />
+    </div>
+  )
+
   const sections = countSections(doc.blocks)
   const movies = countMovies(doc.blocks)
   const status = [sections ? plural(sections, "section") : null, plural(countPictures(doc.blocks), "picture"), movies ? plural(movies, "movie") : null]
@@ -150,7 +196,7 @@ export function DocumentView({ win, doc }: { win: WinEntry; doc: DocumentEntry }
   return (
     // With an outline it opens 900px wide (DESIGN.md's window-document):
     // room for the outline and a page of pictures; without, TextEdit's 640.
-    <DocumentWindow win={win} outline={outline} status={status} className={toc ? "md:w-[900px]" : undefined}>
+    <DocumentWindow win={win} outline={outline} sections={sectionBar} status={status} className={toc ? "desk:w-[900px]" : undefined}>
       <div ref={bodyRef}>
         {/* The page header: the title as a document heading, then the
             entry's comment (the line its card carried) and the subtitle in

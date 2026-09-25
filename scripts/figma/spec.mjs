@@ -4,7 +4,7 @@
  * scripts/tones-data.mjs — the same lists y2k.css is generated from.
  */
 
-import { BARBER, BARBER_SHADE, NEUTRAL, RIBS, TONED, derive, fmt, hex, inkFor, mix, parse, profile, rgbStr, tint, toHex } from "../tones-data.mjs"
+import { BARBER, BARBER_SHADE, NEUTRAL, RIBS, TONED, derive, fmt, hex, mix, parse, profile, rgbStr, tint, toHex } from "../tones-data.mjs"
 import { bandStops, nn, rgba } from "./lib.mjs"
 
 const V = (name, value, type = "COLOR", description) => ({ name, type, value, description })
@@ -42,7 +42,7 @@ export function toneValues(t) {
     V("tone/name", t.id, "STRING", "The tone this file currently shows"),
     colour("tone/base", rgbStr(d.b), "--y2k-tone"),
     colour("tone/ink", t.ink, "--y2k-tone-selection-text"),
-    colour("tone/highlight-text", inkFor(TONED.highlight, d.b, d.x), "--y2k-tone-highlight-text"),
+    colour("tone/highlight-text", "#ffffff", "--y2k-tone-highlight-text"),
     colour("tone/selection", t.selection ?? fmt([d.selection, 0.88]), "--y2k-tone-selection"),
     colour("tone/glow", fmt([d.b, 0.5]), "--y2k-tone-glow"),
     colour("tone/focus", fmt([parse(d.one("#6db3ff"))[0], 0.55]), "--y2k-tone-focus"),
@@ -76,7 +76,7 @@ export function tonePaints(t) {
   const stops = []
   for (let k = 0; k < 2; k++) barber.forEach(([c, p], i) => stops.push({ position: (p + k * period) / (2 * period), color: rgba(c), variable: ref("Tone", `tone/barber/${nn(i)}`) }))
   out.push({ name: "Tone/Barber", kind: "gradient", dir: "diag", stops, description: "--y2k-tone-barber: two 45° periods; apply to a 32px square and tile" })
-  for (const [name, css, v] of [["Base", rgbStr(d.b), "tone/base"], ["Selection", t.selection ?? fmt([d.selection, 0.88]), "tone/selection"], ["Glow", fmt([d.b, 0.5]), "tone/glow"], ["Focus", fmt([parse(d.one("#6db3ff"))[0], 0.55]), "tone/focus"], ["Zebra", d.x ? "#edf3fe" : toHex(tint(hex("#edf3fe"), d.b)), "tone/zebra"], ["Ink", t.ink, "tone/ink"], ["Highlight Text", inkFor(TONED.highlight, d.b, d.x), "tone/highlight-text"]])
+  for (const [name, css, v] of [["Base", rgbStr(d.b), "tone/base"], ["Selection", t.selection ?? fmt([d.selection, 0.88]), "tone/selection"], ["Glow", fmt([d.b, 0.5]), "tone/glow"], ["Focus", fmt([parse(d.one("#6db3ff"))[0], 0.55]), "tone/focus"], ["Zebra", d.x ? "#edf3fe" : toHex(tint(hex("#edf3fe"), d.b)), "tone/zebra"], ["Ink", t.ink, "tone/ink"], ["Highlight Text", "#ffffff", "tone/highlight-text"]])
     out.push({ name: `Tone/${name}`, kind: "solid", color: css, variable: ref("Tone", v) })
   return out
 }

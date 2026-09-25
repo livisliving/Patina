@@ -1,3 +1,4 @@
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 "use client"
 
 import { DropdownMenu as Menu } from "radix-ui"
@@ -6,6 +7,7 @@ import { MenuBar as PackMenuBar, MenuBarVolume, type MenuSpec } from "@/componen
 import { menuItemClass, menuSeparatorClass, menuTickClass } from "@/components/ui/popup"
 
 import { StarIcon } from "./icons"
+import { PATINA } from "./patina"
 import { TONES, type Tone } from "./tones"
 import { setVolume, useVolume } from "./volume"
 
@@ -18,6 +20,8 @@ type MenuBarProps = {
   owner: string
   /** The ★ menu's first row: the About box. */
   about: { label: string; onSelect: () => void }
+  /** The second: About Patina OS, what the desktop is built with. */
+  aboutPatina: () => void
   /** The desktop's places: the volume, then the top-level folders. */
   places: { label: string; onSelect: () => void }[]
   /** The live site, linked at the foot of the ★ menu. */
@@ -30,7 +34,7 @@ type MenuBarProps = {
 /** The desktop's menu bar: the pack's, with the ★ menu — About the owner,
  *  the tones (where 10.1 keeps its system-wide settings), the desktop's
  *  places, and the site this desktop is a window onto. */
-export function MenuBar({ tone, onToneChange, owner, about, places, home, menus }: MenuBarProps) {
+export function MenuBar({ tone, onToneChange, owner, about, aboutPatina, places, home, menus }: MenuBarProps) {
   const volume = useVolume()
   const star: MenuSpec = {
     label: <StarIcon className="size-4 drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]" />,
@@ -39,6 +43,11 @@ export function MenuBar({ tone, onToneChange, owner, about, places, home, menus 
       <>
         <Menu.Item className={menuItemClass} onSelect={about.onSelect}>
           {about.label}
+        </Menu.Item>
+        {/* What the desktop is built with, as About This Mac names the
+            system under the owner's own things. */}
+        <Menu.Item className={menuItemClass} onSelect={aboutPatina}>
+          About {PATINA.name}
         </Menu.Item>
         <Menu.Separator className={menuSeparatorClass} />
         <Menu.RadioGroup value={tone} onValueChange={(v) => onToneChange(v as Tone)}>

@@ -1,11 +1,10 @@
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 "use client"
 
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-import { PREVIEW_PNG } from "./icon-preview"
-import { QUICKTIME_PNG } from "./icon-quicktime"
 
 /**
  * Patina icons — DESIGN.md › Shapes, Components › Icons.
@@ -675,24 +674,35 @@ export function IconMusic(props: IconProps) {
   )
 }
 
+/** A picture that loads when an icon first draws it, not with the page:
+ *  the two PNG icons are 84 KB inlined, and most pages show them only once
+ *  a picture or a movie opens. Until it arrives the icon is its empty box. */
+function useLatePicture(load: () => Promise<string>) {
+  const [src, setSrc] = React.useState<string>()
+  React.useEffect(() => {
+    let on = true
+    void load().then((s) => on && setSrc(s))
+    return () => {
+      on = false
+    }
+  }, [load])
+  return src
+}
+const loadPreview = () => import("./icon-preview").then((m) => m.PREVIEW_PNG)
+const loadQuickTime = () => import("./icon-quicktime").then((m) => m.QUICKTIME_PNG)
+
 /** Preview — two prints and a loupe: Olivia's own artwork, a PNG (one of
     the two icons not drawn here), its shadow in the picture. */
 export function IconPreview(props: IconProps) {
-  return (
-    <Svg {...props}>
-      <image href={PREVIEW_PNG} width={128} height={128} />
-    </Svg>
-  )
+  const src = useLatePicture(loadPreview)
+  return <Svg {...props}>{src && <image href={src} width={128} height={128} />}</Svg>
 }
 
 /** QuickTime Player — the Q on a metal player: Olivia's own artwork, a PNG
     (the other icon not drawn here), its shadow in the picture. */
 export function IconQuickTime(props: IconProps) {
-  return (
-    <Svg {...props}>
-      <image href={QUICKTIME_PNG} width={128} height={128} />
-    </Svg>
-  )
+  const src = useLatePicture(loadQuickTime)
+  return <Svg {...props}>{src && <image href={src} width={128} height={128} />}</Svg>
 }
 
 /** Download — a gel arrow in the tone dropping into a bright tray. */

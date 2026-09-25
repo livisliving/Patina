@@ -123,7 +123,10 @@ export async function startSetupServer({ session, registry, open = true }) {
   }
 
   /** The page and its assets, from the setup origin, as they come:
-   *  status and content type through, never cached. */
+   *  status and content type through, never cached. Not the length: fetch
+   *  asks for gzip and hands back the body unzipped, so the origin's
+   *  content-length is the zipped one, and a browser would cut every file
+   *  short at it. */
   const proxy = async (req, res, url) => {
     let upstream
     try {
@@ -133,7 +136,7 @@ export async function startSetupServer({ session, registry, open = true }) {
       return res.end(`Could not reach ${origin}: ${err.message}\nThe setup page lives there; check the connection, or run again with --terminal.\n`)
     }
     const headers = { "cache-control": "no-store" }
-    for (const h of ["content-type", "content-length", "last-modified", "etag"]) if (upstream.headers.has(h)) headers[h] = upstream.headers.get(h)
+    for (const h of ["content-type", "last-modified", "etag"]) if (upstream.headers.has(h)) headers[h] = upstream.headers.get(h)
     res.writeHead(upstream.status, headers)
     if (!upstream.body) return res.end()
     Readable.fromWeb(upstream.body).on("error", () => res.destroy()).pipe(res)

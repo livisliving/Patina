@@ -1,3 +1,4 @@
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 /*
  * Patina — Aqua structure × millennium colour tones.
  * Source of truth: /DESIGN.md (Google DESIGN.md format). Keep the two in sync.
@@ -273,8 +274,8 @@
   --y2k-tone-scroll-h: linear-gradient(to bottom, var(--y2k-tone-scroll-stops));
   --y2k-tone-zebra: #edf6e6;
   --y2k-tone-listheader-sorted: linear-gradient(to bottom, #488b00 0px 1px, #96c764 1px 2px, #c4e8a5 2px 3px, #d0f1b4 3px 4px, #cef4ab 4px 5px, #c0ee95 5px 6px, #a7de70 6px 7px, #afe778 7px 8px, #baf087 8px 9px, #c3f890 9px 10px, #d6ffaa 10px 11px, #e0ffba 11px 12px, #deffbd 12px 13px, #ddffc0 13px 15px, #defdc4 15px 16px, #999999 16px 17px);
-  --y2k-tone-highlight: linear-gradient(to bottom, #539f00 0px 1px, #66ac00 1px 2px, #6eb200 2px 3px, #64ab00 3px 4px, #539f00 4px 5px, #64ab00 5px 6px, #6cb000 6px 7px, #64ab00 7px 8px, #539f00 8px 9px, #64ab00 9px 10px, #6eb200 10px 11px, #64ab00 11px 12px, #539f00 12px 13px, #64ab00 13px 14px, #6eb200 14px 15px, #64ab00 15px 16px, #539f00 16px 17px, #64ab00 17px 18px, #6eb200 18px 19px, #64ab00 19px 20px, #4e9b00 20px 21px, #358b00 21px 22px);
-  --y2k-tone-highlight-text: #000000;
+  --y2k-tone-highlight: linear-gradient(to bottom, #3d7600 0px 1px, #4b7f00 1px 2px, #518400 2px 3px, #4a7f00 3px 4px, #3d7600 4px 5px, #4a7f00 5px 6px, #508200 6px 7px, #4a7f00 7px 8px, #3d7600 8px 9px, #4a7f00 9px 10px, #518400 10px 11px, #4a7f00 11px 12px, #3d7600 12px 13px, #4a7f00 13px 14px, #518400 14px 15px, #4a7f00 15px 16px, #3d7600 16px 17px, #4a7f00 17px 18px, #518400 18px 19px, #4a7f00 19px 20px, #3a7300 20px 21px, #276700 21px 22px);
+  --y2k-tone-highlight-text: #ffffff;
   --y2k-tone-selection: rgba(127, 195, 28, 0.88);
   --y2k-tone-selection-text: #000000;
   --y2k-tone-glow: rgba(127, 195, 28, 0.5);
@@ -309,8 +310,8 @@
   --y2k-tone-scroll-h: linear-gradient(to bottom, var(--y2k-tone-scroll-stops));
   --y2k-tone-zebra: #fdf0e6;
   --y2k-tone-listheader-sorted: linear-gradient(to bottom, #af5000 0px 1px, #e09c5e 1px 2px, #f7c79d 2px 3px, #fed1ac 3px 4px, #ffd1a4 4px 5px, #ffc58e 5px 6px, #faaf6a 6px 7px, #ffb772 7px 8px, #ffc280 8px 9px, #ffca8a 9px 10px, #ffdca3 10px 11px, #ffe4b2 11px 12px, #ffe8bc 12px 13px, #ffe8c1 13px 15px, #ffe8c5 15px 16px, #999999 16px 17px);
-  --y2k-tone-highlight: linear-gradient(to bottom, #c95d00 0px 1px, #d27000 1px 2px, #d77700 2px 3px, #d16e00 3px 4px, #c95d00 4px 5px, #d16e00 5px 6px, #d57500 6px 7px, #d16e00 7px 8px, #c95d00 8px 9px, #d16e00 9px 10px, #d77700 10px 11px, #d16e00 11px 12px, #c95d00 12px 13px, #d16e00 13px 14px, #d77700 14px 15px, #d16e00 15px 16px, #c95d00 16px 17px, #d16e00 17px 18px, #d77700 18px 19px, #d16e00 19px 20px, #c55800 20px 21px, #b93e00 21px 22px);
-  --y2k-tone-highlight-text: #000000;
+  --y2k-tone-highlight: linear-gradient(to bottom, #a54c00 0px 1px, #ac5c00 1px 2px, #b06200 2px 3px, #ab5a00 3px 4px, #a54c00 4px 5px, #ab5a00 5px 6px, #af6000 6px 7px, #ab5a00 7px 8px, #a54c00 8px 9px, #ab5a00 9px 10px, #b06200 10px 11px, #ab5a00 11px 12px, #a54c00 12px 13px, #ab5a00 13px 14px, #b06200 14px 15px, #ab5a00 15px 16px, #a54c00 16px 17px, #ab5a00 17px 18px, #b06200 18px 19px, #ab5a00 19px 20px, #a24800 20px 21px, #983300 21px 22px);
+  --y2k-tone-highlight-text: #ffffff;
   --y2k-tone-selection: rgba(232, 137, 26, 0.88);
   --y2k-tone-selection-text: #000000;
   --y2k-tone-glow: rgba(232, 137, 26, 0.5);
@@ -384,6 +385,25 @@
 @custom-variant track {
   &::-webkit-slider-runnable-track { @slot; }
   &::-moz-range-track { @slot; }
+}
+
+/* ── Layout variants ──────────────────────────────────────────────── */
+
+/* The floating desktop — windows where they were put, the icon column, the
+   marquee — needs a screen 768 wide AND 480 tall; below either the windows
+   stack, a phone held sideways too (844 × 390). The desktop's files say
+   desk: / max-desk: where they would say md: / max-md:, and DESKTOP in
+   components/desktop/use-media-query.ts is the same query. */
+@custom-variant desk (@media (min-width: 48rem) and (min-height: 30rem));
+@custom-variant max-desk (@media not all and (min-width: 48rem) and (min-height: 30rem));
+/* A phone held sideways (the stacked layout, landscape, 640 wide or more):
+   room for two windows side by side, so the stack becomes two columns. */
+@custom-variant pair {
+  @media not all and (min-width: 48rem) and (min-height: 30rem) {
+    @media (orientation: landscape) and (min-width: 40rem) {
+      @slot;
+    }
+  }
 }
 
 /* ── Keyframes ────────────────────────────────────────────────────── */

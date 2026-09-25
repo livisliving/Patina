@@ -69,11 +69,12 @@ const tools = (p: Project) => p.routes.filter((r) => r.guess === "tool").map((r)
  *  itself) and not a detail template (`/work/[slug]` is not one page). */
 const pickable = (p: Project) => p.routes.filter((r) => r.guess !== "home" && r.guess !== "detail").map((r) => r.path)
 
-function draftFrom({ defaults: d, project }: Session): Draft {
+function draftFrom({ defaults: d, project, questions }: Session): Draft {
   const text: Record<string, string> = {}
   const put = (k: string, v?: string) => {
     if (v) text[k] = v
   }
+  for (const q of questions) for (const o of q.options) put(`${q.id}.${o.value}`, o.field?.value)
   put("about.name", d.about?.name)
   put("about.role", d.about?.role)
   put("look.volume", d.look?.volume)
@@ -89,6 +90,7 @@ function draftFrom({ defaults: d, project }: Session): Draft {
       source: d.source?.kind,
       look: d.look?.tone,
       oldUrls: d.oldUrls ?? undefined,
+      replace: d.replace,
     },
     checks: {
       extras: [x?.ipod && "ipod", x?.wallpaper && "wallpaper", x?.visitorCounter && "visitor-counter", x?.marquee && "marquee"].filter(
@@ -122,12 +124,17 @@ function toAnswers(d: Draft): Answers {
   const desktop = scope !== "components"
   const kind = (d.choice.source ?? "project") as Answers["source"]["kind"]
   const extras = d.checks.extras ?? []
+  // Other's words, for the answers that are sent (not a first thing to do
+  // when there is no desktop).
+  const notes: Answers["notes"] = {}
+  for (const id of ["about", "first", "scope", "source"] as const)
+    if (d.choice[id] === "other" && (id !== "first" || desktop)) notes[id] = t(`${id}.other`)
   return {
     about: { kind: d.choice.about as Answers["about"]["kind"], name: t("about.name"), role: t("about.role") },
     first: desktop && d.choice.first ? { goal: d.choice.first as NonNullable<Answers["first"]>["goal"], featured: d.featured } : null,
     scope,
     keepRoutes: scope === "content" ? d.keep : [],
-    source: kind !== "project" && t(`source.${kind}`) ? { kind, where: t(`source.${kind}`) } : { kind },
+    source: kind !== "project" && kind !== "other" && t(`source.${kind}`) ? { kind, where: t(`source.${kind}`) } : { kind },
     look: { tone: (d.choice.look ?? "pink") as Tone, volume: t("look.volume"), description: t("look.description") },
     extras: {
       ipod: extras.includes("ipod"),
@@ -136,6 +143,8 @@ function toAnswers(d: Draft): Answers {
       marquee: extras.includes("marquee"),
     },
     oldUrls: desktop ? ((d.choice.oldUrls ?? null) as Answers["oldUrls"]) : null,
+    notes,
+    ...(d.choice.replace && { replace: d.choice.replace as NonNullable<Answers["replace"]> }),
   }
 }
 
@@ -285,6 +294,16 @@ function QuestionControls({
   return (
     <>
       {options}
+      {/* replace: the files already here, in a list that scrolls. */}
+      {q.files?.length ? (
+        <ul aria-label="Files already here" className="mt-4 max-h-24 overflow-auto rounded-[2px] border border-[#8a8a8a] bg-white px-2 py-1 text-[11px] leading-[1.35]">
+          {q.files.map((f) => (
+            <li key={f} className="truncate font-(family-name:--y2k-font-mono)">
+              {f}
+            </li>
+          ))}
+        </ul>
+      ) : null}
       {/* first: the pages to keep at hand, at most three. */}
       {q.pick === "routes" && (
         <div role="group" aria-labelledby={`${id}-routes`} className="mt-4">
@@ -334,7 +353,10 @@ function QuestionControls({
 /** The Ready pane's summary: the answers as Show Info would list them. */
 function summary(questions: Question[], d: Draft) {
   const a = toAnswers(d)
-  const label = (id: QuestionId, v?: string | null) => questions.find((q) => q.id === id)?.options.find((o) => o.value === v)?.label ?? v ?? ""
+  const label = (id: QuestionId, v?: string | null) => {
+    const name = questions.find((q) => q.id === id)?.options.find((o) => o.value === v)?.label ?? v ?? ""
+    return v === "other" && a.notes[id] ? `${name}: ${a.notes[id]}` : name
+  }
   const has = (id: QuestionId) => questions.some((q) => q.id === id)
   const rows: { label: string; value: React.ReactNode }[] = []
   if (has("about")) rows.push({ label: "About", value: label("about", a.about.kind) }, { label: "Name", value: a.about.name }, { label: "What they do", value: a.about.role })
@@ -352,6 +374,7 @@ function summary(questions: Question[], d: Draft) {
     rows.push({ label: "Extras", value: x.join(", ") || "None" })
   }
   if (has("oldUrls") && a.oldUrls) rows.push({ label: "Old addresses", value: label("oldUrls", a.oldUrls) })
+  if (has("replace") && a.replace) rows.push({ label: "Files here", value: label("replace", a.replace) })
   return rows
 }
 

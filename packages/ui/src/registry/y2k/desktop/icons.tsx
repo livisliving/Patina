@@ -1,3 +1,4 @@
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 "use client"
 
 import * as React from "react"
@@ -26,20 +27,23 @@ type IconProps = { className?: string; style?: React.CSSProperties }
  *  line (a 16px icon by a 13px title) drop 2px below it. */
 const WRAP = "flex h-full w-full items-center justify-center"
 
-function Png({ src, alt, className, style }: IconProps & { src: string; alt: string }) {
+/** An icon is drawn beside its name everywhere it appears (a label, a row,
+ *  a Dock tile's aria-label, a title), so the picture itself says nothing:
+ *  an empty alt, or a screen reader reads "Finder Finder". */
+function Png({ src, className, style }: IconProps & { src: string }) {
   return (
     <span className={cn(WRAP, className)} style={style}>
       {/* eslint-disable-next-line @next/next/no-img-element -- a data URI, nothing for next/image to optimise */}
-      <img src={src} alt={alt} draggable={false} className="block size-full object-contain" />
+      <img src={src} alt="" draggable={false} className="block size-full object-contain" />
     </span>
   )
 }
 
-function makeIcon(src: string, alt: string) {
+function makeIcon(src: string, name: string) {
   function PngIcon(props: IconProps) {
-    return <Png src={src} alt={alt} {...props} />
+    return <Png src={src} {...props} />
   }
-  PngIcon.displayName = `${alt}Icon`
+  PngIcon.displayName = `${name}Icon`
   return PngIcon
 }
 
@@ -80,7 +84,7 @@ export function FolderIcon({ className, style }: IconProps) {
       <style href="y2k-folder" precedence="default">
         {FOLDER_CSS}
       </style>
-      <span role="img" aria-label="Folder" className={cn(WRAP, "y2k-folder", className)} style={style} />
+      <span aria-hidden className={cn(WRAP, "y2k-folder", className)} style={style} />
     </>
   )
 }

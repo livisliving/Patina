@@ -54,10 +54,17 @@ paint.
    name and `SITE.description`. `extras.wallpaper` is the owner's own
    wallpaper folder. `oldUrls` says whether to write `desktopRedirects`
    (`redirect`) or not (`drop`). `brief.detected` is what the scan found;
-   `brief.unanswered` lists the questions nobody answered. **Ask every
-   unanswered question in one message before you start**, in the words
-   `brief.ask` carries (each one's title, prompt and options — the same the
-   assistant showed), and write the answers back into
+   `brief.unanswered` lists the questions nobody answered. An answer of
+   `other` (`about.kind`, `first.goal`, `scope`, `source.kind`) comes with
+   the owner's words in `brief.answers.notes.<question>`: when they say
+   what it is (a collective, a CMS), follow them; when they are unsure
+   ("Not sure — recommend one for me."), read the site, recommend one of
+   that question's options with a one-line reason, and put it to them.
+   `scope: other` installed the desktop, so any scope is still open.
+   **Ask every unanswered question, and settle every `other`, in one
+   message before you start**, in the words `brief.ask` carries (each
+   one's title, prompt and options — the same the assistant showed), and
+   write the answers back into
    `patina.json › brief.answers` before going on. No `patina.json`, or one without a `brief`? Ask the gist
    of all six in one message: who the site is about (one person, a team, a
    product, an event or a show — and their name and what they do); what a
@@ -291,6 +298,9 @@ the machine are someone's work.
   and skips the pack's fixes to it. If the pack lacks something the site
   needs, put the content in the nearest type and say so in your report;
   `/check-y2k` warns on an edited file (`pack-modified`).
+- Remove what names Patina OS and Olivia Forster: the first line of every
+  pack file (the MIT licence asks that it stay), the ★ menu's About Patina
+  OS, the Patina line on About The Finder, the generator tag.
 - Change the framework, the data layer or any business logic. The one change
   to routing the pack makes is a site's pages becoming one desktop, each old
   route redirecting to its window (step 1f); a tool's routes stay.

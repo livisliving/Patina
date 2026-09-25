@@ -1,3 +1,4 @@
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 /**
  * The Preview icon: Olivia's own artwork, a PNG with its shadow in it
  * (apps/web/public/icons/preview.png, 192×192), inlined so the icons

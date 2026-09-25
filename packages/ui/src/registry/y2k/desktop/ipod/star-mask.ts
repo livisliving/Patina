@@ -1,3 +1,4 @@
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 /**
  * The Patina star as the idle display draws it: the alpha of Olivia's star
  * (apps/web/public/icons/star.webp), 128px tall, inlined so the item installs

@@ -1,3 +1,4 @@
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 "use client"
 
 import * as React from "react"
@@ -8,6 +9,7 @@ import type { DocumentEntry, Entry, Img, Movie, Site } from "@/lib/content"
 
 import { findNode, indexSite, type Node } from "./disk"
 import { DocIcon, FaceIcon, IPodIcon, NoteIcon } from "./icons"
+import { PATINA } from "./patina"
 import { WindowActionsProvider, useWindows, type Place, type Point, type WinEntry, type WinSpec } from "./windows"
 
 /**
@@ -20,6 +22,10 @@ import { WindowActionsProvider, useWindows, type Place, type Point, type WinEntr
 /** What a document window holds: the document, and its Finder path (the
  *  volume, then file names) — what the address names while it is in front. */
 export type DocumentPayload = { doc: DocumentEntry; path: string[] }
+
+/** The applications that run only while they have a window: in the Dock
+ *  while they do, as a running app was in 10.0. */
+export const TRANSIENT_APPS = ["Preview", "QuickTime Player"]
 
 /** The apps' icons: About <app> shows one. */
 export const APP_ICONS: Record<string, React.ReactNode> = {
@@ -37,8 +43,8 @@ export const APP_ICONS: Record<string, React.ReactNode> = {
  *  Finder and the iPod both clear of the desktop icons (84px, 12px from the
  *  right edge, so 96px). A screen too short for the Finder's 400 over the
  *  iPod's 400 takes height from the Finder (down to 288) and lets the iPod
- *  overlap its foot by up to 48px. Below 768px none of this applies: the
- *  windows stack. Every value on the 4px grid. */
+ *  overlap its foot by up to 48px. Below 768 wide or 480 tall (DESKTOP)
+ *  none of this applies: the windows stack. Every value on the 4px grid. */
 const ICON_COLUMN = 96
 const ABOUT_W = 448
 const FINDER_SIZE = { w: 640, h: 400 }
@@ -127,6 +133,8 @@ type Desktop = {
   openAbout: () => void
   /** About <app>: the front app's first menu item. */
   openAppInfo: (app: string) => void
+  /** The ★ menu's About Patina OS. */
+  openPatina: () => void
   /** The iPod, when the desktop has one. */
   openIPod: () => void
   /** A document window's id, for the Dock's running triangles. */
@@ -284,6 +292,10 @@ export function DesktopProvider({ site, volume, ipod = false, children }: { site
     },
     [open]
   )
+  const openPatina = React.useCallback(() => {
+    const title = `About ${PATINA.name}`
+    open({ id: "about:patina", kind: "about", app: "Finder", name: title, title, icon: <FaceIcon />, closeOnly: true, payload: { patina: true } })
+  }, [open])
   const openIPod = React.useCallback(() => ipod && open(ipodSpec, ipodAt), [ipod, open, ipodSpec, ipodAt])
 
   const actions = React.useMemo(() => ({ frontId, focus, close, minimize, zoom }), [frontId, focus, close, minimize, zoom])
@@ -310,6 +322,7 @@ export function DesktopProvider({ site, volume, ipod = false, children }: { site
         openVideo,
         openAbout,
         openAppInfo,
+        openPatina,
         openIPod,
         documentId,
         finderPath: nav.path,

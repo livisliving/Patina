@@ -15,7 +15,7 @@
  */
 
 import fs from "node:fs"
-import { BARBER, BARBER_SHADE, NEUTRAL, RIBS, TONED, TONES, derive, fmt, hex, inkFor, mix, parse, rgbStr, tint, toHex } from "./tones-data.mjs"
+import { BARBER, BARBER_SHADE, NEUTRAL, RIBS, TONED, TONES, derive, fmt, hex, mix, parse, rgbStr, tint, toHex } from "./tones-data.mjs"
 
 const CSS = "packages/ui/src/styles/y2k.css"
 
@@ -52,7 +52,7 @@ const bothWays = (name, list, map) => [
 ]
 
 function block(t) {
-  const { b, x, selection, light, dark, listBase, one } = derive(t)
+  const { b, x, selection, light, dark, listBase, highlight, one } = derive(t)
   const tone = (list, opts) => rows(list, { map: one, ...opts })
   const barber = `repeating-linear-gradient(45deg, ${BARBER.map(([c, p]) => `${one(c)} ${p}px`).join(", ")})`
   const lines = [
@@ -79,8 +79,8 @@ function block(t) {
     // its own lightness, so a dark tone still gets a near-white stripe.
     `--y2k-tone-zebra: ${x ? "#edf3fe" : toHex(tint(hex("#edf3fe"), b))};`,
     `--y2k-tone-listheader-sorted: ${tone(TONED.listheaderSorted)};`,
-    `--y2k-tone-highlight: ${tone(TONED.highlight)};`,
-    `--y2k-tone-highlight-text: ${inkFor(TONED.highlight, b, x)};`,
+    `--y2k-tone-highlight: ${rows(highlight)};`,
+    `--y2k-tone-highlight-text: #ffffff;`,
     `--y2k-tone-selection: ${t.selection ?? fmt([selection, 0.88])};`,
     `--y2k-tone-selection-text: ${t.ink};`,
     `--y2k-tone-glow: ${fmt([b, 0.5])};`,

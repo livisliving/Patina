@@ -1,10 +1,12 @@
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 "use client"
 
 import * as React from "react"
+import { DropdownMenu as Menu } from "radix-ui"
 
 import { Button } from "@/components/ui/button"
 import { SearchField } from "@/components/ui/forms"
-import { PopupButton } from "@/components/ui/popup"
+import { PopupButton, menuContentClass, menuItemClass } from "@/components/ui/popup"
 import { SegmentedControl } from "@/components/ui/segmented"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { WindowScrollArea, WindowToolbar, WindowToolbarControl, WindowToolbarItem, WindowToolbarSeparator } from "@/components/ui/window"
@@ -13,7 +15,9 @@ import { cn } from "@/lib/utils"
 
 import { ComputerIcon, FolderIcon } from "./icons"
 import type { FinderItem } from "./disk"
-import { useMediaQuery } from "./use-media-query"
+import { MiddleTruncate } from "./middle-truncate"
+import { dateValue } from "./names"
+import { DESKTOP, useMediaQuery } from "./use-media-query"
 import { DesktopWindow, type WinEntry } from "./windows"
 
 /**
@@ -39,7 +43,12 @@ function sorted(items: FinderItem[], sort: Sort) {
   if (!sort) return items
   const by = {
     label: (a: FinderItem, b: FinderItem) => a.label.localeCompare(b.label),
-    created: (a: FinderItem, b: FinderItem) => a.created.localeCompare(b.created),
+    // By the date, not its words ("9 Apr" after "10 Mar"); undated last.
+    created: (a: FinderItem, b: FinderItem) => {
+      const [x, y] = [dateValue(a.created), dateValue(b.created)]
+      if (Number.isNaN(x) || Number.isNaN(y)) return Number.isNaN(x) === Number.isNaN(y) ? a.created.localeCompare(b.created) : Number.isNaN(x) ? 1 : -1
+      return x - y
+    },
     size: (a: FinderItem, b: FinderItem) => sizeNum(a.size) - sizeNum(b.size),
     kind: (a: FinderItem, b: FinderItem) => a.kind.localeCompare(b.kind),
   }[sort.col]
@@ -97,27 +106,17 @@ function FileRow({
       className={cn("cursor-default aria-disabled:opacity-45", className)}
       {...props}
     >
-      <TableCell>
+      {/* The name takes the width the other columns leave (max-w-0 keeps
+          it from widening the table), 96px at least, and is cut from the
+          middle to fit; narrower still, the list scrolls sideways. */}
+      <TableCell className="w-full max-w-0 min-w-24">
         <span className="flex items-center gap-2">
           <span className="size-4 shrink-0 [&_svg]:size-full">{item.icon}</span>
-          <FileName name={item.label} />
+          <MiddleTruncate text={item.label} lines={1} className="flex-1" />
         </span>
       </TableCell>
       {children}
     </TableRow>
-  )
-}
-
-/** A file's name that keeps its suffix when it must shorten: the end of the
- *  name gives way, never the `.rtf`. */
-function FileName({ name }: { name: string }) {
-  const dot = name.lastIndexOf(".")
-  if (dot <= 0) return <span className="min-w-0 truncate">{name}</span>
-  return (
-    <span className="flex min-w-0" title={name}>
-      <span className="truncate">{name.slice(0, dot)}</span>
-      <span className="shrink-0">{name.slice(dot)}</span>
-    </span>
   )
 }
 
@@ -160,6 +159,7 @@ function ColumnRow({
       type="button"
       onClick={onSelect}
       onDoubleClick={item.onClick}
+      onKeyDown={(e) => e.key === "Enter" && item.onClick?.()}
       className={cn(
         "flex w-full cursor-default items-center gap-1 px-2 text-left text-[12px] outline-none",
         volume ? "h-10 gap-2" : "h-5",
@@ -168,9 +168,7 @@ function ColumnRow({
       )}
     >
       <span className={cn("shrink-0 [&_svg]:size-full", volume ? "size-8" : "size-4")}>{item.icon}</span>
-      <span className="flex min-w-0 flex-1">
-        <FileName name={item.label} />
-      </span>
+      <MiddleTruncate text={item.label} lines={1} className="flex-1" />
       {chevron && <DisclosureGlyph />}
     </button>
   )
@@ -222,6 +220,9 @@ function ColumnSplit({ width, onResize }: { width: number; onResize: (w: number)
       role="separator"
       aria-orientation="vertical"
       aria-label="Resize column"
+      aria-valuenow={width}
+      aria-valuemin={COLUMN_MIN}
+      aria-valuemax={COLUMN_MAX}
       tabIndex={0}
       onPointerDown={(e) => {
         from.current = { x: e.clientX, w: width }
@@ -364,6 +365,74 @@ function KindFilter({ items, kinds, value, onChange }: { items: FinderItem[]; ki
   )
 }
 
+
+/** The search field at its narrowest, before it goes. */
+const SEARCH_MIN = 96
+
+/** What of the Finder's toolbar fits its window: every place and the search
+ *  field, or every place, or the first few (the rest in the » menu).
+ *  Measured, not set at a breakpoint: the places are the site's own
+ *  folders, as many and as long as it has. */
+function useToolbarFit(key: string) {
+  const barRef = React.useRef<HTMLDivElement>(null)
+  const rulerRef = React.useRef<HTMLDivElement>(null)
+  const [fit, setFit] = React.useState({ places: Infinity, search: true })
+  React.useLayoutEffect(() => {
+    const bar = barRef.current
+    const ruler = rulerRef.current
+    if (!bar || !ruler) return
+    const measure = () => {
+      const css = getComputedStyle(bar)
+      const gap = parseFloat(css.columnGap) || 0
+      const room = bar.clientWidth - parseFloat(css.paddingLeft) - parseFloat(css.paddingRight)
+      // Each at its width with its margins (the separator's 4px either side),
+      // to the fraction of a pixel.
+      const outer = (el: Element) => {
+        const m = getComputedStyle(el)
+        return el.getBoundingClientRect().width + parseFloat(m.marginLeft) + parseFloat(m.marginRight)
+      }
+      const fixed = [...bar.querySelectorAll(":scope > [data-fixed]")].map(outer)
+      const [chevron, ...places] = [...ruler.children].map(outer)
+      const width = (n: number, search: boolean) => {
+        const row = [...fixed, ...places.slice(0, n), ...(search ? [SEARCH_MIN] : []), ...(n < places.length ? [chevron] : [])]
+        return row.reduce((a, b) => a + b, 0) + gap * (row.length - 1)
+      }
+      let n = places.length
+      const search = width(n, true) <= room
+      if (!search) while (n > 0 && width(n, false) > room) n--
+      setFit((f) => (f.places === n && f.search === search ? f : { places: n, search }))
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(bar)
+    return () => observer.disconnect()
+  }, [key])
+  return { fit, barRef, rulerRef }
+}
+
+/** The 10.1 toolbar's overflow: a » at the far end, which lists the items
+ *  the window is too narrow for. */
+function Chevron({ className, ...props }: React.ComponentProps<"button">) {
+  return (
+    <button
+      type="button"
+      aria-label="More places"
+      className={cn(
+        "mt-[2px] flex h-8 w-4 shrink-0 cursor-default items-center justify-center rounded-[4px] text-[#1e1e1e] outline-none",
+        "focus-visible:shadow-(--y2k-focus-ring) data-[state=open]:bg-black/10",
+        className
+      )}
+      {...props}
+    >
+      {/* The chevron is drawn, as 10.1 drew it: two 4 × 7 carets 2px
+          apart, black. */}
+      <svg viewBox="0 0 10 7" width="10" height="7" shapeRendering="crispEdges" aria-hidden>
+        <path d="M0 0h1v1h1v1h1v1h1v1H3v1H2v1H1v1H0zM6 0h1v1h1v1h1v1h1v1H9v1H8v1H7v1H6z" fill="currentColor" />
+      </svg>
+    </button>
+  )
+}
+
 type FinderProps = {
   win: WinEntry
   volumes: FinderItem[]
@@ -428,10 +497,12 @@ export function Finder({
   initialSize,
 }: FinderProps) {
   const { chain, placePath, here, hereItems, visible, narrowed } = at
+  const { fit, barRef: toolbarRef, rulerRef } = useToolbarFit(places.map((p) => p.label).join("\n"))
+  const shown = Math.min(fit.places, places.length)
   // A phone, or any screen without a pointer that hovers (a touch screen):
   // a tap opens a file, as a double-click does with a mouse — there is no
   // double-tap to find out about.
-  const tapOpens = useMediaQuery("(max-width: 767px), (hover: none)")
+  const tapOpens = useMediaQuery(`not all and ${DESKTOP}, (hover: none)`)
   // A click in the list or icon view: select the item, and open it too
   // where a tap is the only click there is.
   const choose = (key: string, it: FinderItem) => {
@@ -514,17 +585,20 @@ export function Finder({
       defaultSize={size}
       // Its load-time size before the page wakes (the window's `place`),
       // else 640 × 400; the px of `size` take over once awake.
-      className="md:h-[var(--win-h,400px)] md:w-[var(--win-w,640px)]"
+      className="desk:h-[var(--win-h,400px)] desk:w-[var(--win-w,640px)]"
       status={narrowed ? `${visible.length} of ${hereItems.length} items` : `${hereItems.length} ${hereItems.length === 1 ? "item" : "items"}`}
       toolbar={
         toolbar && (
-          <WindowToolbar className="flex-wrap">
-            <WindowToolbarControl label="Back">
+          // Sized to the window, as the 10.1 Finder is: the search field gives
+          // up its width (160px down to 96px), then goes; then the places go
+          // from the right into the » menu at the end. Never a second row.
+          <WindowToolbar ref={toolbarRef} className="relative overflow-hidden">
+            <WindowToolbarControl data-fixed label="Back" className="shrink-0">
               <Button size="icon" aria-label="Back" disabled={!canGoBack} onClick={onBack} className="[&_svg]:h-2 [&_svg]:w-[13px]">
                 <BackGlyph />
               </Button>
             </WindowToolbarControl>
-            <WindowToolbarControl label="View">
+            <WindowToolbarControl data-fixed label="View" className="shrink-0">
               <SegmentedControl
                 items={[
                   { label: "Icons", icon: <GridGlyph />, active: view === "icons", onClick: () => onView("icons") },
@@ -533,15 +607,42 @@ export function Finder({
                 ]}
               />
             </WindowToolbarControl>
-            <WindowToolbarSeparator />
-            {places.map((place) => (
-              <WindowToolbarItem key={place.label} icon={place.icon} onClick={place.onClick}>
+            <WindowToolbarSeparator data-fixed />
+            {places.slice(0, shown).map((place) => (
+              <WindowToolbarItem key={place.label} icon={place.icon} onClick={place.onClick} className="shrink-0">
                 {place.label}
               </WindowToolbarItem>
             ))}
-            <WindowToolbarControl label="Search" className="order-last w-full sm:order-none sm:ml-auto sm:w-40">
+            <WindowToolbarControl label="Search" className={cn("ml-auto w-40 min-w-24", !fit.search && "hidden")}>
               <SearchField ref={searchRef} value={query} onChange={onQuery} placeholder="" className="w-full" />
             </WindowToolbarControl>
+            {shown < places.length && (
+              <Menu.Root modal={false}>
+                <Menu.Trigger asChild>
+                  <Chevron className="ml-auto" />
+                </Menu.Trigger>
+                <Menu.Portal>
+                  <Menu.Content align="end" sideOffset={2} className={menuContentClass}>
+                    {places.slice(shown).map((place) => (
+                      <Menu.Item key={place.label} className={cn(menuItemClass, "justify-start gap-2 pl-2")} onSelect={place.onClick}>
+                        <span className="size-4 shrink-0 [&_svg]:size-full">{place.icon}</span>
+                        {place.label}
+                      </Menu.Item>
+                    ))}
+                  </Menu.Content>
+                </Menu.Portal>
+              </Menu.Root>
+            )}
+            {/* The ruler: the chevron and every place at its own width, out of
+                sight, for useToolbarFit to measure. */}
+            <div ref={rulerRef} aria-hidden inert className="pointer-events-none invisible absolute top-0 left-0 flex w-max">
+              <Chevron tabIndex={-1} />
+              {places.map((place) => (
+                <WindowToolbarItem key={place.label} icon={place.icon} tabIndex={-1} className="shrink-0">
+                  {place.label}
+                </WindowToolbarItem>
+              ))}
+            </div>
           </WindowToolbar>
         )
       }
@@ -644,18 +745,22 @@ export function Finder({
                     aria-pressed={selected.has(key)}
                     onClick={() => !it.disabled && choose(key, it)}
                     onDoubleClick={() => onOpenItem(it, placePath)}
+                    onKeyDown={(e) => e.key === "Enter" && !it.disabled && onOpenItem(it, placePath)}
                     className="group relative z-[2] flex max-w-full cursor-default flex-col items-center gap-1 justify-self-center outline-none disabled:opacity-45"
                   >
                     <span className="size-12 [&_svg]:size-full">{it.icon}</span>
-                    <span
-                      className={cn(
-                        "rounded-[3px] px-1.5 py-[1px] text-center text-[12px]",
+                    {/* Two lines at most, then cut from the middle, as the
+                        Finder cuts a name: the start and the suffix stay. */}
+                    <MiddleTruncate
+                      text={it.label}
+                      lines={2}
+                      className="w-full text-center"
+                      labelClassName={cn(
+                        "inline-block max-w-full rounded-[3px] px-1.5 py-[1px] text-[12px]",
                         // The light tone under black ink, the same in every tone.
                         selected.has(key) && "bg-(--y2k-tone-focus) text-(--y2k-ink)"
                       )}
-                    >
-                      {it.label}
-                    </span>
+                    />
                   </button>
                 )
               })}

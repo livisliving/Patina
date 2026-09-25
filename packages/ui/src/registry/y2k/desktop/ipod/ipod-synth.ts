@@ -1,3 +1,4 @@
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 /**
  * The iPod's music: short original chiptunes, played by the browser's own
  * synthesiser (Web Audio) — no audio files, nothing licensed. A track is a

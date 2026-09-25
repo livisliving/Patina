@@ -33,7 +33,7 @@ import { fileURLToPath } from "node:url"
 
 import { COMPONENTS, COPIES, aliasDir, childEnv, projectDirs, readComponentsJson, skip, stop, tick } from "./project.mjs"
 import { MANIFEST, recordInstall } from "./update.mjs"
-import { QUESTIONS, TONES, toTone, scanProject, defaultsFrom, briefFromFlags, askInTerminal, makeBrief, writeBrief } from "./brief.mjs"
+import { QUESTIONS, TONES, toTone, scanProject, defaultsFrom, briefFromFlags, askInTerminal, makeBrief, writeBrief, replaceQuestion } from "./brief.mjs"
 import { startSetupServer } from "./setup-server.mjs"
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -148,6 +148,26 @@ function itemInstalled(cwd, item) {
 
 /** Of these items, the ones whose files are not there. */
 const missingOf = (cwd, items) => items.filter((item) => !itemInstalled(cwd, item))
+
+/** Every item init can install, whatever the answers. */
+const ALL_ITEMS = ["theme", ...Object.keys(COMPONENTS), ...Object.keys(DESKTOP)]
+
+/** The pack's files already in the project, item by item: a theme, a
+ *  component of the same name, a desktop item's own file. */
+function packFilesHere(cwd, items) {
+  const dir = uiDir(cwd)
+  return items.flatMap((item) => {
+    if (item === "theme") return findThemes(cwd).map((t) => ({ item, file: path.relative(cwd, t) }))
+    if (item in COMPONENTS) return fs.existsSync(path.join(dir, COMPONENTS[item])) ? [{ item, file: path.relative(cwd, path.join(dir, COMPONENTS[item])) }] : []
+    if (item in DESKTOP && itemInstalled(cwd, item)) return [{ item, file: path.relative(cwd, path.join(aliasDir(cwd, DESKTOP[item][0]), DESKTOP[item][1])) }]
+    return []
+  })
+}
+
+/** The files a page-run install would find in its way: the copies
+ *  (DESIGN.md, the skills) and every item's file. The Setup Assistant asks
+ *  about them before Install, so nothing is asked at the terminal. */
+const filesInTheWay = (cwd) => [...COPIES.map(([, to]) => to).filter((to) => fs.existsSync(path.join(cwd, to))), ...packFilesHere(cwd, ALL_ITEMS).map((t) => t.file)]
 
 /** create-next-app's own page, untouched: its only import is next/image and
  *  it still carries the template's links. Anything else is the user's. */
@@ -359,7 +379,13 @@ async function collectBrief({ cwd, registry, yes, dryRun, terminal, browser, ton
     return { brief: makeBrief({ answeredBy: "terminal", answers, project }), tone: answers.look.tone }
   }
 
-  const server = await startSetupServer({ session: { mode: "live", project, questions: QUESTIONS, defaults }, registry, open: browser })
+  // Patina's files already here (an earlier install, or the project's own
+  // shadcn components): one more pane, so the install never stops to ask
+  // at a terminal the person may not know how to use.
+  const inTheWay = filesInTheWay(cwd)
+  const questions = inTheWay.length ? [...QUESTIONS, replaceQuestion(inTheWay)] : QUESTIONS
+  if (inTheWay.length) defaults.replace = "replace"
+  const server = await startSetupServer({ session: { mode: "live", project, questions, defaults }, registry, open: browser })
   ctx.server = server
   console.log(`  Answer in the browser${browser ? "" : " (open this)"}: ${server.url}`)
   console.log(`  (or run again with --terminal to answer here)\n`)
@@ -370,7 +396,8 @@ async function collectBrief({ cwd, registry, yes, dryRun, terminal, browser, ton
     console.log(skip(`${MANIFEST} — the brief, every question unanswered, for /y2k-ify to ask`))
     return null
   }
-  return { brief: makeBrief({ answeredBy: "setup", answers, project }), tone: answers.look.tone }
+  const { replace, ...rest } = answers
+  return { brief: makeBrief({ answeredBy: "setup", answers: rest, project }), tone: answers.look.tone, replace }
 }
 
 export async function init(options) {
@@ -411,7 +438,11 @@ async function install({ cwd, registry, components, force, dryRun, yes, ...rest 
 
   const collected = await collectBrief({ cwd, registry, yes, dryRun, ...rest }, ctx)
   if (!collected) return 2
-  const { brief, tone } = collected
+  const { brief, tone, replace } = collected
+  // The page's answer about files already here: replace them (as --force
+  // does), or keep them and add only what is missing.
+  if (replace === "replace") force = true
+  const keepMine = replace === "keep"
   const { answers } = brief
   const server = ctx.server
   const status = (next) => server?.setStatus(next)
@@ -496,14 +527,15 @@ async function install({ cwd, registry, components, force, dryRun, yes, ...rest 
       // than let shadcn's overwrite prompt quietly answer itself "no" and
       // leave half a pack behind. `bootstrapped` means shadcn's own init
       // wrote its stubs seconds ago — replacing those clobbers nothing.
-      const dir = uiDir(cwd)
-      const taken = [
-        ...findThemes(cwd).map((t) => path.relative(cwd, t)),
-        ...items.filter((item) => item in COMPONENTS && fs.existsSync(path.join(dir, COMPONENTS[item]))).map((item) => path.relative(cwd, path.join(dir, COMPONENTS[item]))),
-        ...items.filter((item) => item in DESKTOP && itemInstalled(cwd, item)).map((item) => path.relative(cwd, path.join(aliasDir(cwd, DESKTOP[item][0]), DESKTOP[item][1]))),
-      ]
+      const here = packFilesHere(cwd, items)
+      const taken = here.map((t) => t.file)
       let overwrite = force || bootstrapped
-      if (taken.length && !overwrite) {
+      // Kept at the page's word: only the items not here yet are added.
+      let adding = items
+      if (taken.length && !overwrite && keepMine) {
+        adding = items.filter((item) => !here.some((t) => t.item === item))
+        console.log(skip(`${taken.length} of the pack's files already here — kept, as the page said: ${taken.join(", ")}`))
+      } else if (taken.length && !overwrite) {
         console.log(`  ${taken.length} of the pack's files already exist: ${taken.join(", ")}`)
         // Only a person at a terminal can say yes here; --yes and a script cannot.
         status({ message: "Answer the question in the terminal to continue." })
@@ -519,6 +551,7 @@ async function install({ cwd, registry, components, force, dryRun, yes, ...rest 
       // stalls the install. The page's Install button is a yes too: the
       // person is looking at the browser, not at a prompt here.
       const flags = [...(yes || server ? ["--yes"] : []), ...(overwrite ? ["--overwrite"] : [])]
+      const addUrls = adding.map((n) => `${base}/${n}.json`)
       // Progress for the page: shadcn adds everything in one call, so the
       // fraction is what it has written so far, read off the disk — never a
       // timer. The item shown is the first one still to come.
@@ -529,7 +562,7 @@ async function install({ cwd, registry, components, force, dryRun, yes, ...rest 
       const ticker = setInterval(report, 400)
       ticker.unref()
       status({ current: "the registry" })
-      const res = await run("npx", ["shadcn@latest", "add", ...flags, ...urls], cwd)
+      const res = adding.length ? await run("npx", ["shadcn@latest", "add", ...flags, ...addUrls], cwd) : 0
       clearInterval(ticker)
       // Then check every file is really there, where shadcn put them (it may
       // have made the folder): its exit code says nothing about a prompt it
@@ -540,7 +573,7 @@ async function install({ cwd, registry, components, force, dryRun, yes, ...rest 
       if (res !== 0 || missing.length) {
         const why = res !== 0 ? `shadcn exited ${res ?? "with an error"}` : `shadcn did not write ${missing.join(", ")}`
         halt(`${why} — the files above are still in place.`)
-        console.log(`    retry: npx shadcn@latest add --overwrite ${urls.join(" ")}`)
+        console.log(`    retry: npx shadcn@latest add --overwrite ${addUrls.join(" ")}`)
         return 1
       }
       fixThemeImport(cwd, themes, { dryRun })
@@ -612,6 +645,7 @@ async function install({ cwd, registry, components, force, dryRun, yes, ...rest 
     into it by DESIGN.md › Content.` : ""}
 `)
 
-  if (blocked && !force) console.log(`  ${blocked} file(s) kept as they were. Re-run with --force to replace them.\n`)
-  return written || dryRun ? 0 : 1
+  if (blocked && !force && !keepMine) console.log(`  ${blocked} file(s) kept as they were. Re-run with --force to replace them.\n`)
+  // Nothing written is a failure, unless keeping was what the page asked.
+  return written || dryRun || keepMine ? 0 : 1
 }

@@ -36,6 +36,14 @@ export function toTone(input) {
   return (byNumber ?? TONES.find(([id, label]) => v === id || v === label.toLowerCase()))?.[0] ?? null
 }
 
+/** What an "Other" answer says until the owner says more: the agent,
+ *  which has read the site, recommends one of the options instead. */
+export const NOT_SURE = "Not sure — recommend one for me."
+
+/** The last option of a question whose list may not fit every site: the
+ *  owner's own words, kept in `answers.notes` under the question's id. */
+const OTHER = { value: "other", label: "Other", field: { id: "note", label: "In your words", placeholder: "In your words", value: NOT_SURE } }
+
 /** The questions, one pane each, in the order the assistant asks them. */
 export const QUESTIONS = [
   {
@@ -48,6 +56,7 @@ export const QUESTIONS = [
       { value: "product", label: "A product or company" },
       { value: "event", label: "An event" },
       { value: "show", label: "A show (a podcast or a series)" },
+      OTHER,
     ],
     fields: [
       { id: "name", label: "Name", placeholder: "Their name" },
@@ -64,6 +73,7 @@ export const QUESTIONS = [
       { value: "details", label: "Find the details (hours, dates, a place)" },
       { value: "act", label: "Sign up or buy" },
       { value: "listen", label: "Listen or watch" },
+      OTHER,
     ],
     pick: "routes",
   },
@@ -75,6 +85,7 @@ export const QUESTIONS = [
       { value: "whole", label: "The whole site" },
       { value: "content", label: "Its pages to read; tools keep their pages" },
       { value: "components", label: "None: keep the pages, restyle the components" },
+      OTHER,
     ],
     pick: "tools",
   },
@@ -87,6 +98,7 @@ export const QUESTIONS = [
       { value: "live", label: "A live site", field: { id: "where", label: "Address", placeholder: "https://…" } },
       { value: "export", label: "An export (Figma Sites, Framer, Webflow)", field: { id: "where", label: "Folder", placeholder: "./export" } },
       { value: "folder", label: "A folder of files", field: { id: "where", label: "Folder", placeholder: "./content" } },
+      OTHER,
     ],
   },
   {
@@ -121,6 +133,21 @@ export const QUESTIONS = [
     ],
   },
 ]
+
+/** One more pane, only when an install would find Patina's files already
+ *  in the project (an earlier install, or the project's own shadcn
+ *  components): replace them, or keep them and add what is missing. Asked
+ *  in the page, so the install never waits on the terminal. */
+export const replaceQuestion = (files) => ({
+  id: "replace",
+  title: "Some files are here already",
+  prompt: `${files.length === 1 ? "One of the files Patina installs is" : `${files.length} of the files Patina installs are`} already in this project, from an earlier install or your own. Your pages and your content are not touched either way.`,
+  options: [
+    { value: "replace", label: "Replace them with Patina's (recommended)" },
+    { value: "keep", label: "Keep mine; add only what is missing" },
+  ],
+  files,
+})
 
 const byId = Object.fromEntries(QUESTIONS.map((q) => [q.id, q]))
 const values = (id) => byId[id].options.map((o) => o.value)
@@ -300,7 +327,7 @@ export function defaultsFrom(project) {
 }
 
 /** Every answer null: what `unanswered` questions look like in the brief. */
-export const emptyAnswers = () => ({ about: null, first: null, scope: null, keepRoutes: [], source: null, look: null, extras: null, oldUrls: null })
+export const emptyAnswers = () => ({ about: null, first: null, scope: null, keepRoutes: [], source: null, look: null, extras: null, oldUrls: null, notes: {} })
 
 /* ----------------------------------------------------------- validation */
 
@@ -359,6 +386,8 @@ export function checkAnswers(a) {
     }
   }
   if (a.oldUrls !== null && a.oldUrls !== undefined) opt("oldUrls", a.oldUrls)
+  if (a.replace !== undefined && !["replace", "keep"].includes(a.replace)) bad.push(`replace: "${a.replace}" is not one of replace, keep`)
+  if (a.notes !== undefined && (!a.notes || typeof a.notes !== "object" || !Object.values(a.notes).every(isStr))) bad.push("notes: expected { <question>: text }")
   return bad
 }
 
@@ -376,12 +405,20 @@ export function briefFromFlags(args, project) {
   const unanswered = []
   const errors = []
   const split = (s) => String(s ?? "").split(",").map((x) => x.trim()).filter(Boolean)
+  /** A flag's value; `other=<words>` is "other", its words the note. */
+  const other = (id, v) => {
+    if (v === undefined) return undefined
+    const [value, ...words] = String(v).split("=")
+    if (value !== "other") return v
+    answers.notes[id] = words.join("=").trim() || NOT_SURE
+    return value
+  }
 
   if (args.about !== undefined || args.name !== undefined || args.role !== undefined) {
-    answers.about = { kind: args.about ?? d.about.kind, name: args.name ?? d.about.name, role: args.role ?? d.about.role }
+    answers.about = { kind: other("about", args.about) ?? d.about.kind, name: args.name ?? d.about.name, role: args.role ?? d.about.role }
   } else unanswered.push("about")
 
-  const scope = args.scope ?? (args.desktop ? "whole" : undefined)
+  const scope = other("scope", args.scope) ?? (args.desktop ? "whole" : undefined)
   if (scope !== undefined) answers.scope = scope
   else {
     // No flag: no desktop, as init always did without --desktop.
@@ -392,12 +429,12 @@ export function briefFromFlags(args, project) {
 
   if (answers.scope === "components") answers.first = null
   else if (args.first !== undefined || args.featured !== undefined) {
-    answers.first = { goal: args.first ?? d.first.goal, featured: args.featured !== undefined ? split(args.featured) : d.first.featured }
+    answers.first = { goal: other("first", args.first) ?? d.first.goal, featured: args.featured !== undefined ? split(args.featured) : d.first.featured }
   } else unanswered.push("first")
 
   if (args.source !== undefined) {
     const [kind, ...rest] = String(args.source).split("=")
-    answers.source = { kind, ...(rest.length ? { where: rest.join("=") } : {}) }
+    answers.source = kind === "other" ? { kind: other("source", args.source) } : { kind, ...(rest.length ? { where: rest.join("=") } : {}) }
   } else answers.source = d.source
 
   answers.look = { tone: args.tone ?? null, volume: args.volume ?? d.look.volume, description: args.description ?? d.look.description }
@@ -456,9 +493,12 @@ export function writeBrief(cwd, brief) {
 export function makeBrief({ answeredBy, answers, project, unanswered = [] }) {
   // The unanswered questions travel in the brief itself, words and options:
   // the agent that asks them works in the owner's project, where this file
-  // (run by npx) is not.
-  const ask = QUESTIONS.filter((q) => unanswered.includes(q.id))
-  return { version: BRIEF_VERSION, answeredBy, answers: { ...emptyAnswers(), ...answers }, detected: project, unanswered, ask }
+  // (run by npx) is not. So do those answered "Other", which the agent
+  // settles with the owner from their words.
+  const a = { ...emptyAnswers(), ...answers }
+  const isOther = (v) => v === "other" || v?.kind === "other" || v?.goal === "other"
+  const ask = QUESTIONS.filter((q) => unanswered.includes(q.id) || isOther(a[q.id]))
+  return { version: BRIEF_VERSION, answeredBy, answers: a, detected: project, unanswered, ask }
 }
 
 /* ------------------------------------------------------------- terminal */
@@ -542,6 +582,7 @@ export async function askInTerminal(questions, defaults, project, { input = proc
       q.options.forEach((o, i) => say(`    ${i + 1}. ${o.label}${o.era ? `  — ${o.era}` : ""}`))
       const fallback = q.id === "about" ? defaults.about?.kind : q.id === "first" ? defaults.first?.goal : q.id === "look" ? defaults.look?.tone : q.id === "source" ? defaults.source?.kind : defaults[q.id]
       const picked = await choose(q, fallback)
+      if (picked.value === "other") answers.notes[q.id] = await ask(picked.field.label, picked.field.value)
       switch (q.id) {
         case "about":
           answers.about = { kind: picked.value, name: await ask("Name", defaults.about?.name), role: await ask("What they do", defaults.about?.role) }
@@ -555,7 +596,7 @@ export async function askInTerminal(questions, defaults, project, { input = proc
           if (picked.value === "components") answers.first = null
           break
         case "source":
-          answers.source = { kind: picked.value, ...(picked.field ? { where: await ask(picked.field.label, "") } : {}) }
+          answers.source = { kind: picked.value, ...(picked.field && picked.value !== "other" ? { where: await ask(picked.field.label, "") } : {}) }
           break
         case "look":
           answers.look = { tone: picked.value, volume: await ask("Volume name", defaults.look?.volume), description: await ask("One line about the site", defaults.look?.description) }

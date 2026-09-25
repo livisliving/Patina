@@ -6,6 +6,10 @@ import type { Question, Session } from "./types"
  * serves it in `session.questions`; this copy is only for demo mode, so a
  * preview shows the real thing. Keep it the same as brief.mjs.
  */
+/** brief.mjs › OTHER: the owner's own words, prefilled with a request
+ *  for the agent's recommendation. */
+const OTHER = { value: "other", label: "Other", field: { id: "note", label: "In your words", placeholder: "In your words", value: "Not sure — recommend one for me." } }
+
 export const QUESTIONS: Question[] = [
   {
     id: "about",
@@ -17,6 +21,7 @@ export const QUESTIONS: Question[] = [
       { value: "product", label: "A product or company" },
       { value: "event", label: "An event" },
       { value: "show", label: "A show (a podcast or a series)" },
+      OTHER,
     ],
     fields: [
       { id: "name", label: "Name", placeholder: "Their name" },
@@ -33,6 +38,7 @@ export const QUESTIONS: Question[] = [
       { value: "details", label: "Find the details (hours, dates, a place)" },
       { value: "act", label: "Sign up or buy" },
       { value: "listen", label: "Listen or watch" },
+      OTHER,
     ],
     pick: "routes",
   },
@@ -45,6 +51,7 @@ export const QUESTIONS: Question[] = [
       { value: "whole", label: "The whole site" },
       { value: "content", label: "Its pages to read; tools keep their pages" },
       { value: "components", label: "None: keep the pages, restyle the components" },
+      OTHER,
     ],
     pick: "tools",
   },
@@ -57,6 +64,7 @@ export const QUESTIONS: Question[] = [
       { value: "live", label: "A live site", field: { id: "where", label: "Address", placeholder: "https://…" } },
       { value: "export", label: "An export (Figma Sites, Framer, Webflow)", field: { id: "where", label: "Folder", placeholder: "./export" } },
       { value: "folder", label: "A folder of files", field: { id: "where", label: "Folder", placeholder: "./content" } },
+      OTHER,
     ],
   },
   {

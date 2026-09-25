@@ -1,3 +1,4 @@
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 /**
  * The QuickTime Player icon: Olivia's own artwork, a PNG with its shadow in
  * it (apps/web/public/icons/quicktime.png, 147 × 147), inlined so the icons

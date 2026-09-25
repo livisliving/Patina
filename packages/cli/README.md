@@ -22,13 +22,15 @@ At a terminal, `init` scans the project (the framework, every page and what it s
 `--terminal` asks the same questions at the terminal (over SSH, say). `--no-browser` starts the assistant and only prints its address. Without a terminal — a script, an agent, `--yes` — nothing is asked: the flags below answer what they can, the scan fills in what it safely can, and every question left open is listed in `brief.unanswered`, which `/y2k-ify` asks in chat before it starts.
 
 ```
---about <kind>        person, team, product, event or show
+--about <kind>        person, team, product, event, show or other=<words>
 --name <text>         Their name         --role <text>   What they do
---first <goal>        work, read, details, act or listen
+--first <goal>        work, read, details, act, listen or other=<words>
 --featured <routes>   Pages to keep at hand, comma-separated, at most three
---scope <how much>    whole, content (tools keep their pages) or components
+--scope <how much>    whole, content (tools keep their pages), components
+                      or other=<words>
 --keep <routes>       The routes that keep their pages, comma-separated
---source <where>      project, live=<url>, export=<folder> or folder=<folder>
+--source <where>      project, live=<url>, export=<folder>, folder=<folder>
+                      or other=<words>
 --volume <text>       The volume's name ("Your Name HD")
 --description <text>  One line about the site
 --extras <list>       ipod, wallpaper=<folder>, visitor-counter, marquee

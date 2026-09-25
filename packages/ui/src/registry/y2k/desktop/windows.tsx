@@ -1,3 +1,4 @@
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 "use client"
 
 import * as React from "react"
@@ -9,7 +10,7 @@ import type { Img, Movie } from "@/lib/content"
 import { asset } from "./asset"
 import { cropStyle, croppedSize } from "./crop"
 import { useDrag } from "./use-drag"
-import { useMediaQuery } from "./use-media-query"
+import { DESKTOP, useMediaQuery } from "./use-media-query"
 import { useResize } from "./use-resize"
 
 /* ── Window manager ───────────────────────────────────────────────── */
@@ -56,6 +57,9 @@ export type Place = { left: string; top: string; width?: string; height?: string
  *  past the screen's lower right the cascade starts again at the top left. */
 const CASCADE = 24
 const CASCADE_START: Point = { x: 40, y: 56 }
+
+/** The window in front of the others, of those given. */
+export const topmost = (wins: WinEntry[]) => wins.reduce<WinEntry | undefined>((a, b) => (a && a.z >= b.z ? a : b), undefined)
 
 function cascadeFrom(wins: WinEntry[]): Point {
   const last = wins.findLast((w) => typeof w.at !== "function")
@@ -109,7 +113,7 @@ export function useWindows(initial: () => WinEntry[]) {
     })
   }, [])
   // The frontmost VISIBLE window (minimized windows don't drive the menu bar).
-  const frontId = wins.reduce<WinEntry | null>((best, w) => (!w.minimized && (best === null || w.z > best.z) ? w : best), null)?.id ?? null
+  const frontId = topmost(wins.filter((w) => !w.minimized))?.id ?? null
   return { wins, focus, open, close, minimize, zoom, frontId }
 }
 
@@ -149,7 +153,7 @@ type DesktopWindowProps = Omit<React.ComponentProps<typeof WindowFrame>, "onClos
   win: WinEntry
   /** Defaults to the window's own title. */
   title?: React.ReactNode
-  /** Its size until the grip is dragged; without one, the md:w-* / md:h-*
+  /** Its size until the grip is dragged; without one, the desk:w-* / desk:h-*
    *  classes size it. */
   defaultSize?: { w: number; h: number }
   min?: { w: number; h: number }
@@ -161,7 +165,7 @@ export function DesktopWindow({ win, title, defaultSize, min = MIN, className, s
   const raise = React.useCallback(() => focus(win.id), [focus, win.id])
   const { pos, handleProps } = useDrag(win.at, raise)
   const { size, gripProps } = useResize(min, raise)
-  const isDesktop = useMediaQuery("(min-width: 768px)")
+  const isDesktop = useMediaQuery(DESKTOP)
   const box = size ?? defaultSize
   // On a phone the windows are one column, and a window just opened (or
   // brought back) goes to its top, the latest first — else it would land
@@ -179,15 +183,29 @@ export function DesktopWindow({ win, title, defaultSize, min = MIN, className, s
   // Until then (the server's HTML, painted before the page wakes, and the
   // first render after it) isDesktop is false and there is no placement: a
   // window that opens with the page stands at its `place` instead, through
-  // md:-only classes, so a phone's column is untouched. A shell with a size
+  // desk:-only classes, so a phone's column is untouched. A shell with a size
   // reads --win-w / --win-h the same way (the Finder).
   const early = win.place && ({
     "--win-left": win.place.left,
     "--win-top": win.place.top,
     ...(win.place.width ? { "--win-w": win.place.width, "--win-h": win.place.height } : null),
   } as React.CSSProperties)
+  // Held sideways (pair:, two windows side by side) a window keeps still
+  // while the page scrolls: it sticks 32px down, where it opened — or, if
+  // it is taller than the screen above the Dock, it scrolls until its foot
+  // is 8px above the Dock and sticks there. The longer of two windows sets
+  // its row's height, so it scrolls as the page does. --win-self-h is its
+  // height, for that sum.
+  React.useEffect(() => {
+    if (isDesktop) return
+    const el = document.querySelector<HTMLElement>(`[data-window-id="${CSS.escape(win.id)}"]`)
+    if (!el) return
+    const ro = new ResizeObserver(() => el.style.setProperty("--win-self-h", `${el.offsetHeight}px`))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [isDesktop, win.id])
   // When zoomed, the maximized geometry comes from inline `placement`. The
-  // per-window fixed-size classes (md:w-[...]/md:h-[...]) are NOT !important, so
+  // per-window fixed-size classes (desk:w-[...]/desk:h-[...]) are NOT !important, so
   // inline width/height already override them — we just must not re-assert an
   // !important width/height here, or it would beat the inline maximized size.
   return (
@@ -200,15 +218,29 @@ export function DesktopWindow({ win, title, defaultSize, min = MIN, className, s
       onZoom={() => zoom(win.id)}
       minimizable={!fixed}
       zoomable={!fixed}
-      titleBarProps={handleProps}
+      // Stacked, the window is part of the scrolling page and drag is a
+      // no-op, but the handle's touch-action: none would still stop a thumb
+      // that lands on the title bar from scrolling.
+      titleBarProps={isDesktop ? handleProps : undefined}
       // A window that only closes (an About box) is sized to its content and
       // has no grip, as About This Mac had none.
       resizeGripProps={isDesktop && !win.zoomed && !fixed ? gripProps : undefined}
       onPointerDownCapture={raise}
       className={cn(
         // scroll-mt: scrolled to on a phone, it clears the menu bar.
-        "w-full scroll-mt-8 animate-[y2k-window-in_var(--y2k-duration-window)_var(--y2k-ease-aqua)] motion-reduce:animate-none md:absolute",
-        win.place && "md:top-(--win-top) md:left-(--win-left)",
+        "w-full scroll-mt-8 animate-[y2k-window-in_var(--y2k-duration-window)_var(--y2k-ease-aqua)] motion-reduce:animate-none desk:absolute",
+        win.place && "desk:top-(--win-top) desk:left-(--win-left)",
+        // Stacked, the frame clips rather than hides, so what is inside can
+        // stick to the screen (a title bar, a document's section bar).
+        "max-desk:overflow-clip",
+        // Stacked, a title bar sticks under the menu bar while its window is
+        // on screen, so the lights are always in reach however far a long
+        // document is read — opaque, as an inactive pinstripe title bar is
+        // see-through.
+        "max-desk:[&>[data-slot=window-titlebar]]:sticky max-desk:[&>[data-slot=window-titlebar]]:top-(--y2k-menubar-h) max-desk:[&>[data-slot=window-titlebar]]:z-[4]",
+        "max-desk:[&:not([data-material=metal])>[data-slot=window-titlebar]]:bg-[#e3e3e3]",
+        // Side by side, the window itself keeps still too (see above).
+        "pair:sticky pair:top-[min(32px,calc(100dvh-var(--y2k-dock-h)-8px-var(--win-self-h,0px)))]",
         // A minimised window stays mounted (its place, its size and what it
         // was doing survive the Dock) and hidden until it comes back.
         win.minimized && "hidden",
@@ -244,20 +276,27 @@ const CHROME_H = 26 + 24 + 2
  * is the column at the left for the document's table of contents (a
  * TreeView), 192px on the pinstripe behind a hairline; `status` the bar at
  * the foot. DocumentView (document.tsx) fills the page.
+ *
+ * On a phone the outline column has no room, and the page, not the window,
+ * scrolls: `sections` is the outline's stand-in there, a bar under the
+ * title bar that sticks below the title bar (itself stuck below the menu
+ * bar) while the document is on screen.
  */
 export function DocumentWindow({
   win,
   title,
   outline,
+  sections,
   status,
   className,
   children,
   ...props
-}: Omit<DesktopWindowProps, "status"> & { outline?: React.ReactNode; status?: React.ReactNode }) {
+}: Omit<DesktopWindowProps, "status"> & { outline?: React.ReactNode; sections?: React.ReactNode; status?: React.ReactNode }) {
   return (
-    <DesktopWindow win={win} title={title} status={status} min={{ w: 320, h: 240 }} className={cn("md:h-[520px] md:w-[640px]", className)} {...props}>
+    <DesktopWindow win={win} title={title} status={status} min={{ w: 320, h: 240 }} className={cn("desk:h-[520px] desk:w-[640px]", className)} {...props}>
+      {sections}
       <div className="flex min-h-0 flex-1">
-        {outline && <div className="hidden w-48 shrink-0 overflow-y-auto border-r border-(--y2k-separator) p-2 md:block">{outline}</div>}
+        {outline && <div className="hidden w-48 shrink-0 overflow-y-auto border-r border-(--y2k-separator) p-2 desk:block">{outline}</div>}
         <WindowScrollArea className="bg-white shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)]">
           <div className="p-5 font-(family-name:--y2k-font-ui) text-[13px] leading-[1.45] text-(--y2k-ink)">{children}</div>
         </WindowScrollArea>
@@ -294,7 +333,7 @@ export function PreviewWindow({ win }: { win: WinEntry }) {
             draggable={false}
             // Auto margins centre it in a bigger window and let it overflow
             // (and scroll) in a smaller one; on a phone it fits the width.
-            className="m-auto block h-auto max-w-full md:max-w-none"
+            className="m-auto block h-auto max-w-full desk:max-w-none"
           />
         </div>
       </WindowScrollArea>
@@ -330,7 +369,7 @@ export function PlayerWindow({ win }: { win: WinEntry }) {
       status={movie.name}
     >
       {/* In flow (a phone) the body has no height of its own: keep the frame. */}
-      <div className="relative min-h-0 flex-1 overflow-hidden [container-type:size] max-md:aspect-video">
+      <div className="relative min-h-0 flex-1 overflow-hidden [container-type:size] max-desk:aspect-video">
         {/* A cropped movie sits in a clip of the picture's own proportions,
             as large as the body allows and centred in it (the metal shows
             round it when the window is another shape), the movie scaled
@@ -363,7 +402,7 @@ export function PlayerWindow({ win }: { win: WinEntry }) {
 /** An About box: 300px, closes only, its contents centred. */
 export function AboutWindow({ win, className, children }: { win: WinEntry; className?: string; children: React.ReactNode }) {
   return (
-    <DesktopWindow win={win} className={cn("md:w-[300px]", className)}>
+    <DesktopWindow win={win} className={cn("desk:w-[300px]", className)}>
       <WindowBody className="flex flex-col items-center gap-2 pt-5 pb-5 text-center">{children}</WindowBody>
     </DesktopWindow>
   )

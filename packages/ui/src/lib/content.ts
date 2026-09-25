@@ -1,3 +1,4 @@
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 /**
  * Patina content — what a site says, written down once, independent of any
  * taste pack. DESIGN.md › Content says how to sort a site into these types;

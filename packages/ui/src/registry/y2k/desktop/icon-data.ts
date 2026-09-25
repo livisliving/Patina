@@ -1,3 +1,4 @@
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 /**
  * The desktop's icons: Olivia's own artwork (apps/web/public/icons/), 128px
  * on the longer side, as near-lossless WebP, inlined as data URIs so they

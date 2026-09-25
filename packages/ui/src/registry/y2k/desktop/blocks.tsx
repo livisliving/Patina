@@ -1,3 +1,4 @@
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 "use client"
 
 import * as React from "react"
@@ -43,7 +44,7 @@ import { useReducedMotion } from "./use-media-query"
 /** A text link: 13px OS blue, underlined — DESIGN.md's `link`, the one
  *  blue Aqua never lets go of. */
 const LINK =
-  "text-(--y2k-link) underline underline-offset-2 outline-none focus-visible:outline-3 focus-visible:outline-(--y2k-tone-focus)"
+  "text-(--y2k-link) underline underline-offset-2 outline-none focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-(--y2k-tone-focus)"
 
 /**
  * A link to another entry of the site: the same OS blue, and it opens that
@@ -174,7 +175,7 @@ function Thumb({ img, strip }: { img: Img; strip?: boolean }) {
 
 /** What a picture that opens Preview looks like: the magnifier (it opens
  *  bigger), the tone focus ring, nothing else. */
-const OPENER = "block max-w-full cursor-zoom-in outline-none focus-visible:outline-3 focus-visible:outline-(--y2k-tone-focus)"
+const OPENER = "block max-w-full cursor-zoom-in outline-none focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-(--y2k-tone-focus)"
 
 /**
  * A picture in a document is a thumbnail that opens Preview — the one rule

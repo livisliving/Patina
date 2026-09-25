@@ -216,12 +216,19 @@ export function derive(t) {
     ;[light, dark] = [0.2, 0.05]
     listBase = deepen(b, (c) => reads(mix(c, light)))
   }
-  return { b, x, white, selection, light, dark, listBase, one: (s) => toned(s, b, x) }
+  // The menu highlight takes white ink in every tone, as the Finder's
+  // does: where white misses AA on a row of it (lime, tangerine), the whole
+  // highlight is deepened in its hue, just enough to read on every row.
+  const hiRows = TONED.highlight.map((s) => parse(toned(s, b, x))[0])
+  let k = 0
+  while (hiRows.some((c) => !reads(c.map((v) => v * (1 - k)))) && k < 0.7) k += 0.01
+  const highlight = hiRows.map((c) => toHex(c.map((v) => v * (1 - k))))
+  return { b, x, white, selection, light, dark, listBase, highlight, one: (s) => toned(s, b, x) }
 }
 
 /** Every toned profile's rows in one tone — the same colours the CSS draws,
  *  as lists, for anything that paints stops itself (the Figma library). */
 export function profile(t) {
-  const { one } = derive(t)
-  return Object.fromEntries(Object.entries(TONED).map(([k, list]) => [k, list.map(one)]))
+  const { one, highlight } = derive(t)
+  return Object.fromEntries(Object.entries(TONED).map(([k, list]) => [k, k === "highlight" ? highlight : list.map(one)]))
 }

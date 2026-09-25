@@ -266,6 +266,8 @@
         { "path": "src/registry/y2k/desktop/menubar.tsx", "type": "registry:component", "target": "components/desktop/menubar.tsx" },
         { "path": "src/registry/y2k/desktop/names.ts", "type": "registry:component", "target": "components/desktop/names.ts" },
         { "path": "src/registry/y2k/desktop/redirects.ts", "type": "registry:component", "target": "components/desktop/redirects.ts" },
+        { "path": "src/registry/y2k/desktop/middle-truncate.tsx", "type": "registry:component", "target": "components/desktop/middle-truncate.tsx" },
+        { "path": "src/registry/y2k/desktop/patina.ts", "type": "registry:component", "target": "components/desktop/patina.ts" },
         { "path": "src/registry/y2k/desktop/tones.ts", "type": "registry:component", "target": "components/desktop/tones.ts" },
         { "path": "src/registry/y2k/desktop/use-drag.ts", "type": "registry:component", "target": "components/desktop/use-drag.ts" },
         { "path": "src/registry/y2k/desktop/use-marquee-select.ts", "type": "registry:component", "target": "components/desktop/use-marquee-select.ts" },

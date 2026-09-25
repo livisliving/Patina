@@ -1,3 +1,4 @@
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 /** The five millennium colour families. Values live in packages/ui/src/styles/y2k.css (data-tone). */
 export type Tone = "pink" | "aqua" | "lime" | "tangerine" | "grape"
 

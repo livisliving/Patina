@@ -1,3 +1,4 @@
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 "use client"
 
 import * as React from "react"
@@ -18,6 +19,12 @@ export function useMediaQuery(query: string) {
   }, [query])
   return matches
 }
+
+/** The floating desktop needs a screen 768 wide AND 480 tall; below either
+ *  (a phone held sideways is 844 × 390) the windows stack — in one column,
+ *  or two side by side when the phone is held sideways (pair: in y2k.css).
+ *  The CSS says the same with the desk: / max-desk: variants (y2k.css). */
+export const DESKTOP = "(min-width: 768px) and (min-height: 480px)"
 
 const REDUCE = "(prefers-reduced-motion: reduce)"
 

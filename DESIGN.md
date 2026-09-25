@@ -532,8 +532,9 @@ colors everything gel. Both are always present.
 - **The gels are measured, not guessed.** Every gel, tab, control, progress
   and menu-highlight gradient is the Aqua 10.0 lighting curve (see
   `scripts/tones.mjs`): Aqua takes it as measured, the other tones keep the
-  same curve in their own hue. Menu highlights carry whichever ink passes on
-  every stop — white in pink / aqua / grape, black in lime / tangerine.
+  same curve in their own hue. Menu highlights carry white ink in every
+  tone, as the Finder's do: where white would miss AA on a stop (lime,
+  tangerine), the whole highlight is deepened in its hue until it reads.
 - **Surface / surface-bright / surface-dim (#E8449A / #F298C7 / #681F45):**
   the wallpaper's mid, ribbon and shadow stops. Desktop icon labels are
   white (`on-surface`) with a black drop shadow (`0 1px 2px rgba(0,0,0,.8)`)
@@ -662,8 +663,14 @@ is no hero section, no max-width container, no footer.
   component. On a phone the shelf scrolls sideways and an edge with more
   icons past it fades out over 48px — the cue to swipe.
 - **Desktop icons** sit top-right, 48px with a 12px white label.
-- **Responsive:** below 768px, windows become full-width and stack in order;
-  the menu bar and Dock stay pinned; dragging is off.
+- **Responsive:** the floating desktop needs a screen 768 wide **and** 480
+  tall (`desk:` / `max-desk:` in y2k.css); below either — a phone, upright
+  or held sideways — windows become full-width and stack, the newest first;
+  the menu bar and Dock stay pinned; dragging is off; a window's title bar
+  sticks under the menu bar while it is on screen, so its lights stay in
+  reach, and a long document's sections become a pop-up under it. A phone
+  held sideways (`pair:`, landscape and 640 wide) sets two windows side by
+  side, each keeping still while the page scrolls.
 
 ## Content
 
@@ -685,10 +692,12 @@ transcribe into the model; never hand-build a window, a Finder or a Dock
 icon for content.
 
 **Site → desktop.** The site's name is the ★ menu's first row (About
-‹name›) and the root volume (‹name› HD). Primary navigation becomes the Go
-menu, the desktop icons (the volume, then the featured entries, top-right)
-and the Dock (Finder · featured documents · top-level collections ·
-resident apps | minimised windows | Bin). The home page is the desktop's
+‹name›) and the root volume (‹name› HD); the second row is About Patina OS,
+what the desktop is built with (see Licence). Primary navigation becomes the
+Go menu, the desktop icons (the volume, then the featured entries,
+top-right) and the Dock (Finder · featured documents · top-level
+collections · resident apps · Preview and QuickTime Player while they have a
+window | minimised windows | Bin). The home page is the desktop's
 state at load, never a window of its own. The page's title is the
 person's name and role (`Name — Role`) and its description the site's own
 sentence, never the pack's name; the name in the About box is the page's
@@ -1064,3 +1073,34 @@ line icon.
   feature grid, no footer with link columns.
 - Don't use `text-muted-foreground` mid-grays, helper text under every
   field, or friendly empty-state illustrations.
+
+## Licence
+
+Patina OS is by Olivia Forster (https://oliviaforster.com), at
+https://github.com/livisliving/Patina. Every file the pack installs names
+her in its first line; the MIT licence below asks that this notice stay in
+every copy. A desktop built with the pack also names her in the ★ menu's
+About Patina OS, and itself on About The Finder and in the page's
+generator tag.
+
+MIT License
+
+Copyright (c) 2026 Olivia Forster
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

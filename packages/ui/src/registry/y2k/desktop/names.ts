@@ -1,3 +1,4 @@
+/* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */
 import type { Block, DocumentEntry, Entry, Site } from "@/lib/content"
 
 /**
@@ -68,4 +69,29 @@ export function fileNameOf(entry: Entry, site: Site): string {
       return `${entry.title}${dot > 0 ? name.slice(dot) : ""}`
     }
   }
+}
+
+/* ── Dates ────────────────────────────────────────────────────────── */
+
+const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
+
+/**
+ * A date as content writes it, as a number to sort by: "10 Mar 2026",
+ * "10 March 2026", "March 10, 2026", "March 2026", "2026-03-10", "2026-03",
+ * "2026", or the Finder's British "10/03/26". NaN when it is not a date
+ * (a season, "Spring 2024"): such an entry keeps its place, after the
+ * dated ones. A date without its day counts from the first.
+ */
+export function dateValue(s: string): number {
+  const t = s.trim()
+  const month = (m: string) => MONTHS.indexOf(m.slice(0, 3).toLowerCase())
+  let m = t.match(/^(\d{4})(?:-(\d{1,2})(?:-(\d{1,2}))?)?$/)
+  if (m) return Date.UTC(+m[1], (+m[2] || 1) - 1, +m[3] || 1)
+  m = t.match(/^(?:(\d{1,2})\s+)?([A-Za-z]{3,9})\.?,?\s+(\d{4})$/)
+  if (m && month(m[2]) >= 0) return Date.UTC(+m[3], month(m[2]), +(m[1] ?? 1))
+  m = t.match(/^([A-Za-z]{3,9})\.?\s+(\d{1,2}),?\s+(\d{4})$/)
+  if (m && month(m[1]) >= 0) return Date.UTC(+m[3], month(m[1]), +m[2])
+  m = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/)
+  if (m) return Date.UTC(m[3].length === 2 ? 2000 + +m[3] : +m[3], +m[2] - 1, +m[1])
+  return NaN
 }
