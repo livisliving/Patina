@@ -2,7 +2,13 @@
  * Patina desktop icons.
  *
  * The photographic Aqua icons render Olivia's own PNG artwork from
- * /public/icons/*.png — NOT redrawn SVG.
+ * /public/icons/*.png — NOT redrawn SVG — as the WebP copies in
+ * /public/icons/webp/, scaled to the most the page draws them
+ * (scripts/site-images.mjs; run it again after changing the artwork).
+ *
+ * Every icon but the logo sits beside its name (a label, a row, a Dock
+ * button's aria-label), so its picture is decorative: alt="", or a screen
+ * reader says the name twice. The logo is the About box's heading.
  *
  * Tone adaptation:
  *   • StarIcon (Patina brand mark) recolours the single pink gel PNG via the
@@ -23,6 +29,7 @@
 
 import * as React from "react"
 import { useId } from "react"
+import dynamic from "next/dynamic"
 import { cn } from "@patina/ui"
 
 import type { Tone } from "./tones"
@@ -48,12 +55,16 @@ const tone = (pct: number, mix: "white" | "black") =>
     the line (a 16px icon by a 13px title) drop 2px below it. */
 const WRAP = "flex h-full w-full items-center justify-center"
 
+/** Lazy: a phone hides the desktop's icons and scrolls the Dock's end out of
+    sight, and an image that isn't shown isn't fetched until it is. One on
+    screen loads at once. */
 function PngIcon({ src, alt, className, style, ...props }: ImgProps & { src: string; alt: string }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src={asset(src)}
       alt={alt}
+      loading="lazy"
       draggable={false}
       className={className}
       style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", ...style }}
@@ -63,33 +74,33 @@ function PngIcon({ src, alt, className, style, ...props }: ImgProps & { src: str
 }
 
 /** Factory for a neutral (non-tone) PNG icon. */
-function makePngIcon(src: string, alt: string) {
+function makePngIcon(src: string, name: string) {
   function PngIconComponent({ className, style }: IconProps) {
     return (
       <span className={cn(WRAP, className)} style={style}>
-        <PngIcon src={src} alt={alt} />
+        <PngIcon src={src} alt="" />
       </span>
     )
   }
-  PngIconComponent.displayName = `${alt}Icon`
+  PngIconComponent.displayName = `${name}Icon`
   return PngIconComponent
 }
 
 /* ── Tone-adaptive PNG icons (swap the file per tone) ──────────────── */
 
 const FOLDER_BY_TONE: Record<Tone, string> = {
-  pink: "/icons/folder-pink.png",
-  aqua: "/icons/folder-blue.png",
-  lime: "/icons/folder-green.png",
-  tangerine: "/icons/folder-orange.png",
-  grape: "/icons/folder-purple.png",
+  pink: "/icons/webp/folder-pink.webp",
+  aqua: "/icons/webp/folder-blue.webp",
+  lime: "/icons/webp/folder-green.webp",
+  tangerine: "/icons/webp/folder-orange.webp",
+  grape: "/icons/webp/folder-purple.webp",
 }
 const HEART_BY_TONE: Record<Tone, string> = {
-  pink: "/icons/heart-pink.png",
-  aqua: "/icons/heart-aqua.png",
-  lime: "/icons/heart-green.png",
-  tangerine: "/icons/heart-orange.png",
-  grape: "/icons/heart-red.png",
+  pink: "/icons/webp/heart-pink.webp",
+  aqua: "/icons/webp/heart-aqua.webp",
+  lime: "/icons/webp/heart-green.webp",
+  tangerine: "/icons/webp/heart-orange.webp",
+  grape: "/icons/webp/heart-red.webp",
 }
 
 /** Each tone's picture as CSS, keyed to the tone on <html> (pink when
@@ -134,7 +145,7 @@ export function HeartIcon({ className, style }: IconProps) {
 export function StarIcon({ className, style }: IconProps) {
   return (
     <span className={cn(WRAP, className)} style={style}>
-      <PngIcon src="/icons/star.webp" alt="Patina" style={{ filter: "var(--y2k-star-filter, none)" }} />
+      <PngIcon src="/icons/webp/star.webp" alt="Patina" style={{ filter: "var(--y2k-star-filter, none)" }} />
     </span>
   )
 }
@@ -146,7 +157,7 @@ export function StarIcon({ className, style }: IconProps) {
 export function FaceIcon({ className, style }: IconProps) {
   return (
     <span className={cn(WRAP, className)} style={style}>
-      <PngIcon src="/icons/finder.png" alt="Finder" style={{ filter: "var(--y2k-face-filter, none)" }} />
+      <PngIcon src="/icons/webp/finder.webp" alt="" style={{ filter: "var(--y2k-face-filter, none)" }} />
     </span>
   )
 }
@@ -154,17 +165,17 @@ export function FaceIcon({ className, style }: IconProps) {
 /* ── Neutral PNG icons (same across tones) ─────────────────────────── */
 
 /** Hard disk (Patina HD). */
-export const DiskIcon = makePngIcon("/icons/disk.png", "Disk")
+export const DiskIcon = makePngIcon("/icons/webp/disk.webp", "Disk")
 /** Document — the SIMPLE clean-paper doc. Use inside windows / file lists. */
-export const DocIcon = makePngIcon("/icons/doc.png", "Document")
+export const DocIcon = makePngIcon("/icons/webp/doc.webp", "Document")
 /** Note — the DETAILED letter+pen scene (TextEdit). Use in the Dock. */
-export const NoteIcon = makePngIcon("/icons/note.png", "TextEdit")
+export const NoteIcon = makePngIcon("/icons/webp/note.webp", "TextEdit")
 /** The Bin — wire mesh. */
-export const TrashIcon = makePngIcon("/icons/bin.png", "Bin")
+export const TrashIcon = makePngIcon("/icons/webp/bin.webp", "Bin")
 /** Terminal — the Install step. */
-export const TerminalIcon = makePngIcon("/icons/terminal.png", "Terminal")
+export const TerminalIcon = makePngIcon("/icons/webp/terminal.webp", "Terminal")
 /** iPod — the music player (Finder toolbar, Dock). */
-export const IPodIcon = makePngIcon("/icons/ipod-icon.png", "iPod")
+export const IPodIcon = makePngIcon("/icons/webp/ipod-icon.webp", "iPod")
 
 /** Patina logo — the chrome wordmark and its stars: About Patina's icon, in
     the Dock and the About box. Drawn at 120% so the art, not the file's
@@ -172,7 +183,7 @@ export const IPodIcon = makePngIcon("/icons/ipod-icon.png", "iPod")
 export function LogoIcon({ className, style }: IconProps) {
   return (
     <span className={cn(WRAP, className)} style={style}>
-      <PngIcon src="/icons/logo.png" alt="Patina" className="scale-120" />
+      <PngIcon src="/icons/webp/logo.webp" alt="Patina" className="scale-120" />
     </span>
   )
 }
@@ -245,6 +256,12 @@ export function PillIcon(props: IconProps) {
   )
 }
 
-/** Computer and Home are the pack's own now: the same drawings, the same in
- *  every tone. */
-export { IconComputer as ComputerIcon, IconHome as HomeIcon } from "@patina/ui"
+/** Computer, Home and Info are the pack's own: the same drawings, the same in
+ *  every tone. Its icon set carries two pictures inlined (86 KB), and only
+ *  the Finder and Help draw from it, so it loads when one of them first
+ *  does (or when the desktop fetches it, a few seconds in), not with the
+ *  page. */
+export const loadPackIcons = () => import("@patina/ui")
+export const ComputerIcon = dynamic(() => loadPackIcons().then((m) => m.IconComputer))
+export const HomeIcon = dynamic(() => loadPackIcons().then((m) => m.IconHome))
+export const InfoIcon = dynamic(() => loadPackIcons().then((m) => m.IconInfo))

@@ -4,6 +4,7 @@
   "private": true,
   "description": "Patina component sources — the shadcn registry source of truth.",
   "type": "module",
+  "sideEffects": ["*.css"],
   "exports": {
     ".": "./src/index.ts",
     "./styles.css": "./src/styles/y2k.css",

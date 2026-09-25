@@ -287,7 +287,7 @@ function Display({
         // At rest, the Patina star where iTunes has its logo: flat in the
         // display's ink, with the logo's faint drop down and to the right.
         <span className="drop-shadow-[1px_2px_3px_rgba(0,0,0,0.35)]">
-          <span aria-hidden className="block size-9 bg-current mask-contain mask-center mask-no-repeat" style={{ maskImage: `url(${asset("/icons/star.webp")})` }} />
+          <span aria-hidden className="block size-9 bg-current mask-contain mask-center mask-no-repeat" style={{ maskImage: `url(${asset("/icons/webp/star.webp")})` }} />
         </span>
       ) : (
         <div className="flex w-full flex-col items-center text-[11px] leading-[13px]">
