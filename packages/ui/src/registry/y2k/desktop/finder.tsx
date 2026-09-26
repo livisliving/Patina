@@ -496,7 +496,9 @@ export function Finder({
   initialSize,
 }: FinderProps) {
   const { chain, placePath, here, hereItems, visible, narrowed } = at
-  const { fit, barRef: toolbarRef, rulerRef } = useToolbarFit(places.map((p) => p.label).join("\n"))
+  // Measured again when the places change, and when the toolbar comes back
+  // from the title bar's pill button: that is a new element to watch.
+  const { fit, barRef: toolbarRef, rulerRef } = useToolbarFit(`${toolbar}\n${places.map((p) => p.label).join("\n")}`)
   const shown = Math.min(fit.places, places.length)
   // A phone, or any screen without a pointer that hovers (a touch screen):
   // a tap opens a file, as a double-click does with a mouse — there is no

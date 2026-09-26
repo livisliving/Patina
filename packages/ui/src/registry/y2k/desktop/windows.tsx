@@ -241,6 +241,9 @@ export function DesktopWindow({ win, title, defaultSize, min = MIN, className, s
         "max-desk:[&>[data-slot=window-titlebar]]:sticky max-desk:[&>[data-slot=window-titlebar]]:top-(--y2k-menubar-h) max-desk:[&>[data-slot=window-titlebar]]:z-[4]",
         "max-desk:[&:not([data-material=metal])>[data-slot=window-titlebar]]:bg-[#e3e3e3]",
         "max-desk:[&[data-material=metal]>[data-slot=window-titlebar]]:bg-[#c9c9c9] max-desk:[&[data-material=metal]>[data-slot=window-titlebar]]:bg-(image:--y2k-metal) max-desk:[&[data-material=metal]>[data-slot=window-titlebar]]:[background-size:512px_96px]",
+        // …and the metal's rim light stays over it, as on a desktop, where
+        // the title bar is not lifted above the frame.
+        "max-desk:after:z-[5]",
         // Side by side, the window itself keeps still too (see above).
         "pair:sticky pair:top-[min(32px,calc(100dvh-var(--y2k-dock-h)-8px-var(--win-self-h,0px)))]",
         // A minimised window stays mounted (its place, its size and what it
