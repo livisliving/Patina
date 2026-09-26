@@ -1317,10 +1317,14 @@ export function Desktop() {
         })}
       </nav>
 
+      {/* The windows' own stacking context: their z-indexes climb with every
+          focus and must only ever compete with each other — never with the
+          Dock (80), the menu bar (90) or an open menu (100) — so `isolate`
+          at 2 keeps them above the desktop icons and under all the chrome. */}
       {/* The windows: one column on a phone, the newest first (their
           `order`); two side by side on a phone held sideways, left to
           right, each as tall as it is; floating on a desktop. */}
-      <main className="relative flex flex-col gap-5 px-3 pt-8 pb-24 pair:grid pair:grid-cols-2 pair:items-start desk:block desk:px-0 desk:pt-0 desk:pb-0">
+      <main className="relative isolate z-[2] flex flex-col gap-5 px-3 pt-8 pb-24 pair:grid pair:grid-cols-2 pair:items-start desk:block desk:px-0 desk:pt-0 desk:pb-0">
         {wins.finder.open && !wins.finder.minimized && (
           <DesktopWindow
             {...winProps("finder")}
