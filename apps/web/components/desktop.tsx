@@ -274,6 +274,20 @@ function DesktopWindow({ id, title, initial, z, zoomed, opened, active, onRaise,
     : zoomed
       ? { left: 8, top: 33, width: "calc(100vw - 16px)", height: "calc(100dvh - 33px - 68px)" }
       : { left: pos.x, top: pos.y, ...(size ? { width: size.w, height: size.h } : null) }
+  // Held sideways (pair:, two windows side by side) a window keeps still
+  // while the page scrolls: it sticks 32px down, where it opened — or, if
+  // it is taller than the screen above the Dock, it scrolls until its foot
+  // is 8px above the Dock and sticks there. The longer of two windows sets
+  // its row's height, so it scrolls as the page does. --win-self-h is its
+  // height, for that sum.
+  React.useEffect(() => {
+    if (isDesktop) return
+    const el = document.querySelector<HTMLElement>(`[data-window-id="${id}"]`)
+    if (!el) return
+    const ro = new ResizeObserver(() => el.style.setProperty("--win-self-h", `${el.offsetHeight}px`))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [isDesktop, id])
   // When zoomed, the maximized geometry comes from inline `placement`. The
   // per-window fixed-size classes (desk:w-[...]/desk:h-[...]) are NOT !important, so
   // inline width/height already override them — we just must not re-assert an
@@ -294,6 +308,8 @@ function DesktopWindow({ id, title, initial, z, zoomed, opened, active, onRaise,
       className={cn(
         // scroll-mt: scrolled to on a phone, it clears the menu bar.
         "w-full scroll-mt-8 animate-[y2k-window-in_var(--y2k-duration-window)_var(--y2k-ease-aqua)] motion-reduce:animate-none desk:absolute",
+        // Side by side, the window keeps still (see above).
+        "pair:sticky pair:top-[min(32px,calc(100dvh-var(--y2k-dock-h)-8px-var(--win-self-h,0px)))]",
         className
       )}
       style={{ ...placement, zIndex: z, ...(isDesktop ? null : { order: -(opened ?? 0) }), ...style }}
@@ -1125,7 +1141,10 @@ export function Desktop() {
   ]
 
   return (
-    <div className="min-h-dvh overflow-x-hidden font-(family-name:--y2k-font-ui) text-(--y2k-ink)">
+    // Clip, not hide: overflow-x: hidden would make this box a scroll
+    // container that never scrolls (the page does), and nothing in it could
+    // stick to the top of the screen on a phone.
+    <div className="min-h-dvh overflow-x-clip font-(family-name:--y2k-font-ui) text-(--y2k-ink)">
       <Wallpaper photos={WALLPAPERS} />
       <style href="y2k-wallpaper-small" precedence="default">
         {SMALL_WALLPAPER_CSS}
@@ -1175,7 +1194,10 @@ export function Desktop() {
         })}
       </nav>
 
-      <main className="relative flex flex-col gap-5 px-3 pt-8 pb-24 desk:block desk:px-0 desk:pt-0 desk:pb-0">
+      {/* The windows: one column on a phone, the newest first (their
+          `order`); two side by side on a phone held sideways, left to
+          right, each as tall as it is; floating on a desktop. */}
+      <main className="relative flex flex-col gap-5 px-3 pt-8 pb-24 pair:grid pair:grid-cols-2 pair:items-start desk:block desk:px-0 desk:pt-0 desk:pb-0">
         {wins.finder.open && !wins.finder.minimized && (
           <DesktopWindow
             {...winProps("finder")}
