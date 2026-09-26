@@ -1975,7 +1975,9 @@ export function Desktop() {
 
       <Dock
         items={[
-          { id: "finder", label: "Finder", icon: <FaceIcon />, running: wins.finder.open, onClick: openWin("finder") },
+          // The Finder never quits (its menu has no Quit), so its triangle
+          // stays even with every Finder window closed, as in 10.1.
+          { id: "finder", label: "Finder", icon: <FaceIcon />, running: true, onClick: openWin("finder") },
           { id: "readme", label: "Read Me", icon: <NoteIcon />, running: wins.readme.open, onClick: openWin("readme") },
           { id: "tone", label: "Tone Preferences", icon: <PrefsIcon />, running: wins.tone.open, onClick: openWin("tone") },
           { id: "buttons", label: "Design System", icon: <PillIcon />, running: wins.buttons.open, onClick: openWin("buttons") },
