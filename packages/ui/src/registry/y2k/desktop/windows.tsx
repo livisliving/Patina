@@ -235,9 +235,12 @@ export function DesktopWindow({ win, title, defaultSize, min = MIN, className, s
         // Stacked, a title bar sticks under the menu bar while its window is
         // on screen, so the lights are always in reach however far a long
         // document is read — opaque, as an inactive pinstripe title bar is
-        // see-through.
+        // see-through, and a metal one has no surface of its own (the metal
+        // is the window's), so the window's last rows would show through it
+        // as it scrolls away.
         "max-desk:[&>[data-slot=window-titlebar]]:sticky max-desk:[&>[data-slot=window-titlebar]]:top-(--y2k-menubar-h) max-desk:[&>[data-slot=window-titlebar]]:z-[4]",
         "max-desk:[&:not([data-material=metal])>[data-slot=window-titlebar]]:bg-[#e3e3e3]",
+        "max-desk:[&[data-material=metal]>[data-slot=window-titlebar]]:bg-[#c9c9c9] max-desk:[&[data-material=metal]>[data-slot=window-titlebar]]:bg-(image:--y2k-metal) max-desk:[&[data-material=metal]>[data-slot=window-titlebar]]:[background-size:512px_96px]",
         // Side by side, the window itself keeps still too (see above).
         "pair:sticky pair:top-[min(32px,calc(100dvh-var(--y2k-dock-h)-8px-var(--win-self-h,0px)))]",
         // A minimised window stays mounted (its place, its size and what it
