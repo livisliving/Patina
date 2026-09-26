@@ -40,7 +40,7 @@ import { MenuBar, type MenuRow, type MenuSpec } from "./menubar"
 import { TONES, type Tone } from "./tones"
 import { useDrag } from "./use-drag"
 import { useMarqueeSelect } from "./use-marquee-select"
-import { prefersReducedMotion, useMediaQuery } from "./use-media-query"
+import { DESKTOP, prefersReducedMotion, useMediaQuery } from "./use-media-query"
 import { MiddleTruncate } from "./middle-truncate"
 import { useResize } from "./use-resize"
 import { Stars } from "./stars"
@@ -259,23 +259,23 @@ function DesktopWindow({ id, title, initial, z, zoomed, opened, active, onRaise,
   const raise = React.useCallback(() => onRaise(id), [onRaise, id])
   const { pos, handleProps } = useDrag(initial, raise)
   const { size, gripProps } = useResize({ w: 260, h: 180 }, raise)
-  const isDesktop = useMediaQuery("(min-width: 768px)")
+  const isDesktop = useMediaQuery(DESKTOP)
   const toggleZoom = React.useCallback(() => onZoom(id), [onZoom, id])
   // On a phone the windows are one column, and a window just opened (or
   // brought back) goes to its top, the latest first — else it would land
   // under all the others and the tap seem to do nothing (the desktop scrolls
   // to it). `order` moves it without moving it in the DOM, so nothing in it
   // restarts.
-  // Only float (apply left/top/size) on desktop. Below md the window is in
-  // normal flow (w-full) — applying the drag offsets to a relative element
-  // would push it off-screen.
+  // Only float (apply left/top/size) on desktop. Stacked (below DESKTOP: a
+  // phone, held either way) the window is in normal flow (w-full) — applying
+  // the drag offsets to a relative element would push it off-screen.
   const placement = !isDesktop
     ? {}
     : zoomed
       ? { left: 8, top: 33, width: "calc(100vw - 16px)", height: "calc(100dvh - 33px - 68px)" }
       : { left: pos.x, top: pos.y, ...(size ? { width: size.w, height: size.h } : null) }
   // When zoomed, the maximized geometry comes from inline `placement`. The
-  // per-window fixed-size classes (md:w-[...]/md:h-[...]) are NOT !important, so
+  // per-window fixed-size classes (desk:w-[...]/desk:h-[...]) are NOT !important, so
   // inline width/height already override them — we just must not re-assert an
   // !important width/height here, or it would beat the inline maximized size.
   return (
@@ -293,7 +293,7 @@ function DesktopWindow({ id, title, initial, z, zoomed, opened, active, onRaise,
       onPointerDownCapture={raise}
       className={cn(
         // scroll-mt: scrolled to on a phone, it clears the menu bar.
-        "w-full scroll-mt-8 animate-[y2k-window-in_var(--y2k-duration-window)_var(--y2k-ease-aqua)] motion-reduce:animate-none md:absolute",
+        "w-full scroll-mt-8 animate-[y2k-window-in_var(--y2k-duration-window)_var(--y2k-ease-aqua)] motion-reduce:animate-none desk:absolute",
         className
       )}
       style={{ ...placement, zIndex: z, ...(isDesktop ? null : { order: -(opened ?? 0) }), ...style }}
@@ -932,7 +932,7 @@ export function Desktop() {
   // A phone, or any screen without a pointer that hovers (a touch screen):
   // a tap in the Finder opens a file, as a double-click does with a mouse —
   // there is no double-tap to find out about.
-  const tapOpens = useMediaQuery("(max-width: 767px), (hover: none)")
+  const tapOpens = useMediaQuery(`not all and ${DESKTOP}, (hover: none)`)
   // A click in the list or icon view: select the item, and open it too
   // where a tap is the only click there is.
   const choose = (key: string, it: FinderItem) => {
@@ -951,7 +951,7 @@ export function Desktop() {
   }
 
 
-  const isDesktop = useMediaQuery("(min-width: 768px)")
+  const isDesktop = useMediaQuery(DESKTOP)
   // On a phone, scroll to a window as it opens (it goes to the top of the
   // column: DesktopWindow's `order`) — only when a newer one opens, so
   // closing the latest leaves the page where it is. By its place in the
@@ -1138,7 +1138,7 @@ export function Desktop() {
       {isDesktop && (
         <div
           aria-hidden
-          className="absolute inset-0 top-(--y2k-menubar-h) z-0 hidden md:block"
+          className="absolute inset-0 top-(--y2k-menubar-h) z-0 hidden desk:block"
           {...rootProps}
         >
           <Band rect={band} />
@@ -1146,7 +1146,7 @@ export function Desktop() {
       )}
 
       {/* Desktop icons, top-right. Single click selects; double click opens. */}
-      <nav aria-label="Desktop" className="absolute top-9 right-3 z-[1] hidden flex-col items-center gap-3 md:flex">
+      <nav aria-label="Desktop" className="absolute top-9 right-3 z-[1] hidden flex-col items-center gap-3 desk:flex">
         {desktopIcons.map((it) => {
           const key = `desktop:${it.id}`
           return (
@@ -1175,7 +1175,7 @@ export function Desktop() {
         })}
       </nav>
 
-      <main className="relative flex flex-col gap-5 px-3 pt-8 pb-24 md:block md:px-0 md:pt-0 md:pb-0">
+      <main className="relative flex flex-col gap-5 px-3 pt-8 pb-24 desk:block desk:px-0 desk:pt-0 desk:pb-0">
         {wins.finder.open && !wins.finder.minimized && (
           <DesktopWindow
             {...winProps("finder")}
@@ -1193,7 +1193,7 @@ export function Desktop() {
             material="metal"
             initial={{ x: 40, y: 56 }}
             onToolbarToggle={() => setFinderToolbar((v) => !v)}
-            className="md:h-[400px] md:w-[640px]"
+            className="desk:h-[400px] desk:w-[640px]"
             status={[
               q ? `${visibleFinderItems.length} of ${hereItems.length} items` : `${hereItems.length} ${hereItems.length === 1 ? "item" : "items"}`,
               chain[0]?.size,
@@ -1345,7 +1345,7 @@ export function Desktop() {
             // classes paint it there before the page wakes (the same sum in
             // CSS: 412 = ICON_COLUMN + 16 + 300); then `initial` takes over.
             initial={() => ({ x: typeof window === "undefined" ? 40 : down4(Math.max(40, window.innerWidth - ICON_COLUMN - 16 - 300)), y: 56 })}
-            className="md:top-14 md:left-[round(down,max(40px,100vw_-_412px),4px)] md:w-[300px]"
+            className="desk:top-14 desk:left-[round(down,max(40px,100vw_-_412px),4px)] desk:w-[300px]"
           >
             <WindowBody className="flex flex-col items-center gap-2 pt-5 pb-5 text-center">
               <h1>
@@ -1368,7 +1368,7 @@ export function Desktop() {
         )}
 
         {wins.appinfo.open && !wins.appinfo.minimized && (
-          <DesktopWindow {...winProps("appinfo")} title={titleOf("appinfo")} initial={{ x: 96, y: 96 }} className="md:w-[300px]">
+          <DesktopWindow {...winProps("appinfo")} title={titleOf("appinfo")} initial={{ x: 96, y: 96 }} className="desk:w-[300px]">
             <WindowBody className="flex flex-col items-center gap-2 pt-5 pb-6 text-center text-[13px]">
               <span className="size-16 [&_img]:size-full [&_svg]:size-full">
                 {Object.values(WINDOWS).find((w) => w.app === aboutApp)?.icon}
@@ -1383,7 +1383,7 @@ export function Desktop() {
           <DesktopWindow
             {...winProps("readme")}
             initial={{ x: 300, y: 84 }}
-            className="md:h-[360px] md:w-[460px]"
+            className="desk:h-[360px] desk:w-[460px]"
             status={savedNote ?? undefined}
             toolbar={
               <WindowToolbar>
@@ -1450,7 +1450,7 @@ export function Desktop() {
           <DesktopWindow
             {...winProps("help")}
             initial={{ x: 240, y: 72 }}
-            className="md:h-[460px] md:w-[520px]"
+            className="desk:h-[460px] desk:w-[520px]"
           >
             <WindowScrollArea className="bg-white shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)]">
               <div className="flex flex-col gap-3 px-6 py-5 text-[12px] leading-[1.6]">
@@ -1541,7 +1541,7 @@ export function Desktop() {
           <DesktopWindow
             {...winProps("buttons")}
             initial={{ x: 200, y: 110 }}
-            className="md:h-[480px] md:w-[560px]"
+            className="desk:h-[480px] desk:w-[560px]"
             toolbar={
               <WindowToolbar>
                 <span className="text-[12px] text-(--y2k-ink-secondary)">Components</span>
@@ -1563,7 +1563,7 @@ export function Desktop() {
           <DesktopWindow
             {...winProps("window")}
             initial={{ x: 360, y: 150 }}
-            className="md:w-[340px]"
+            className="desk:w-[340px]"
           >
             <WindowBody className="flex gap-3 pt-5">
               <HeartIcon className="size-12 shrink-0 drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]" />
@@ -1585,7 +1585,7 @@ export function Desktop() {
           <DesktopWindow
             {...winProps("design")}
             initial={{ x: 260, y: 96 }}
-            className="md:h-[440px] md:w-[520px]"
+            className="desk:h-[440px] desk:w-[520px]"
           >
             <WindowScrollArea className="bg-white shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)]">
               {/* Body is set in the Aqua UI face (Lucida Grande), not the mono
@@ -1696,7 +1696,7 @@ export function Desktop() {
           <DesktopWindow
             {...winProps("changelog")}
             initial={{ x: 300, y: 128 }}
-            className="md:h-[360px] md:w-[440px]"
+            className="desk:h-[360px] desk:w-[440px]"
           >
             <WindowScrollArea className="bg-white shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)]">
               <div className="flex flex-col gap-3 px-6 py-5 text-[12px] leading-[1.6]">
@@ -1724,7 +1724,7 @@ export function Desktop() {
             {...winProps("terminal")}
             material="metal"
             initial={{ x: 340, y: 160 }}
-            className="md:h-[300px] md:w-[480px]"
+            className="desk:h-[300px] desk:w-[480px]"
           >
             <TerminalSession files={finderItems} onOpen={(file) => openItem(file, ["Patina HD"])} />
           </DesktopWindow>
@@ -1734,7 +1734,7 @@ export function Desktop() {
           <DesktopWindow
             {...winProps("tone")}
             initial={{ x: 420, y: 190 }}
-            className="md:h-[360px] md:w-[480px]"
+            className="desk:h-[360px] desk:w-[480px]"
             toolbar={
               <WindowToolbar>
                 <SearchField value={toneQuery} onChange={setToneQuery} placeholder="" className="ml-auto w-36" />
@@ -1811,7 +1811,7 @@ export function Desktop() {
             }}
             // The same place in CSS, for the paint before the page wakes.
             className={cn(
-              "md:top-[round(down,max(32px,100dvh_-_var(--y2k-dock-h)_-_416px),4px)] md:left-4 md:h-[400px] md:w-[600px]",
+              "desk:top-[round(down,max(32px,100dvh_-_var(--y2k-dock-h)_-_416px),4px)] desk:left-4 desk:h-[400px] desk:w-[600px]",
               wins.ipod.minimized && "hidden"
             )}
           >

@@ -19,5 +19,10 @@ export function useMediaQuery(query: string) {
   return matches
 }
 
+/** The floating desktop needs a screen 768 wide AND 480 tall; below either
+ *  (a phone held sideways is 844 × 390) the windows stack. The CSS says the
+ *  same with the desk: / max-desk: variants (y2k.css). */
+export const DESKTOP = "(min-width: 768px) and (min-height: 480px)"
+
 /** Whether the visitor asked for less motion, read once (in a handler). */
 export const prefersReducedMotion = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
