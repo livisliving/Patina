@@ -574,6 +574,100 @@ const ColGlyph = () => (
   </svg>
 )
 
+/* ── A long document's sections, on a phone ───────────────────────── */
+
+/** A heading this close to the section bar's foot is the section in view. */
+const IN_VIEW = 24
+
+/** Where the section bar's foot is once it has stuck: the line a heading is
+ *  "in view" at, and the one it is scrolled to. */
+const stuckFoot = (bar: HTMLElement | null) => (bar ? parseFloat(getComputedStyle(bar).top) + bar.offsetHeight : 0)
+
+/**
+ * On a phone a long document (Help, DESIGN.md, the Changelog) is read by
+ * scrolling the page, and its sections are a pop-up button in a bar on the
+ * window's pinstripe under its title bar, stuck below the title bar (itself
+ * stuck below the menu bar) while the document is on screen. It names the
+ * section in view — the last heading at or above the bar's foot, the first
+ * before any has reached it, the last once the document is scrolled to its
+ * end — and picking one scrolls the page to its heading, which holds the
+ * pick until the reader scrolls for themselves (a short last section can
+ * never reach the bar). The headings carry `data-section`, their label.
+ * Not there on a desktop, where the window scrolls.
+ */
+function SectionBar({ sections }: { sections: string[] }) {
+  const barRef = React.useRef<HTMLDivElement>(null)
+  const [current, setCurrent] = React.useState(sections[0])
+  // Set by a pick; cleared by the reader's own scrolling.
+  const held = React.useRef(false)
+  const isDesktop = useMediaQuery(DESKTOP)
+  // The document: the scroll area beside the bar.
+  const body = () => barRef.current?.parentElement?.querySelector<HTMLElement>('[data-slot="window-scroll-viewport"]') ?? null
+
+  React.useEffect(() => {
+    if (isDesktop) return
+    let raf = 0
+    const spy = () => {
+      raf = 0
+      const doc = body()
+      if (held.current || !doc) return
+      const headings = Array.from(doc.querySelectorAll<HTMLElement>("[data-section]"))
+      if (!headings.length) return
+      let id = headings[0].dataset.section!
+      if (doc.getBoundingClientRect().bottom <= window.innerHeight + 2) id = headings[headings.length - 1].dataset.section!
+      else {
+        const top = stuckFoot(barRef.current)
+        for (const h of headings) if (h.getBoundingClientRect().top - top <= IN_VIEW) id = h.dataset.section!
+      }
+      setCurrent(id)
+    }
+    const ask = () => {
+      if (!raf) raf = requestAnimationFrame(spy)
+    }
+    // The reader taking over: a finger or a wheel anywhere, as the whole
+    // page scrolls.
+    const release = () => {
+      held.current = false
+    }
+    const takeovers = ["wheel", "touchstart"] as const
+    window.addEventListener("scroll", ask, { passive: true })
+    for (const ev of takeovers) window.addEventListener(ev, release, { passive: true })
+    spy()
+    return () => {
+      if (raf) cancelAnimationFrame(raf)
+      window.removeEventListener("scroll", ask)
+      for (const ev of takeovers) window.removeEventListener(ev, release)
+    }
+  }, [isDesktop])
+
+  const goTo = (id: string) => {
+    const heading = body()?.querySelector<HTMLElement>(`[data-section="${CSS.escape(id)}"]`)
+    if (!heading) return
+    held.current = true
+    setCurrent(id)
+    // The heading lands 12px under the stuck bar.
+    window.scrollTo({
+      top: Math.max(0, heading.getBoundingClientRect().top + window.scrollY - stuckFoot(barRef.current) - 12),
+      behavior: prefersReducedMotion() ? "auto" : "smooth",
+    })
+  }
+
+  return (
+    <div
+      ref={barRef}
+      className="sticky top-[calc(var(--y2k-menubar-h)+var(--y2k-titlebar-h))] z-[3] border-b border-(--y2k-separator) bg-(image:--y2k-pinstripe) px-3 py-2 desk:hidden"
+    >
+      <PopupButton aria-label="Section" value={current} options={sections} onChange={goTo} className="w-full" />
+    </div>
+  )
+}
+
+/** The long documents' sections, as their headings name them (DESIGN.md's
+ *  without the heading's "# "). */
+const HELP_SECTIONS = ["Install", "Build something", "Restyle a page you already have", "Check before you ship", "Change the tone", "Using this desktop", "Source"]
+const DESIGN_SECTIONS = ["Two layers", "Grid", "Colours", "Type", "Materials", "Shapes", "Components", "Don't"]
+const changelogSection = (entry: (typeof CHANGELOG)[number]) => `${entry.version} — ${entry.date}`
+
 /* ── Save dialog: the modal window ────────────────────────────────── */
 
 function SaveDialog({
@@ -1491,6 +1585,7 @@ export function Desktop() {
             initial={{ x: 240, y: 72 }}
             className="desk:h-[460px] desk:w-[520px]"
           >
+            <SectionBar sections={HELP_SECTIONS} />
             <WindowScrollArea className="bg-white shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)]">
               <div className="flex flex-col gap-3 px-6 py-5 text-[12px] leading-[1.6]">
                 <h2 className="flex items-center gap-2 text-[13px] font-bold">
@@ -1503,7 +1598,7 @@ export function Desktop() {
                   card. Y2K is the first pack: Mac OS X Aqua in five millennium colours. This desktop is built with it.
                 </p>
 
-                <h3 className="mt-1 font-bold">Install</h3>
+                <h3 data-section="Install" className="mt-1 font-bold">Install</h3>
                 <p>Run this in a React project that uses Tailwind (a new create-next-app is fine):</p>
                 <Mono className="y2k-field block px-[6px] py-1">{INIT}</Mono>
                 <p>
@@ -1524,13 +1619,13 @@ export function Desktop() {
                   npx shadcn@latest add {process.env.NEXT_PUBLIC_REGISTRY}/window.json
                 </Mono>
 
-                <h3 className="mt-1 font-bold">Build something</h3>
+                <h3 data-section="Build something" className="mt-1 font-bold">Build something</h3>
                 <p>
                   Ask your agent the way you normally would, for example &ldquo;make a settings page&rdquo;. It reads
                   DESIGN.md first and builds the page from the pack&apos;s windows, buttons and controls.
                 </p>
 
-                <h3 className="mt-1 font-bold">Restyle a page you already have</h3>
+                <h3 data-section="Restyle a page you already have" className="mt-1 font-bold">Restyle a page you already have</h3>
                 <p>
                   Run <Mono>/y2k-ify</Mono> in your agent. It rebuilds the page with the pack&apos;s components and
                   keeps what the page does (same routes, same data), then runs <Mono>/check-y2k</Mono> on what it
@@ -1538,14 +1633,14 @@ export function Desktop() {
                   variant and size names.
                 </p>
 
-                <h3 className="mt-1 font-bold">Check before you ship</h3>
+                <h3 data-section="Check before you ship" className="mt-1 font-bold">Check before you ship</h3>
                 <p>
                   <Mono>/check-y2k</Mono>, or <Mono className="whitespace-nowrap">node scripts/check-y2k.mjs .</Mono> in a terminal, reads the rules
                   out of DESIGN.md and lists every place the page slips back to the defaults: grey cards, the
                   purple-to-blue gradient, thin-line icons. It exits with an error when it finds one, so it can run in CI.
                 </p>
 
-                <h3 className="mt-1 font-bold">Change the tone</h3>
+                <h3 data-section="Change the tone" className="mt-1 font-bold">Change the tone</h3>
                 <p>
                   There are five: Y2K pink, Aqua, Lime, Tangerine and Grape. The tone colours the gel, the selection
                   and the wallpaper. The installer sets the one you pick on <Mono>&lt;html&gt;</Mono>; to change it
@@ -1553,7 +1648,7 @@ export function Desktop() {
                   Here, choose one from the ★ menu or open Tone Preferences.
                 </p>
 
-                <h3 className="mt-1 font-bold">Using this desktop</h3>
+                <h3 data-section="Using this desktop" className="mt-1 font-bold">Using this desktop</h3>
                 <p>
                   Double-click an icon to open it and drag a window by its title bar. The three lights at the top left
                   close, minimise and zoom. Everything else is in the Dock. The Design System app shows the pack&apos;s
@@ -1564,7 +1659,7 @@ export function Desktop() {
                   has the rules in full.
                 </p>
 
-                <h3 className="mt-1 font-bold">Source</h3>
+                <h3 data-section="Source" className="mt-1 font-bold">Source</h3>
                 <p>
                   The code is on GitHub:{" "}
                   <a href="https://github.com/livisliving/Patina" target="_blank" rel="noopener noreferrer" className={LINK}>
@@ -1626,6 +1721,7 @@ export function Desktop() {
             initial={{ x: 260, y: 96 }}
             className="desk:h-[440px] desk:w-[520px]"
           >
+            <SectionBar sections={DESIGN_SECTIONS} />
             <WindowScrollArea className="bg-white shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)]">
               {/* Body is set in the Aqua UI face (Lucida Grande), not the mono
                   face — only the inline code spans stay monospaced. This is a
@@ -1640,7 +1736,7 @@ export function Desktop() {
                   shorter version.
                 </p>
 
-                <h3 className="mt-1 font-bold"># Two layers</h3>
+                <h3 data-section="Two layers" className="mt-1 font-bold"># Two layers</h3>
                 <p>
                   <strong>Structure</strong> is Mac OS X Aqua from 2000 to 2005, and it is the same in every tone:
                   pinstriped windows, three glossy traffic lights at the top left, a centred bold title, soft drop
@@ -1650,7 +1746,7 @@ export function Desktop() {
                   screen, and don&apos;t colour text with a tone.
                 </p>
 
-                <h3 className="mt-1 font-bold"># Grid</h3>
+                <h3 data-section="Grid" className="mt-1 font-bold"># Grid</h3>
                 <p>
                   Everything except text snaps to a <strong>4px</strong> grid: spacing, sizes, radii and offsets. There
                   are three exceptions: 1px hairlines, the 2 or 3px highlights on gel, and Aqua 10.0&apos;s own
@@ -1659,7 +1755,7 @@ export function Desktop() {
                   <strong>Font sizes don&apos;t snap.</strong> They stay at the sizes Apple used.
                 </p>
 
-                <h3 className="mt-1 font-bold"># Colours</h3>
+                <h3 data-section="Colours" className="mt-1 font-bold"># Colours</h3>
                 <p>
                   The base colours are Y2K pink <Mono>#e8449a</Mono>, aqua <Mono>#4d83d2</Mono>,
                   lime <Mono>#7fc31c</Mono>, tangerine <Mono>#e8891a</Mono> and grape{" "}
@@ -1676,7 +1772,7 @@ export function Desktop() {
                   System app.
                 </p>
 
-                <h3 className="mt-1 font-bold"># Type</h3>
+                <h3 data-section="Type" className="mt-1 font-bold"># Type</h3>
                 <p>
                   Lucida Grande comes first, then open-source Lato on machines that aren&apos;t Macs, then the system
                   sans. EB Garamond is only for the wordmark, at 44px, as gel text. Code is Monaco at 11px. Aqua uses
@@ -1687,14 +1783,14 @@ export function Desktop() {
                   is here to replace.
                 </p>
 
-                <h3 className="mt-1 font-bold"># Materials</h3>
+                <h3 data-section="Materials" className="mt-1 font-bold"># Materials</h3>
                 <p>
                   Controls are white gel or tone gel. Every window surface is pinstriped, title and menu bars included.
                   iTunes-style windows are brushed metal, and hero surfaces are translucent plastic or chrome. Only
                   windows, menus, the Dock and gel have shadows. There are no cards, so there are no card shadows.
                 </p>
 
-                <h3 className="mt-1 font-bold"># Shapes</h3>
+                <h3 data-section="Shapes" className="mt-1 font-bold"># Shapes</h3>
                 <p>
                   Push buttons are capsules. Windows have 8px corners on top and 6px below; group boxes, tab panels and
                   menus 5px; segmented controls and pop-ups 4px; folder tabs 7px on top; text fields 2px and search
@@ -1702,7 +1798,7 @@ export function Desktop() {
                   cap, never a thin-line set.
                 </p>
 
-                <h3 className="mt-1 font-bold"># Components</h3>
+                <h3 data-section="Components" className="mt-1 font-bold"># Components</h3>
                 <p>
                   Push buttons are 20px tall and at least 68px wide, with a 13px regular label in black on gel and a
                   deep, soft shadow. Each window has one default button, in the tone gel; the throb it does in dialogues
@@ -1716,7 +1812,7 @@ export function Desktop() {
                   black triangle under apps that are running.
                 </p>
 
-                <h3 className="mt-1 font-bold"># Don&apos;t</h3>
+                <h3 data-section="Don't" className="mt-1 font-bold"># Don&apos;t</h3>
                 <p>
                   <Mono>/check-y2k</Mono> fails on any of these: grey cards and zinc or slate surfaces; the
                   purple-to-blue AI gradient; 8 to 16px card radii; shadows on anything that isn&apos;t a window; thin-line
@@ -1737,12 +1833,13 @@ export function Desktop() {
             initial={{ x: 300, y: 128 }}
             className="desk:h-[360px] desk:w-[440px]"
           >
+            <SectionBar sections={CHANGELOG.map(changelogSection)} />
             <WindowScrollArea className="bg-white shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)]">
               <div className="flex flex-col gap-3 px-6 py-5 text-[12px] leading-[1.6]">
                 <h2 className="text-[13px] font-bold">Changelog</h2>
                 {CHANGELOG.map((entry) => (
                   <div key={entry.version}>
-                    <p className="font-bold">{`${entry.version} — ${entry.date}`}</p>
+                    <p data-section={changelogSection(entry)} className="font-bold">{changelogSection(entry)}</p>
                     <ul className="mt-1 flex list-disc flex-col gap-1 pl-5 text-(--y2k-ink-secondary)">
                       {entry.items.map((item) => (
                         <li key={item}>{item}</li>
