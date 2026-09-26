@@ -26,8 +26,9 @@ Rather do it yourself? In your project, run `npx @pat1na/cli@latest init`.
 
 You were given this repository to put Patina on the user's project. Do it with the
 installer, in their project. Do not clone this repository, and do not copy files out of
-it: the installer fetches everything and records what it wrote, so the project can update
-later.
+it — this page is all you need to read: the installer fetches everything and records
+what it wrote, so the project can update later. Talk to the user in the language they
+write in, in plain words: many who send this link have never used a terminal.
 
 1. In the root of the user's project (the folder with its `package.json`), run
 

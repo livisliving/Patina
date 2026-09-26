@@ -325,6 +325,11 @@ the machine are someone's work.
 
 ## Report back
 
+Write to the person in the language they write in, in plain words: many who
+use Patina have never opened a terminal. Name a file by what it holds
+("content/site.ts, where every word of the site lives"), and give only the
+commands they will run themselves, each with what it does.
+
 Say what you restyled, what you left alone and why, and paste the final
 `/check-y2k` result. If you changed structure — a page became windows — say
 that first: it is the change the human will want to look at. For a site,
