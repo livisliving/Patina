@@ -1425,7 +1425,7 @@ export function Desktop() {
               ) : finderView === "list" ? (
                 // Aqua list view: the pack's Table — the list header, 12px
                 // rows, every other row pale blue, the selection in the tone.
-                <div className="relative min-h-full" {...finderRootProps}>
+                <div className="relative min-h-full select-none" {...finderRootProps}>
                   <Band rect={finderBand} z />
                   <Table>
                     <TableHeader>
@@ -1460,7 +1460,11 @@ export function Desktop() {
                   </Table>
                 </div>
               ) : (
-                <div className="relative grid min-h-full grid-cols-3 content-start gap-y-3 p-3 sm:grid-cols-4" {...finderRootProps}>
+                // A drag from anywhere that is not an icon or its name — the
+                // padding, the gaps, the sides of a cell, the space under the
+                // last row — draws the rubber band (an icon is only as wide as
+                // its name, centred in its cell, so the rest of the cell is free).
+                <div className="relative grid min-h-full grid-cols-3 content-start gap-y-3 p-3 select-none sm:grid-cols-4" {...finderRootProps}>
                   <Band rect={finderBand} z />
                   {visibleFinderItems.map((it) => {
                     const key = `finder:${it.label}`
@@ -1474,7 +1478,7 @@ export function Desktop() {
                         onClick={() => !it.disabled && choose(key, it)}
                         onDoubleClick={() => openItem(it, placePath)}
                         onKeyDown={(e) => e.key === "Enter" && !it.disabled && openItem(it, placePath)}
-                        className="group relative z-[2] flex cursor-default flex-col items-center gap-1 outline-none disabled:opacity-45"
+                        className="group relative z-[2] flex max-w-full cursor-default flex-col items-center gap-1 justify-self-center outline-none disabled:opacity-45"
                       >
                         <span className="size-12 [&_svg]:size-full">{it.icon}</span>
                         {/* Two lines at most, then cut from the middle. */}
