@@ -30,7 +30,8 @@
   ],
   "scripts": {
     "sync": "node scripts/sync-assets.mjs",
-    "prepack": "node scripts/sync-assets.mjs"
+    "prepack": "node scripts/sync-assets.mjs",
+    "test": "node test/e2e.mjs"
   },
   "publishConfig": {
     "access": "public"
