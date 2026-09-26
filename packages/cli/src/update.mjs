@@ -282,18 +282,25 @@ export async function update({ cwd, to, source: sourceArg, force, dryRun, add = 
 
 /** After init: record what it installed, so the first update knows which
  *  items are the pack's and what each file looked like. The files are
- *  hashed as they are on disk now, just written; the items' file lists
- *  come from the registry init installed from, all at once. */
-export async function recordInstall(cwd, { registry, items, version = null }) {
+ *  hashed as they are on disk now, just written — but the copies init
+ *  `kept` and every file of the items it `keptItems` keep the fingerprint
+ *  patina.json already had for them, or a change made to one here would
+ *  pass for the pack's on the next update. The items' file lists come
+ *  from the registry init installed from, all at once. */
+export async function recordInstall(cwd, { registry, items, version = null, kept = [], keptItems = [] }) {
   const layout = layoutOf(cwd)
+  const before = readManifest(cwd)?.files ?? {}
   const registrySource = sourceAt(registry)
   const jsons = await Promise.all(items.map((name) => registrySource.read(`${name}.json`).catch(() => null)))
   const targets = [
-    ...jsons.flatMap((json) => (json ? JSON.parse(json).files ?? [] : [])).map((file) => targetPath(layout, file.target ?? file.path)),
-    ...COPIES.map(([, to]) => path.join(cwd, to)),
+    ...jsons.flatMap((json, i) => (json ? JSON.parse(json).files ?? [] : []).map((file) => [targetPath(layout, file.target ?? file.path), keptItems.includes(items[i])])),
+    ...COPIES.map(([, to]) => [path.join(cwd, to), kept.includes(to)]),
   ]
   const files = Object.fromEntries(
-    targets.filter((abs) => fs.existsSync(abs)).map((abs) => [path.relative(cwd, abs), fingerprint(fs.readFileSync(abs, "utf8"))])
+    targets
+      .filter(([abs]) => fs.existsSync(abs))
+      .map(([abs, keep]) => [path.relative(cwd, abs), keep])
+      .map(([rel, keep]) => [rel, keep && before[rel] ? before[rel] : fingerprint(fs.readFileSync(path.join(cwd, rel), "utf8"))])
   )
   writeManifest(cwd, { version, items, files })
 }

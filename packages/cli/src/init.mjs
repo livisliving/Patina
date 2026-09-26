@@ -456,6 +456,9 @@ async function install({ cwd, registry, components, force, dryRun, yes, ...rest 
   // does), or keep them and add only what is missing.
   if (replace === "replace") force = true
   const keepMine = replace === "keep"
+  // The copies kept as they were (and, below, the items): patina.json keeps
+  // their fingerprints as installed, so `update` still sees a change made here.
+  const kept = []
   const { answers } = brief
   const server = ctx.server
   const status = (next) => server?.setStatus(next)
@@ -495,6 +498,7 @@ async function install({ cwd, registry, components, force, dryRun, yes, ...rest 
     if (fs.existsSync(target) && !force) {
       console.log(skip(`${to} already exists — kept (use --force to overwrite)`))
       blocked++
+      kept.push(to)
       continue
     }
     if (!dryRun) {
@@ -597,7 +601,7 @@ async function install({ cwd, registry, components, force, dryRun, yes, ...rest 
       // What was installed, and each file as it was written: `update` reads
       // it to know which items are the pack's and which files were changed
       // since. The brief written above stays in the file.
-      await recordInstall(cwd, { registry: base, items, version: PACK_VERSION })
+      await recordInstall(cwd, { registry: base, items, version: PACK_VERSION, kept, keptItems: keepMine ? items.filter((item) => !adding.includes(item)) : [] })
       console.log(tick(`${MANIFEST} — the items and files installed, for \`patina update\``))
     }
   } else {
