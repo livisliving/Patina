@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import dynamic from "next/dynamic"
+import { DropdownMenu as Menu } from "radix-ui"
 import {
   Button,
   Window,
@@ -32,6 +33,8 @@ import {
   Dock,
   Wallpaper,
   genie,
+  menuContentClass,
+  menuItemClass,
 } from "@patina/ui"
 
 import { ComputerIcon, DiskIcon, DocIcon, FaceIcon, FolderIcon, HeartIcon, HomeIcon, InfoIcon, IPodIcon, loadPackIcons, LogoIcon, NoteIcon, PillIcon, PrefsIcon, TerminalIcon, TrashIcon } from "./aqua-icons"
@@ -586,6 +589,149 @@ const ColGlyph = () => (
     </g>
   </svg>
 )
+
+/** The search field at its narrowest, before it goes. */
+const SEARCH_MIN = 96
+
+/** The 10.1 toolbar's overflow: a » at the far end, which lists the places
+ *  the window is too narrow for. */
+function Chevron({ className, ...props }: React.ComponentProps<"button">) {
+  return (
+    <button
+      type="button"
+      aria-label="More places"
+      className={cn(
+        "mt-[2px] flex h-8 w-4 shrink-0 cursor-default items-center justify-center rounded-[4px] text-[#1e1e1e] outline-none",
+        "focus-visible:shadow-(--y2k-focus-ring) data-[state=open]:bg-black/10",
+        className
+      )}
+      {...props}
+    >
+      {/* The chevron is drawn, as 10.1 drew it: two 4 × 7 carets 2px
+          apart, black. */}
+      <svg viewBox="0 0 10 7" width="10" height="7" shapeRendering="crispEdges" aria-hidden>
+        <path d="M0 0h1v1h1v1h1v1h1v1H3v1H2v1H1v1H0zM6 0h1v1h1v1h1v1h1v1H9v1H8v1H7v1H6z" fill="currentColor" />
+      </svg>
+    </button>
+  )
+}
+
+/**
+ * The Finder's toolbar: Back, the view control, the places, Search. Sized to
+ * its window, as the 10.1 Finder's is: the search field gives up its width
+ * (160px down to 96px), then goes; then the places go from the right into
+ * the » menu at the end. Never a second row. Measured, not set at a
+ * breakpoint: each place at its own width, with its label or (on a phone)
+ * without. Its own component, so it measures again each time it is shown.
+ */
+function FinderToolbar({
+  canGoBack,
+  onBack,
+  view,
+  onView,
+  places,
+  searchRef,
+  query,
+  onQuery,
+}: {
+  canGoBack: boolean
+  onBack: () => void
+  view: "icons" | "list" | "columns"
+  onView: (view: "icons" | "list" | "columns") => void
+  places: { label: string; icon: React.ReactNode; onClick: () => void }[]
+  searchRef: React.Ref<HTMLInputElement>
+  query: string
+  onQuery: (query: string) => void
+}) {
+  const barRef = React.useRef<HTMLDivElement>(null)
+  const rulerRef = React.useRef<HTMLDivElement>(null)
+  const [fit, setFit] = React.useState({ places: Infinity, search: true })
+  React.useLayoutEffect(() => {
+    const bar = barRef.current
+    const ruler = rulerRef.current
+    if (!bar || !ruler) return
+    const measure = () => {
+      const css = getComputedStyle(bar)
+      const gap = parseFloat(css.columnGap) || 0
+      const room = bar.clientWidth - parseFloat(css.paddingLeft) - parseFloat(css.paddingRight)
+      // Each at its width with its margins (the separator's 4px either side),
+      // to the fraction of a pixel.
+      const outer = (el: Element) => {
+        const m = getComputedStyle(el)
+        return el.getBoundingClientRect().width + parseFloat(m.marginLeft) + parseFloat(m.marginRight)
+      }
+      const fixed = [...bar.querySelectorAll(":scope > [data-fixed]")].map(outer)
+      const [chevron, ...widths] = [...ruler.children].map(outer)
+      const width = (n: number, search: boolean) => {
+        const row = [...fixed, ...widths.slice(0, n), ...(search ? [SEARCH_MIN] : []), ...(n < widths.length ? [chevron] : [])]
+        return row.reduce((a, b) => a + b, 0) + gap * (row.length - 1)
+      }
+      let n = widths.length
+      const search = width(n, true) <= room
+      if (!search) while (n > 0 && width(n, false) > room) n--
+      setFit((f) => (f.places === n && f.search === search ? f : { places: n, search }))
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(bar)
+    return () => observer.disconnect()
+  }, [])
+  const shown = Math.min(fit.places, places.length)
+  return (
+    <WindowToolbar ref={barRef} className="relative overflow-hidden">
+      <WindowToolbarControl data-fixed label="Back" className="shrink-0">
+        <Button size="icon" aria-label="Back" disabled={!canGoBack} onClick={onBack} className="[&_svg]:h-2 [&_svg]:w-[13px]">
+          <BackGlyph />
+        </Button>
+      </WindowToolbarControl>
+      <WindowToolbarControl data-fixed label="View" className="shrink-0">
+        <SegmentedControl
+          items={[
+            { label: "Icons", icon: <GridGlyph />, active: view === "icons", onClick: () => onView("icons") },
+            { label: "List", icon: <ListGlyph />, active: view === "list", onClick: () => onView("list") },
+            { label: "Columns", icon: <ColGlyph />, active: view === "columns", onClick: () => onView("columns") },
+          ]}
+        />
+      </WindowToolbarControl>
+      <WindowToolbarSeparator data-fixed />
+      {places.slice(0, shown).map((place) => (
+        <WindowToolbarItem key={place.label} icon={place.icon} onClick={place.onClick} className="shrink-0">
+          {place.label}
+        </WindowToolbarItem>
+      ))}
+      <WindowToolbarControl label="Search" className={cn("ml-auto w-40 min-w-24", !fit.search && "hidden")}>
+        <SearchField ref={searchRef} value={query} onChange={onQuery} placeholder="" className="w-full" />
+      </WindowToolbarControl>
+      {shown < places.length && (
+        <Menu.Root modal={false}>
+          <Menu.Trigger asChild>
+            <Chevron className="ml-auto" />
+          </Menu.Trigger>
+          <Menu.Portal>
+            <Menu.Content align="end" sideOffset={2} className={menuContentClass}>
+              {places.slice(shown).map((place) => (
+                <Menu.Item key={place.label} className={cn(menuItemClass, "justify-start gap-2 pl-2")} onSelect={place.onClick}>
+                  <span className="size-4 shrink-0 [&_svg]:size-full">{place.icon}</span>
+                  {place.label}
+                </Menu.Item>
+              ))}
+            </Menu.Content>
+          </Menu.Portal>
+        </Menu.Root>
+      )}
+      {/* The ruler: the chevron and every place at its own width, out of
+          sight, for the measure above. */}
+      <div ref={rulerRef} aria-hidden inert className="pointer-events-none invisible absolute top-0 left-0 flex w-max">
+        <Chevron tabIndex={-1} />
+        {places.map((place) => (
+          <WindowToolbarItem key={place.label} icon={place.icon} tabIndex={-1} className="shrink-0">
+            {place.label}
+          </WindowToolbarItem>
+        ))}
+      </div>
+    </WindowToolbar>
+  )
+}
 
 /* ── A long document's sections, on a phone ───────────────────────── */
 
@@ -1360,34 +1506,23 @@ export function Desktop() {
             ]
               .filter(Boolean)
               .join(", ")}
-            toolbar={finderToolbar && 
-              // Sized to the window, not the screen: as the window narrows,
-              // the search field gives up its width (160px down to 96px),
-              // then goes, once the items and a 96px field no longer fit
-              // (they take 368px with their labels).
-              <WindowToolbar className="@container">
-                <WindowToolbarControl label="Back">
-                  <Button size="icon" aria-label="Back" disabled={!finderHistory.length} onClick={goBack} className="[&_svg]:h-2 [&_svg]:w-[13px]">
-                    <BackGlyph />
-                  </Button>
-                </WindowToolbarControl>
-                <WindowToolbarControl label="View">
-                  <SegmentedControl
-                    items={[
-                      { label: "Icons", icon: <GridGlyph />, active: finderView === "icons", onClick: () => setFinderView("icons") },
-                      { label: "List", icon: <ListGlyph />, active: finderView === "list", onClick: () => setFinderView("list") },
-                      { label: "Columns", icon: <ColGlyph />, active: finderView === "columns", onClick: () => setFinderView("columns") },
-                    ]}
-                  />
-                </WindowToolbarControl>
-                <WindowToolbarSeparator />
-                <WindowToolbarItem icon={<ComputerIcon />} onClick={() => navigate([])}>Computer</WindowToolbarItem>
-                <WindowToolbarItem icon={<HomeIcon />} onClick={() => navigate(HOME)}>Home</WindowToolbarItem>
-                <WindowToolbarItem icon={<HeartIcon />} onClick={() => navigate(FAVOURITES)}>Favourites</WindowToolbarItem>
-                <WindowToolbarControl label="Search" className="ml-auto w-40 min-w-24 @max-[480px]:hidden">
-                  <SearchField ref={finderSearch} value={finderQuery} onChange={setFinderQuery} placeholder="" className="w-full" />
-                </WindowToolbarControl>
-              </WindowToolbar>
+            toolbar={
+              finderToolbar && (
+                <FinderToolbar
+                  canGoBack={!!finderHistory.length}
+                  onBack={goBack}
+                  view={finderView}
+                  onView={setFinderView}
+                  places={[
+                    { label: "Computer", icon: <ComputerIcon />, onClick: () => navigate([]) },
+                    { label: "Home", icon: <HomeIcon />, onClick: () => navigate(HOME) },
+                    { label: "Favourites", icon: <HeartIcon />, onClick: () => navigate(FAVOURITES) },
+                  ]}
+                  searchRef={finderSearch}
+                  query={finderQuery}
+                  onQuery={setFinderQuery}
+                />
+              )
             }
           >
             <WindowScrollArea viewportRef={finderViewportRef} className={cn("bg-white", finderView === "columns" && "overflow-hidden")}>
