@@ -302,12 +302,29 @@ function DesktopWindow({ id, title, initial, z, zoomed, opened, active, onRaise,
       onZoom={toggleZoom}
       minimizable={!fixed}
       zoomable={!fixed}
-      titleBarProps={handleProps}
+      // Stacked, the window is part of the scrolling page and drag is a
+      // no-op, but the handle's touch-action: none would still stop a thumb
+      // that lands on the title bar from scrolling.
+      titleBarProps={isDesktop ? handleProps : undefined}
       resizeGripProps={isDesktop && !zoomed ? gripProps : undefined}
       onPointerDownCapture={raise}
       className={cn(
         // scroll-mt: scrolled to on a phone, it clears the menu bar.
         "w-full scroll-mt-8 animate-[y2k-window-in_var(--y2k-duration-window)_var(--y2k-ease-aqua)] motion-reduce:animate-none desk:absolute",
+        // Stacked, the frame clips rather than hides, so what is inside can
+        // stick to the screen (a title bar, a document's section bar).
+        "max-desk:overflow-clip",
+        // Stacked, a title bar sticks under the menu bar while its window is
+        // on screen, so the lights are always in reach however far a long
+        // document is read — opaque, as an inactive pinstripe title bar is
+        // see-through, and a metal one has no surface of its own (the metal
+        // is the frame's): it gets the frame's, as .y2k-metal paints it.
+        "max-desk:[&>[data-slot=window-titlebar]]:sticky max-desk:[&>[data-slot=window-titlebar]]:top-(--y2k-menubar-h) max-desk:[&>[data-slot=window-titlebar]]:z-[4]",
+        "max-desk:[&:not([data-material=metal])>[data-slot=window-titlebar]]:bg-[#e3e3e3]",
+        "max-desk:[&[data-material=metal]>[data-slot=window-titlebar]]:bg-[#c9c9c9] max-desk:[&[data-material=metal]>[data-slot=window-titlebar]]:bg-(image:--y2k-metal) max-desk:[&[data-material=metal]>[data-slot=window-titlebar]]:[background-size:512px_96px]",
+        // …and the metal's rim light stays over it, as on a desktop, where
+        // the title bar is not lifted above the frame.
+        "max-desk:after:z-[5]",
         // Side by side, the window keeps still (see above).
         "pair:sticky pair:top-[min(32px,calc(100dvh-var(--y2k-dock-h)-8px-var(--win-self-h,0px)))]",
         className
