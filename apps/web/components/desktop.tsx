@@ -311,7 +311,9 @@ function DesktopWindow({ id, title, initial, z, zoomed, minimized, opened, activ
       // no-op, but the handle's touch-action: none would still stop a thumb
       // that lands on the title bar from scrolling.
       titleBarProps={isDesktop ? handleProps : undefined}
-      resizeGripProps={isDesktop && !zoomed ? gripProps : undefined}
+      // A window that only closes (an About box) is sized to its content and
+      // has no grip, as About This Mac had none.
+      resizeGripProps={isDesktop && !zoomed && !fixed ? gripProps : undefined}
       onPointerDownCapture={raise}
       className={cn(
         // scroll-mt: scrolled to on a phone, it clears the menu bar.
