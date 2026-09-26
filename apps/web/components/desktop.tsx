@@ -1097,7 +1097,12 @@ export function Desktop() {
     if (!el) return
     let top = 0
     for (let n: HTMLElement | null = el; n; n = n.offsetParent as HTMLElement | null) top += n.offsetTop
-    window.scrollTo({ top: Math.max(0, top - parseFloat(getComputedStyle(el).scrollMarginTop)), behavior: prefersReducedMotion() ? "auto" : "smooth" })
+    const to = Math.max(0, top - parseFloat(getComputedStyle(el).scrollMarginTop))
+    // Smooth for a hop; a jump for a flight (from the Finder under one
+    // 5000px document to the top): smooth would take over a second, and a
+    // second tap would land on moving content.
+    const far = Math.abs(to - window.scrollY) > 2 * window.innerHeight
+    window.scrollTo({ top: to, behavior: prefersReducedMotion() || far ? "auto" : "smooth" })
   }, [isDesktop, latestId, latestOpened])
   const { band, rootProps } = useMarqueeSelect(setSelected, isDesktop, "desktop:")
   // A second, independent marquee scoped to the Finder file area.
