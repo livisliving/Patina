@@ -455,7 +455,7 @@ async function install({ cwd, registry, components, force, dryRun, yes, ...rest 
   // The page's answer about files already here: replace them (as --force
   // does), or keep them and add only what is missing.
   if (replace === "replace") force = true
-  const keepMine = replace === "keep"
+  let keepMine = replace === "keep"
   // The copies kept as they were (and, below, the items): patina.json keeps
   // their fingerprints as installed, so `update` still sees a change made here.
   const kept = []
@@ -558,9 +558,16 @@ async function install({ cwd, registry, components, force, dryRun, yes, ...rest 
         status({ message: "Answer the question in the terminal to continue." })
         overwrite = !yes && (await confirm("  replace them with the pack's?", { yes: false, fallback: false }))
         status({ message: undefined })
-        if (!overwrite) {
+        if (!overwrite && (yes || !process.stdin.isTTY)) {
           halt("components not installed — re-run with --force to replace them, or move yours aside first.")
           return 1
+        }
+        // A person who says no keeps theirs and gets the rest: the page's
+        // "Keep mine; add only what is missing".
+        if (!overwrite) {
+          keepMine = true
+          adding = items.filter((item) => !here.some((t) => t.item === item))
+          console.log(skip(`kept as they are; only what is missing is added`))
         }
       }
       // Pass our own flags through: shadcn asks before replacing a theme or a
