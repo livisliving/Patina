@@ -109,7 +109,7 @@ function FootButton({ on, className, ...props }: React.ComponentProps<"button"> 
         "shadow-[0_1px_0_rgba(255,255,255,0.75),0_0_0_1px_rgba(0,0,0,0.1)] active:brightness-90",
         "text-[#2b2b2b] [&_svg]:drop-shadow-[0_1px_0_rgba(255,255,255,0.8)]",
         "aria-pressed:text-(--y2k-tone) aria-pressed:[&_svg]:drop-shadow-[0_0_2px_color-mix(in_srgb,var(--y2k-tone)_70%,transparent)]",
-        "focus-visible:outline-3 focus-visible:outline-offset-1 focus-visible:outline-(--y2k-tone-focus)",
+        "focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-offset-1 focus-visible:outline-(--y2k-tone-focus)",
         className
       )}
       {...props}
@@ -456,12 +456,12 @@ export const IPod = React.memo(function IPod({ onEject, hidden }: { onEject: () 
   const columns = radio ? 3 : 5
 
   return (
-    <div className="flex min-h-[360px] flex-1 flex-col md:min-h-0">
+    <div className="flex min-h-[360px] flex-1 flex-col desk:min-h-0">
       {/* The control strip: transport and volume · the display · search and browse. */}
       {/* A pixel up: the reference's controls start on the title bar's last row. */}
       {/* The display keeps its 244px while it can, centred, 16px clear of
           the columns either side, which share what is left. */}
-      <div className="-mt-px flex shrink-0 flex-wrap items-start justify-between gap-x-4 gap-y-2 px-6 pb-2 md:grid md:h-16 md:grid-cols-[minmax(108px,1fr)_minmax(0,244px)_minmax(0,1fr)] md:pb-0">
+      <div className="-mt-px flex shrink-0 flex-wrap items-start justify-between gap-x-4 gap-y-2 px-6 pb-2 desk:grid desk:h-16 desk:grid-cols-[minmax(108px,1fr)_minmax(0,244px)_minmax(0,1fr)] desk:pb-0">
         <div className="flex w-27 flex-col">
           {/* The discs sit where the reference's do (centres 19, 52 and 85px
               in; prev and next a pixel low), in one recessed well 5.5px wider
@@ -498,7 +498,7 @@ export const IPod = React.memo(function IPod({ onEject, hidden }: { onEject: () 
           </div>
         </div>
 
-        <Display key={current?.title} track={current} player={player} ticking={playing && !hidden} className="order-last w-full md:order-none" />
+        <Display key={current?.title} track={current} player={player} ticking={playing && !hidden} className="order-last w-full desk:order-none" />
 
         {/* Search takes the width its column leaves, up to 176px, with Browse
             beside it; once its well would be under 80px, both go. */}

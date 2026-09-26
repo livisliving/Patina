@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import dynamic from "next/dynamic"
+import { DropdownMenu as Menu } from "radix-ui"
 import {
   Button,
   Window,
@@ -32,6 +33,8 @@ import {
   Dock,
   Wallpaper,
   genie,
+  menuContentClass,
+  menuItemClass,
 } from "@patina/ui"
 
 import { ComputerIcon, DiskIcon, DocIcon, FaceIcon, FolderIcon, HeartIcon, HomeIcon, InfoIcon, IPodIcon, loadPackIcons, LogoIcon, NoteIcon, PillIcon, PrefsIcon, TerminalIcon, TrashIcon } from "./aqua-icons"
@@ -40,7 +43,7 @@ import { MenuBar, type MenuRow, type MenuSpec } from "./menubar"
 import { TONES, type Tone } from "./tones"
 import { useDrag } from "./use-drag"
 import { useMarqueeSelect } from "./use-marquee-select"
-import { prefersReducedMotion, useMediaQuery } from "./use-media-query"
+import { DESKTOP, prefersReducedMotion, useMediaQuery } from "./use-media-query"
 import { MiddleTruncate } from "./middle-truncate"
 import { useResize } from "./use-resize"
 import { Stars } from "./stars"
@@ -206,9 +209,11 @@ function useWindows() {
   const focus = React.useCallback((id: WinId) => {
     setWins((w) => (w[id].z === top.current ? w : { ...w, [id]: { ...w[id], z: ++top.current } }))
   }, [])
-  // Open (or, if minimized, restore) a window and bring it to the front.
+  // Open (or, if minimized, restore) a window and bring it to the front. One
+  // that was open comes back as it was, zoomed or not; one that was closed
+  // opens afresh.
   const open = React.useCallback((id: WinId) => {
-    setWins((w) => ({ ...w, [id]: { open: true, z: ++top.current, minimized: false, opened: ++opened.current } }))
+    setWins((w) => ({ ...w, [id]: { open: true, z: ++top.current, minimized: false, opened: ++opened.current, zoomed: w[id].open ? w[id].zoomed : undefined } }))
   }, [])
   const close = React.useCallback((id: WinId) => {
     setWins((w) => ({ ...w, [id]: { ...w[id], open: false, minimized: false } }))
@@ -245,6 +250,9 @@ type DesktopWindowProps = Omit<
   initial: { x: number; y: number } | (() => { x: number; y: number })
   z: number
   zoomed?: boolean
+  /** In the Dock: still mounted (its place, its size and what it was doing
+   *  survive the Dock), hidden until it comes back. */
+  minimized?: boolean
   /** How recently it was opened; on a phone the latest goes to the top. */
   opened?: number
   active: boolean
@@ -254,28 +262,42 @@ type DesktopWindowProps = Omit<
   onZoom: (id: WinId) => void
 }
 
-function DesktopWindow({ id, title, initial, z, zoomed, opened, active, onRaise, onDismiss, onMinimize, onZoom, className, style, ...props }: DesktopWindowProps) {
+function DesktopWindow({ id, title, initial, z, zoomed, minimized, opened, active, onRaise, onDismiss, onMinimize, onZoom, className, style, ...props }: DesktopWindowProps) {
   const fixed = WINDOWS[id].closeOnly
   const raise = React.useCallback(() => onRaise(id), [onRaise, id])
   const { pos, handleProps } = useDrag(initial, raise)
   const { size, gripProps } = useResize({ w: 260, h: 180 }, raise)
-  const isDesktop = useMediaQuery("(min-width: 768px)")
+  const isDesktop = useMediaQuery(DESKTOP)
   const toggleZoom = React.useCallback(() => onZoom(id), [onZoom, id])
   // On a phone the windows are one column, and a window just opened (or
   // brought back) goes to its top, the latest first — else it would land
   // under all the others and the tap seem to do nothing (the desktop scrolls
   // to it). `order` moves it without moving it in the DOM, so nothing in it
   // restarts.
-  // Only float (apply left/top/size) on desktop. Below md the window is in
-  // normal flow (w-full) — applying the drag offsets to a relative element
-  // would push it off-screen.
+  // Only float (apply left/top/size) on desktop. Stacked (below DESKTOP: a
+  // phone, held either way) the window is in normal flow (w-full) — applying
+  // the drag offsets to a relative element would push it off-screen.
   const placement = !isDesktop
     ? {}
     : zoomed
       ? { left: 8, top: 33, width: "calc(100vw - 16px)", height: "calc(100dvh - 33px - 68px)" }
       : { left: pos.x, top: pos.y, ...(size ? { width: size.w, height: size.h } : null) }
+  // Held sideways (pair:, two windows side by side) a window keeps still
+  // while the page scrolls: it sticks 32px down, where it opened — or, if
+  // it is taller than the screen above the Dock, it scrolls until its foot
+  // is 8px above the Dock and sticks there. The longer of two windows sets
+  // its row's height, so it scrolls as the page does. --win-self-h is its
+  // height, for that sum.
+  React.useEffect(() => {
+    if (isDesktop) return
+    const el = document.querySelector<HTMLElement>(`[data-window-id="${id}"]`)
+    if (!el) return
+    const ro = new ResizeObserver(() => el.style.setProperty("--win-self-h", `${el.offsetHeight}px`))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [isDesktop, id])
   // When zoomed, the maximized geometry comes from inline `placement`. The
-  // per-window fixed-size classes (md:w-[...]/md:h-[...]) are NOT !important, so
+  // per-window fixed-size classes (desk:w-[...]/desk:h-[...]) are NOT !important, so
   // inline width/height already override them — we just must not re-assert an
   // !important width/height here, or it would beat the inline maximized size.
   return (
@@ -288,12 +310,35 @@ function DesktopWindow({ id, title, initial, z, zoomed, opened, active, onRaise,
       onZoom={toggleZoom}
       minimizable={!fixed}
       zoomable={!fixed}
-      titleBarProps={handleProps}
-      resizeGripProps={isDesktop && !zoomed ? gripProps : undefined}
+      // Stacked, the window is part of the scrolling page and drag is a
+      // no-op, but the handle's touch-action: none would still stop a thumb
+      // that lands on the title bar from scrolling.
+      titleBarProps={isDesktop ? handleProps : undefined}
+      // A window that only closes (an About box) is sized to its content and
+      // has no grip, as About This Mac had none.
+      resizeGripProps={isDesktop && !zoomed && !fixed ? gripProps : undefined}
       onPointerDownCapture={raise}
       className={cn(
         // scroll-mt: scrolled to on a phone, it clears the menu bar.
-        "w-full scroll-mt-8 animate-[y2k-window-in_var(--y2k-duration-window)_var(--y2k-ease-aqua)] motion-reduce:animate-none md:absolute",
+        "w-full scroll-mt-8 animate-[y2k-window-in_var(--y2k-duration-window)_var(--y2k-ease-aqua)] motion-reduce:animate-none desk:absolute",
+        // Stacked, the frame clips rather than hides, so what is inside can
+        // stick to the screen (a title bar, a document's section bar).
+        "max-desk:overflow-clip",
+        // Stacked, a title bar sticks under the menu bar while its window is
+        // on screen, so the lights are always in reach however far a long
+        // document is read — opaque, as an inactive pinstripe title bar is
+        // see-through, and a metal one has no surface of its own (the metal
+        // is the frame's): it gets the frame's, as .y2k-metal paints it.
+        "max-desk:[&>[data-slot=window-titlebar]]:sticky max-desk:[&>[data-slot=window-titlebar]]:top-(--y2k-menubar-h) max-desk:[&>[data-slot=window-titlebar]]:z-[4]",
+        "max-desk:[&:not([data-material=metal])>[data-slot=window-titlebar]]:bg-[#e3e3e3]",
+        "max-desk:[&[data-material=metal]>[data-slot=window-titlebar]]:bg-[#c9c9c9] max-desk:[&[data-material=metal]>[data-slot=window-titlebar]]:bg-(image:--y2k-metal) max-desk:[&[data-material=metal]>[data-slot=window-titlebar]]:[background-size:512px_96px]",
+        // …and the metal's rim light stays over it, as on a desktop, where
+        // the title bar is not lifted above the frame.
+        "max-desk:after:z-[5]",
+        // Side by side, the window keeps still (see above).
+        "pair:sticky pair:top-[min(32px,calc(100dvh-var(--y2k-dock-h)-8px-var(--win-self-h,0px)))]",
+        // A minimised window stays mounted and hidden until it comes back.
+        minimized && "hidden",
         className
       )}
       style={{ ...placement, zIndex: z, ...(isDesktop ? null : { order: -(opened ?? 0) }), ...style }}
@@ -421,6 +466,7 @@ function ColumnRow({
       type="button"
       onClick={onSelect}
       onDoubleClick={item.onClick}
+      onKeyDown={(e) => e.key === "Enter" && item.onClick?.()}
       className={cn(
         "flex w-full cursor-default items-center gap-1 px-2 text-left text-[12px] outline-none",
         volume ? "h-10 gap-2" : "h-5",
@@ -470,6 +516,9 @@ function ColumnSplit({ width, onResize }: { width: number; onResize: (w: number)
       role="separator"
       aria-orientation="vertical"
       aria-label="Resize column"
+      aria-valuenow={width}
+      aria-valuemin={COLUMN_MIN}
+      aria-valuemax={COLUMN_MAX}
       tabIndex={0}
       onPointerDown={(e) => {
         from.current = { x: e.clientX, w: width }
@@ -541,6 +590,244 @@ const ColGlyph = () => (
   </svg>
 )
 
+/** The search field at its narrowest, before it goes. */
+const SEARCH_MIN = 96
+
+/** The 10.1 toolbar's overflow: a » at the far end, which lists the places
+ *  the window is too narrow for. */
+function Chevron({ className, ...props }: React.ComponentProps<"button">) {
+  return (
+    <button
+      type="button"
+      aria-label="More places"
+      className={cn(
+        "mt-[2px] flex h-8 w-4 shrink-0 cursor-default items-center justify-center rounded-[4px] text-[#1e1e1e] outline-none",
+        "focus-visible:shadow-(--y2k-focus-ring) data-[state=open]:bg-black/10",
+        className
+      )}
+      {...props}
+    >
+      {/* The chevron is drawn, as 10.1 drew it: two 4 × 7 carets 2px
+          apart, black. */}
+      <svg viewBox="0 0 10 7" width="10" height="7" shapeRendering="crispEdges" aria-hidden>
+        <path d="M0 0h1v1h1v1h1v1h1v1H3v1H2v1H1v1H0zM6 0h1v1h1v1h1v1h1v1H9v1H8v1H7v1H6z" fill="currentColor" />
+      </svg>
+    </button>
+  )
+}
+
+/**
+ * The Finder's toolbar: Back, the view control, the places, Search. Sized to
+ * its window, as the 10.1 Finder's is: the search field gives up its width
+ * (160px down to 96px), then goes; then the places go from the right into
+ * the » menu at the end. Never a second row. Measured, not set at a
+ * breakpoint: each place at its own width, with its label or (on a phone)
+ * without. Its own component, so it measures again each time it is shown.
+ */
+function FinderToolbar({
+  canGoBack,
+  onBack,
+  view,
+  onView,
+  places,
+  searchRef,
+  query,
+  onQuery,
+}: {
+  canGoBack: boolean
+  onBack: () => void
+  view: "icons" | "list" | "columns"
+  onView: (view: "icons" | "list" | "columns") => void
+  places: { label: string; icon: React.ReactNode; onClick: () => void }[]
+  searchRef: React.Ref<HTMLInputElement>
+  query: string
+  onQuery: (query: string) => void
+}) {
+  const barRef = React.useRef<HTMLDivElement>(null)
+  const rulerRef = React.useRef<HTMLDivElement>(null)
+  const [fit, setFit] = React.useState({ places: Infinity, search: true })
+  React.useLayoutEffect(() => {
+    const bar = barRef.current
+    const ruler = rulerRef.current
+    if (!bar || !ruler) return
+    const measure = () => {
+      const css = getComputedStyle(bar)
+      const gap = parseFloat(css.columnGap) || 0
+      const room = bar.clientWidth - parseFloat(css.paddingLeft) - parseFloat(css.paddingRight)
+      // Each at its width with its margins (the separator's 4px either side),
+      // to the fraction of a pixel.
+      const outer = (el: Element) => {
+        const m = getComputedStyle(el)
+        return el.getBoundingClientRect().width + parseFloat(m.marginLeft) + parseFloat(m.marginRight)
+      }
+      const fixed = [...bar.querySelectorAll(":scope > [data-fixed]")].map(outer)
+      const [chevron, ...widths] = [...ruler.children].map(outer)
+      const width = (n: number, search: boolean) => {
+        const row = [...fixed, ...widths.slice(0, n), ...(search ? [SEARCH_MIN] : []), ...(n < widths.length ? [chevron] : [])]
+        return row.reduce((a, b) => a + b, 0) + gap * (row.length - 1)
+      }
+      let n = widths.length
+      const search = width(n, true) <= room
+      if (!search) while (n > 0 && width(n, false) > room) n--
+      setFit((f) => (f.places === n && f.search === search ? f : { places: n, search }))
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(bar)
+    return () => observer.disconnect()
+  }, [])
+  const shown = Math.min(fit.places, places.length)
+  return (
+    <WindowToolbar ref={barRef} className="relative overflow-hidden">
+      <WindowToolbarControl data-fixed label="Back" className="shrink-0">
+        <Button size="icon" aria-label="Back" disabled={!canGoBack} onClick={onBack} className="[&_svg]:h-2 [&_svg]:w-[13px]">
+          <BackGlyph />
+        </Button>
+      </WindowToolbarControl>
+      <WindowToolbarControl data-fixed label="View" className="shrink-0">
+        <SegmentedControl
+          items={[
+            { label: "Icons", icon: <GridGlyph />, active: view === "icons", onClick: () => onView("icons") },
+            { label: "List", icon: <ListGlyph />, active: view === "list", onClick: () => onView("list") },
+            { label: "Columns", icon: <ColGlyph />, active: view === "columns", onClick: () => onView("columns") },
+          ]}
+        />
+      </WindowToolbarControl>
+      <WindowToolbarSeparator data-fixed />
+      {places.slice(0, shown).map((place) => (
+        <WindowToolbarItem key={place.label} icon={place.icon} onClick={place.onClick} className="shrink-0">
+          {place.label}
+        </WindowToolbarItem>
+      ))}
+      <WindowToolbarControl label="Search" className={cn("ml-auto w-40 min-w-24", !fit.search && "hidden")}>
+        <SearchField ref={searchRef} value={query} onChange={onQuery} placeholder="" className="w-full" />
+      </WindowToolbarControl>
+      {shown < places.length && (
+        <Menu.Root modal={false}>
+          <Menu.Trigger asChild>
+            <Chevron className="ml-auto" />
+          </Menu.Trigger>
+          <Menu.Portal>
+            <Menu.Content align="end" sideOffset={2} className={menuContentClass}>
+              {places.slice(shown).map((place) => (
+                <Menu.Item key={place.label} className={cn(menuItemClass, "justify-start gap-2 pl-2")} onSelect={place.onClick}>
+                  <span className="size-4 shrink-0 [&_svg]:size-full">{place.icon}</span>
+                  {place.label}
+                </Menu.Item>
+              ))}
+            </Menu.Content>
+          </Menu.Portal>
+        </Menu.Root>
+      )}
+      {/* The ruler: the chevron and every place at its own width, out of
+          sight, for the measure above. */}
+      <div ref={rulerRef} aria-hidden inert className="pointer-events-none invisible absolute top-0 left-0 flex w-max">
+        <Chevron tabIndex={-1} />
+        {places.map((place) => (
+          <WindowToolbarItem key={place.label} icon={place.icon} tabIndex={-1} className="shrink-0">
+            {place.label}
+          </WindowToolbarItem>
+        ))}
+      </div>
+    </WindowToolbar>
+  )
+}
+
+/* ── A long document's sections, on a phone ───────────────────────── */
+
+/** A heading this close to the section bar's foot is the section in view. */
+const IN_VIEW = 24
+
+/** Where the section bar's foot is once it has stuck: the line a heading is
+ *  "in view" at, and the one it is scrolled to. */
+const stuckFoot = (bar: HTMLElement | null) => (bar ? parseFloat(getComputedStyle(bar).top) + bar.offsetHeight : 0)
+
+/**
+ * On a phone a long document (Help, DESIGN.md, the Changelog) is read by
+ * scrolling the page, and its sections are a pop-up button in a bar on the
+ * window's pinstripe under its title bar, stuck below the title bar (itself
+ * stuck below the menu bar) while the document is on screen. It names the
+ * section in view — the last heading at or above the bar's foot, the first
+ * before any has reached it, the last once the document is scrolled to its
+ * end — and picking one scrolls the page to its heading, which holds the
+ * pick until the reader scrolls for themselves (a short last section can
+ * never reach the bar). The headings carry `data-section`, their label.
+ * Not there on a desktop, where the window scrolls.
+ */
+function SectionBar({ sections }: { sections: string[] }) {
+  const barRef = React.useRef<HTMLDivElement>(null)
+  const [current, setCurrent] = React.useState(sections[0])
+  // Set by a pick; cleared by the reader's own scrolling.
+  const held = React.useRef(false)
+  const isDesktop = useMediaQuery(DESKTOP)
+  // The document: the scroll area beside the bar.
+  const body = () => barRef.current?.parentElement?.querySelector<HTMLElement>('[data-slot="window-scroll-viewport"]') ?? null
+
+  React.useEffect(() => {
+    if (isDesktop) return
+    let raf = 0
+    const spy = () => {
+      raf = 0
+      const doc = body()
+      // Not while its window is in the Dock (hidden, it measures nothing).
+      if (held.current || !doc?.offsetParent) return
+      const headings = Array.from(doc.querySelectorAll<HTMLElement>("[data-section]"))
+      if (!headings.length) return
+      let id = headings[0].dataset.section!
+      if (doc.getBoundingClientRect().bottom <= window.innerHeight + 2) id = headings[headings.length - 1].dataset.section!
+      else {
+        const top = stuckFoot(barRef.current)
+        for (const h of headings) if (h.getBoundingClientRect().top - top <= IN_VIEW) id = h.dataset.section!
+      }
+      setCurrent(id)
+    }
+    const ask = () => {
+      if (!raf) raf = requestAnimationFrame(spy)
+    }
+    // The reader taking over: a finger or a wheel anywhere, as the whole
+    // page scrolls.
+    const release = () => {
+      held.current = false
+    }
+    const takeovers = ["wheel", "touchstart"] as const
+    window.addEventListener("scroll", ask, { passive: true })
+    for (const ev of takeovers) window.addEventListener(ev, release, { passive: true })
+    spy()
+    return () => {
+      if (raf) cancelAnimationFrame(raf)
+      window.removeEventListener("scroll", ask)
+      for (const ev of takeovers) window.removeEventListener(ev, release)
+    }
+  }, [isDesktop])
+
+  const goTo = (id: string) => {
+    const heading = body()?.querySelector<HTMLElement>(`[data-section="${CSS.escape(id)}"]`)
+    if (!heading) return
+    held.current = true
+    setCurrent(id)
+    // The heading lands 12px under the stuck bar.
+    window.scrollTo({
+      top: Math.max(0, heading.getBoundingClientRect().top + window.scrollY - stuckFoot(barRef.current) - 12),
+      behavior: prefersReducedMotion() ? "auto" : "smooth",
+    })
+  }
+
+  return (
+    <div
+      ref={barRef}
+      className="sticky top-[calc(var(--y2k-menubar-h)+var(--y2k-titlebar-h))] z-[3] border-b border-(--y2k-separator) bg-(image:--y2k-pinstripe) px-3 py-2 desk:hidden"
+    >
+      <PopupButton aria-label="Section" value={current} options={sections} onChange={goTo} className="w-full" />
+    </div>
+  )
+}
+
+/** The long documents' sections, as their headings name them (DESIGN.md's
+ *  without the heading's "# "). */
+const HELP_SECTIONS = ["Install", "Build something", "Restyle a page you already have", "Check before you ship", "Change the tone", "Using this desktop", "Source"]
+const DESIGN_SECTIONS = ["Two layers", "Grid", "Colours", "Type", "Materials", "Shapes", "Components", "Don't"]
+const changelogSection = (entry: (typeof CHANGELOG)[number]) => `${entry.version} — ${entry.date}`
+
 /* ── Save dialog: the modal window ────────────────────────────────── */
 
 function SaveDialog({
@@ -593,8 +880,9 @@ function SaveDialog({
 const LOGIN_STAMP = "Sat Sep 20 09:41"
 
 const PROMPT = "patina:~ olivia$ "
-/** A text link in running copy: OS blue, underlined. */
-const LINK = "text-(--y2k-link) underline underline-offset-2"
+/** A text link in running copy: OS blue, underlined, its focus ring drawn
+ *  (outline-solid: Tailwind 4's outline-none leaves the style at none). */
+const LINK = "text-(--y2k-link) underline underline-offset-2 outline-none focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-(--y2k-tone-focus)"
 const INSTALL = ["Installing the Y2K pack…", "✓ DESIGN.md · /y2k-ify · /check-y2k · components.json"]
 
 /** The Terminal window's shell: a handful of commands over the Finder's own
@@ -774,6 +1062,7 @@ export function Desktop() {
     id,
     z: wins[id].z,
     zoomed: wins[id].zoomed,
+    minimized: wins[id].minimized,
     opened: wins[id].opened,
     active: frontId === id,
     onRaise: focus,
@@ -932,7 +1221,7 @@ export function Desktop() {
   // A phone, or any screen without a pointer that hovers (a touch screen):
   // a tap in the Finder opens a file, as a double-click does with a mouse —
   // there is no double-tap to find out about.
-  const tapOpens = useMediaQuery("(max-width: 767px), (hover: none)")
+  const tapOpens = useMediaQuery(`not all and ${DESKTOP}, (hover: none)`)
   // A click in the list or icon view: select the item, and open it too
   // where a tap is the only click there is.
   const choose = (key: string, it: FinderItem) => {
@@ -951,7 +1240,7 @@ export function Desktop() {
   }
 
 
-  const isDesktop = useMediaQuery("(min-width: 768px)")
+  const isDesktop = useMediaQuery(DESKTOP)
   // On a phone, scroll to a window as it opens (it goes to the top of the
   // column: DesktopWindow's `order`) — only when a newer one opens, so
   // closing the latest leaves the page where it is. By its place in the
@@ -970,7 +1259,12 @@ export function Desktop() {
     if (!el) return
     let top = 0
     for (let n: HTMLElement | null = el; n; n = n.offsetParent as HTMLElement | null) top += n.offsetTop
-    window.scrollTo({ top: Math.max(0, top - parseFloat(getComputedStyle(el).scrollMarginTop)), behavior: prefersReducedMotion() ? "auto" : "smooth" })
+    const to = Math.max(0, top - parseFloat(getComputedStyle(el).scrollMarginTop))
+    // Smooth for a hop; a jump for a flight (from the Finder under one
+    // 5000px document to the top): smooth would take over a second, and a
+    // second tap would land on moving content.
+    const far = Math.abs(to - window.scrollY) > 2 * window.innerHeight
+    window.scrollTo({ top: to, behavior: prefersReducedMotion() || far ? "auto" : "smooth" })
   }, [isDesktop, latestId, latestOpened])
   const { band, rootProps } = useMarqueeSelect(setSelected, isDesktop, "desktop:")
   // A second, independent marquee scoped to the Finder file area.
@@ -1125,7 +1419,10 @@ export function Desktop() {
   ]
 
   return (
-    <div className="min-h-dvh overflow-x-hidden font-(family-name:--y2k-font-ui) text-(--y2k-ink)">
+    // Clip, not hide: overflow-x: hidden would make this box a scroll
+    // container that never scrolls (the page does), and nothing in it could
+    // stick to the top of the screen on a phone.
+    <div className="min-h-dvh overflow-x-clip font-(family-name:--y2k-font-ui) text-(--y2k-ink)">
       <Wallpaper photos={WALLPAPERS} />
       <style href="y2k-wallpaper-small" precedence="default">
         {SMALL_WALLPAPER_CSS}
@@ -1138,15 +1435,16 @@ export function Desktop() {
       {isDesktop && (
         <div
           aria-hidden
-          className="absolute inset-0 top-(--y2k-menubar-h) z-0 hidden md:block"
+          className="absolute inset-0 top-(--y2k-menubar-h) z-0 hidden desk:block"
           {...rootProps}
         >
           <Band rect={band} />
         </div>
       )}
 
-      {/* Desktop icons, top-right. Single click selects; double click opens. */}
-      <nav aria-label="Desktop" className="absolute top-9 right-3 z-[1] hidden flex-col items-center gap-3 md:flex">
+      {/* Desktop icons, top-right. Single click selects; double click, or
+          Enter on the keyboard, opens. */}
+      <nav aria-label="Desktop" className="absolute top-9 right-3 z-[1] hidden flex-col items-center gap-3 desk:flex">
         {desktopIcons.map((it) => {
           const key = `desktop:${it.id}`
           return (
@@ -1157,6 +1455,7 @@ export function Desktop() {
               aria-pressed={selected.has(key)}
               onClick={() => selectOnly(key)}
               onDoubleClick={it.onOpen}
+              onKeyDown={(e) => e.key === "Enter" && it.onOpen()}
               className="group flex w-[84px] cursor-default flex-col items-center gap-0.5 outline-none"
             >
               <span className="size-14 [&_svg]:size-full [&_svg]:drop-shadow-[0_2px_3px_rgba(0,0,0,0.4)]">{it.icon}</span>
@@ -1175,8 +1474,15 @@ export function Desktop() {
         })}
       </nav>
 
-      <main className="relative flex flex-col gap-5 px-3 pt-8 pb-24 md:block md:px-0 md:pt-0 md:pb-0">
-        {wins.finder.open && !wins.finder.minimized && (
+      {/* The windows' own stacking context: their z-indexes climb with every
+          focus and must only ever compete with each other — never with the
+          Dock (80), the menu bar (90) or an open menu (100) — so `isolate`
+          at 2 keeps them above the desktop icons and under all the chrome. */}
+      {/* The windows: one column on a phone, the newest first (their
+          `order`); two side by side on a phone held sideways, left to
+          right, each as tall as it is; floating on a desktop. */}
+      <main className="relative isolate z-[2] flex flex-col gap-5 px-3 pt-8 pb-24 pair:grid pair:grid-cols-2 pair:items-start desk:block desk:px-0 desk:pt-0 desk:pb-0">
+        {wins.finder.open && (
           <DesktopWindow
             {...winProps("finder")}
             // The window is named for the folder it shows, its icon before the
@@ -1193,41 +1499,30 @@ export function Desktop() {
             material="metal"
             initial={{ x: 40, y: 56 }}
             onToolbarToggle={() => setFinderToolbar((v) => !v)}
-            className="md:h-[400px] md:w-[640px]"
+            className="desk:h-[400px] desk:w-[640px]"
             status={[
               q ? `${visibleFinderItems.length} of ${hereItems.length} items` : `${hereItems.length} ${hereItems.length === 1 ? "item" : "items"}`,
               chain[0]?.size,
             ]
               .filter(Boolean)
               .join(", ")}
-            toolbar={finderToolbar && 
-              // Sized to the window, not the screen: as the window narrows,
-              // the search field gives up its width (160px down to 96px),
-              // then goes, once the items and a 96px field no longer fit
-              // (they take 368px with their labels).
-              <WindowToolbar className="@container">
-                <WindowToolbarControl label="Back">
-                  <Button size="icon" aria-label="Back" disabled={!finderHistory.length} onClick={goBack} className="[&_svg]:h-2 [&_svg]:w-[13px]">
-                    <BackGlyph />
-                  </Button>
-                </WindowToolbarControl>
-                <WindowToolbarControl label="View">
-                  <SegmentedControl
-                    items={[
-                      { label: "Icons", icon: <GridGlyph />, active: finderView === "icons", onClick: () => setFinderView("icons") },
-                      { label: "List", icon: <ListGlyph />, active: finderView === "list", onClick: () => setFinderView("list") },
-                      { label: "Columns", icon: <ColGlyph />, active: finderView === "columns", onClick: () => setFinderView("columns") },
-                    ]}
-                  />
-                </WindowToolbarControl>
-                <WindowToolbarSeparator />
-                <WindowToolbarItem icon={<ComputerIcon />} onClick={() => navigate([])}>Computer</WindowToolbarItem>
-                <WindowToolbarItem icon={<HomeIcon />} onClick={() => navigate(HOME)}>Home</WindowToolbarItem>
-                <WindowToolbarItem icon={<HeartIcon />} onClick={() => navigate(FAVOURITES)}>Favourites</WindowToolbarItem>
-                <WindowToolbarControl label="Search" className="ml-auto w-40 min-w-24 @max-[480px]:hidden">
-                  <SearchField ref={finderSearch} value={finderQuery} onChange={setFinderQuery} placeholder="" className="w-full" />
-                </WindowToolbarControl>
-              </WindowToolbar>
+            toolbar={
+              finderToolbar && (
+                <FinderToolbar
+                  canGoBack={!!finderHistory.length}
+                  onBack={goBack}
+                  view={finderView}
+                  onView={setFinderView}
+                  places={[
+                    { label: "Computer", icon: <ComputerIcon />, onClick: () => navigate([]) },
+                    { label: "Home", icon: <HomeIcon />, onClick: () => navigate(HOME) },
+                    { label: "Favourites", icon: <HeartIcon />, onClick: () => navigate(FAVOURITES) },
+                  ]}
+                  searchRef={finderSearch}
+                  query={finderQuery}
+                  onQuery={setFinderQuery}
+                />
+              )
             }
           >
             <WindowScrollArea viewportRef={finderViewportRef} className={cn("bg-white", finderView === "columns" && "overflow-hidden")}>
@@ -1267,7 +1562,7 @@ export function Desktop() {
               ) : finderView === "list" ? (
                 // Aqua list view: the pack's Table — the list header, 12px
                 // rows, every other row pale blue, the selection in the tone.
-                <div className="relative min-h-full" {...finderRootProps}>
+                <div className="relative min-h-full select-none" {...finderRootProps}>
                   <Band rect={finderBand} z />
                   <Table>
                     <TableHeader>
@@ -1302,7 +1597,11 @@ export function Desktop() {
                   </Table>
                 </div>
               ) : (
-                <div className="relative grid min-h-full grid-cols-3 content-start gap-y-3 p-3 sm:grid-cols-4" {...finderRootProps}>
+                // A drag from anywhere that is not an icon or its name — the
+                // padding, the gaps, the sides of a cell, the space under the
+                // last row — draws the rubber band (an icon is only as wide as
+                // its name, centred in its cell, so the rest of the cell is free).
+                <div className="relative grid min-h-full grid-cols-3 content-start gap-y-3 p-3 select-none sm:grid-cols-4" {...finderRootProps}>
                   <Band rect={finderBand} z />
                   {visibleFinderItems.map((it) => {
                     const key = `finder:${it.label}`
@@ -1315,7 +1614,8 @@ export function Desktop() {
                         aria-pressed={selected.has(key)}
                         onClick={() => !it.disabled && choose(key, it)}
                         onDoubleClick={() => openItem(it, placePath)}
-                        className="group relative z-[2] flex cursor-default flex-col items-center gap-1 outline-none disabled:opacity-45"
+                        onKeyDown={(e) => e.key === "Enter" && !it.disabled && openItem(it, placePath)}
+                        className="group relative z-[2] flex max-w-full cursor-default flex-col items-center gap-1 justify-self-center outline-none disabled:opacity-45"
                       >
                         <span className="size-12 [&_svg]:size-full">{it.icon}</span>
                         {/* Two lines at most, then cut from the middle. */}
@@ -1338,14 +1638,14 @@ export function Desktop() {
           </DesktopWindow>
         )}
 
-        {wins.about.open && !wins.about.minimized && (
+        {wins.about.open && (
           <DesktopWindow
             {...winProps("about")}
             // Top right: its 300px end 16px short of the desktop icons. The
             // classes paint it there before the page wakes (the same sum in
             // CSS: 412 = ICON_COLUMN + 16 + 300); then `initial` takes over.
             initial={() => ({ x: typeof window === "undefined" ? 40 : down4(Math.max(40, window.innerWidth - ICON_COLUMN - 16 - 300)), y: 56 })}
-            className="md:top-14 md:left-[round(down,max(40px,100vw_-_412px),4px)] md:w-[300px]"
+            className="desk:top-14 desk:left-[round(down,max(40px,100vw_-_412px),4px)] desk:w-[300px]"
           >
             <WindowBody className="flex flex-col items-center gap-2 pt-5 pb-5 text-center">
               <h1>
@@ -1367,8 +1667,8 @@ export function Desktop() {
           </DesktopWindow>
         )}
 
-        {wins.appinfo.open && !wins.appinfo.minimized && (
-          <DesktopWindow {...winProps("appinfo")} title={titleOf("appinfo")} initial={{ x: 96, y: 96 }} className="md:w-[300px]">
+        {wins.appinfo.open && (
+          <DesktopWindow {...winProps("appinfo")} title={titleOf("appinfo")} initial={{ x: 96, y: 96 }} className="desk:w-[300px]">
             <WindowBody className="flex flex-col items-center gap-2 pt-5 pb-6 text-center text-[13px]">
               <span className="size-16 [&_img]:size-full [&_svg]:size-full">
                 {Object.values(WINDOWS).find((w) => w.app === aboutApp)?.icon}
@@ -1379,11 +1679,11 @@ export function Desktop() {
           </DesktopWindow>
         )}
 
-        {wins.readme.open && !wins.readme.minimized && (
+        {wins.readme.open && (
           <DesktopWindow
             {...winProps("readme")}
             initial={{ x: 300, y: 84 }}
-            className="md:h-[360px] md:w-[460px]"
+            className="desk:h-[360px] desk:w-[460px]"
             status={savedNote ?? undefined}
             toolbar={
               <WindowToolbar>
@@ -1446,12 +1746,13 @@ export function Desktop() {
           </DesktopWindow>
         )}
 
-        {wins.help.open && !wins.help.minimized && (
+        {wins.help.open && (
           <DesktopWindow
             {...winProps("help")}
             initial={{ x: 240, y: 72 }}
-            className="md:h-[460px] md:w-[520px]"
+            className="desk:h-[460px] desk:w-[520px]"
           >
+            <SectionBar sections={HELP_SECTIONS} />
             <WindowScrollArea className="bg-white shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)]">
               <div className="flex flex-col gap-3 px-6 py-5 text-[12px] leading-[1.6]">
                 <h2 className="flex items-center gap-2 text-[13px] font-bold">
@@ -1464,7 +1765,7 @@ export function Desktop() {
                   card. Y2K is the first pack: Mac OS X Aqua in five millennium colours. This desktop is built with it.
                 </p>
 
-                <h3 className="mt-1 font-bold">Install</h3>
+                <h3 data-section="Install" className="mt-1 font-bold">Install</h3>
                 <p>Run this in a React project that uses Tailwind (a new create-next-app is fine):</p>
                 <Mono className="y2k-field block px-[6px] py-1">{INIT}</Mono>
                 <p>
@@ -1485,13 +1786,13 @@ export function Desktop() {
                   npx shadcn@latest add {process.env.NEXT_PUBLIC_REGISTRY}/window.json
                 </Mono>
 
-                <h3 className="mt-1 font-bold">Build something</h3>
+                <h3 data-section="Build something" className="mt-1 font-bold">Build something</h3>
                 <p>
                   Ask your agent the way you normally would, for example &ldquo;make a settings page&rdquo;. It reads
                   DESIGN.md first and builds the page from the pack&apos;s windows, buttons and controls.
                 </p>
 
-                <h3 className="mt-1 font-bold">Restyle a page you already have</h3>
+                <h3 data-section="Restyle a page you already have" className="mt-1 font-bold">Restyle a page you already have</h3>
                 <p>
                   Run <Mono>/y2k-ify</Mono> in your agent. It rebuilds the page with the pack&apos;s components and
                   keeps what the page does (same routes, same data), then runs <Mono>/check-y2k</Mono> on what it
@@ -1499,14 +1800,14 @@ export function Desktop() {
                   variant and size names.
                 </p>
 
-                <h3 className="mt-1 font-bold">Check before you ship</h3>
+                <h3 data-section="Check before you ship" className="mt-1 font-bold">Check before you ship</h3>
                 <p>
                   <Mono>/check-y2k</Mono>, or <Mono className="whitespace-nowrap">node scripts/check-y2k.mjs .</Mono> in a terminal, reads the rules
                   out of DESIGN.md and lists every place the page slips back to the defaults: grey cards, the
                   purple-to-blue gradient, thin-line icons. It exits with an error when it finds one, so it can run in CI.
                 </p>
 
-                <h3 className="mt-1 font-bold">Change the tone</h3>
+                <h3 data-section="Change the tone" className="mt-1 font-bold">Change the tone</h3>
                 <p>
                   There are five: Y2K pink, Aqua, Lime, Tangerine and Grape. The tone colours the gel, the selection
                   and the wallpaper. The installer sets the one you pick on <Mono>&lt;html&gt;</Mono>; to change it
@@ -1514,7 +1815,7 @@ export function Desktop() {
                   Here, choose one from the ★ menu or open Tone Preferences.
                 </p>
 
-                <h3 className="mt-1 font-bold">Using this desktop</h3>
+                <h3 data-section="Using this desktop" className="mt-1 font-bold">Using this desktop</h3>
                 <p>
                   Double-click an icon to open it and drag a window by its title bar. The three lights at the top left
                   close, minimise and zoom. Everything else is in the Dock. The Design System app shows the pack&apos;s
@@ -1525,7 +1826,7 @@ export function Desktop() {
                   has the rules in full.
                 </p>
 
-                <h3 className="mt-1 font-bold">Source</h3>
+                <h3 data-section="Source" className="mt-1 font-bold">Source</h3>
                 <p>
                   The code is on GitHub:{" "}
                   <a href="https://github.com/livisliving/Patina" target="_blank" rel="noopener noreferrer" className={LINK}>
@@ -1537,11 +1838,11 @@ export function Desktop() {
           </DesktopWindow>
         )}
 
-        {wins.buttons.open && !wins.buttons.minimized && (
+        {wins.buttons.open && (
           <DesktopWindow
             {...winProps("buttons")}
             initial={{ x: 200, y: 110 }}
-            className="md:h-[480px] md:w-[560px]"
+            className="desk:h-[480px] desk:w-[560px]"
             toolbar={
               <WindowToolbar>
                 <span className="text-[12px] text-(--y2k-ink-secondary)">Components</span>
@@ -1559,11 +1860,11 @@ export function Desktop() {
           </DesktopWindow>
         )}
 
-        {wins.window.open && !wins.window.minimized && (
+        {wins.window.open && (
           <DesktopWindow
             {...winProps("window")}
             initial={{ x: 360, y: 150 }}
-            className="md:w-[340px]"
+            className="desk:w-[340px]"
           >
             <WindowBody className="flex gap-3 pt-5">
               <HeartIcon className="size-12 shrink-0 drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]" />
@@ -1581,12 +1882,13 @@ export function Desktop() {
           </DesktopWindow>
         )}
 
-        {wins.design.open && !wins.design.minimized && (
+        {wins.design.open && (
           <DesktopWindow
             {...winProps("design")}
             initial={{ x: 260, y: 96 }}
-            className="md:h-[440px] md:w-[520px]"
+            className="desk:h-[440px] desk:w-[520px]"
           >
+            <SectionBar sections={DESIGN_SECTIONS} />
             <WindowScrollArea className="bg-white shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)]">
               {/* Body is set in the Aqua UI face (Lucida Grande), not the mono
                   face — only the inline code spans stay monospaced. This is a
@@ -1601,7 +1903,7 @@ export function Desktop() {
                   shorter version.
                 </p>
 
-                <h3 className="mt-1 font-bold"># Two layers</h3>
+                <h3 data-section="Two layers" className="mt-1 font-bold"># Two layers</h3>
                 <p>
                   <strong>Structure</strong> is Mac OS X Aqua from 2000 to 2005, and it is the same in every tone:
                   pinstriped windows, three glossy traffic lights at the top left, a centred bold title, soft drop
@@ -1611,7 +1913,7 @@ export function Desktop() {
                   screen, and don&apos;t colour text with a tone.
                 </p>
 
-                <h3 className="mt-1 font-bold"># Grid</h3>
+                <h3 data-section="Grid" className="mt-1 font-bold"># Grid</h3>
                 <p>
                   Everything except text snaps to a <strong>4px</strong> grid: spacing, sizes, radii and offsets. There
                   are three exceptions: 1px hairlines, the 2 or 3px highlights on gel, and Aqua 10.0&apos;s own
@@ -1620,7 +1922,7 @@ export function Desktop() {
                   <strong>Font sizes don&apos;t snap.</strong> They stay at the sizes Apple used.
                 </p>
 
-                <h3 className="mt-1 font-bold"># Colours</h3>
+                <h3 data-section="Colours" className="mt-1 font-bold"># Colours</h3>
                 <p>
                   The base colours are Y2K pink <Mono>#e8449a</Mono>, aqua <Mono>#4d83d2</Mono>,
                   lime <Mono>#7fc31c</Mono>, tangerine <Mono>#e8891a</Mono> and grape{" "}
@@ -1637,7 +1939,7 @@ export function Desktop() {
                   System app.
                 </p>
 
-                <h3 className="mt-1 font-bold"># Type</h3>
+                <h3 data-section="Type" className="mt-1 font-bold"># Type</h3>
                 <p>
                   Lucida Grande comes first, then open-source Lato on machines that aren&apos;t Macs, then the system
                   sans. EB Garamond is only for the wordmark, at 44px, as gel text. Code is Monaco at 11px. Aqua uses
@@ -1648,14 +1950,14 @@ export function Desktop() {
                   is here to replace.
                 </p>
 
-                <h3 className="mt-1 font-bold"># Materials</h3>
+                <h3 data-section="Materials" className="mt-1 font-bold"># Materials</h3>
                 <p>
                   Controls are white gel or tone gel. Every window surface is pinstriped, title and menu bars included.
                   iTunes-style windows are brushed metal, and hero surfaces are translucent plastic or chrome. Only
                   windows, menus, the Dock and gel have shadows. There are no cards, so there are no card shadows.
                 </p>
 
-                <h3 className="mt-1 font-bold"># Shapes</h3>
+                <h3 data-section="Shapes" className="mt-1 font-bold"># Shapes</h3>
                 <p>
                   Push buttons are capsules. Windows have 8px corners on top and 6px below; group boxes, tab panels and
                   menus 5px; segmented controls and pop-ups 4px; folder tabs 7px on top; text fields 2px and search
@@ -1663,7 +1965,7 @@ export function Desktop() {
                   cap, never a thin-line set.
                 </p>
 
-                <h3 className="mt-1 font-bold"># Components</h3>
+                <h3 data-section="Components" className="mt-1 font-bold"># Components</h3>
                 <p>
                   Push buttons are 20px tall and at least 68px wide, with a 13px regular label in black on gel and a
                   deep, soft shadow. Each window has one default button, in the tone gel; the throb it does in dialogues
@@ -1677,7 +1979,7 @@ export function Desktop() {
                   black triangle under apps that are running.
                 </p>
 
-                <h3 className="mt-1 font-bold"># Don&apos;t</h3>
+                <h3 data-section="Don't" className="mt-1 font-bold"># Don&apos;t</h3>
                 <p>
                   <Mono>/check-y2k</Mono> fails on any of these: grey cards and zinc or slate surfaces; the
                   purple-to-blue AI gradient; 8 to 16px card radii; shadows on anything that isn&apos;t a window; thin-line
@@ -1692,18 +1994,19 @@ export function Desktop() {
           </DesktopWindow>
         )}
 
-        {wins.changelog.open && !wins.changelog.minimized && (
+        {wins.changelog.open && (
           <DesktopWindow
             {...winProps("changelog")}
             initial={{ x: 300, y: 128 }}
-            className="md:h-[360px] md:w-[440px]"
+            className="desk:h-[360px] desk:w-[440px]"
           >
+            <SectionBar sections={CHANGELOG.map(changelogSection)} />
             <WindowScrollArea className="bg-white shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)]">
               <div className="flex flex-col gap-3 px-6 py-5 text-[12px] leading-[1.6]">
                 <h2 className="text-[13px] font-bold">Changelog</h2>
                 {CHANGELOG.map((entry) => (
                   <div key={entry.version}>
-                    <p className="font-bold">{`${entry.version} — ${entry.date}`}</p>
+                    <p data-section={changelogSection(entry)} className="font-bold">{changelogSection(entry)}</p>
                     <ul className="mt-1 flex list-disc flex-col gap-1 pl-5 text-(--y2k-ink-secondary)">
                       {entry.items.map((item) => (
                         <li key={item}>{item}</li>
@@ -1719,22 +2022,22 @@ export function Desktop() {
           </DesktopWindow>
         )}
 
-        {wins.terminal.open && !wins.terminal.minimized && (
+        {wins.terminal.open && (
           <DesktopWindow
             {...winProps("terminal")}
             material="metal"
             initial={{ x: 340, y: 160 }}
-            className="md:h-[300px] md:w-[480px]"
+            className="desk:h-[300px] desk:w-[480px]"
           >
             <TerminalSession files={finderItems} onOpen={(file) => openItem(file, ["Patina HD"])} />
           </DesktopWindow>
         )}
 
-        {wins.tone.open && !wins.tone.minimized && (
+        {wins.tone.open && (
           <DesktopWindow
             {...winProps("tone")}
             initial={{ x: 420, y: 190 }}
-            className="md:h-[360px] md:w-[480px]"
+            className="desk:h-[360px] desk:w-[480px]"
             toolbar={
               <WindowToolbar>
                 <SearchField value={toneQuery} onChange={setToneQuery} placeholder="" className="ml-auto w-36" />
@@ -1797,8 +2100,8 @@ export function Desktop() {
           </DesktopWindow>
         )}
 
-        {/* The iPod plays on while minimized, so it stays mounted (hidden)
-            until it is closed or ejected. */}
+        {/* The iPod plays on while minimized: like every window it stays
+            mounted (hidden) until it is closed or ejected. */}
         {wins.ipod.open && (
           <DesktopWindow
             {...winProps("ipod")}
@@ -1810,10 +2113,7 @@ export function Desktop() {
               return { x: 16, y: down4(Math.max(32, window.innerHeight - dock - 400 - 16)) }
             }}
             // The same place in CSS, for the paint before the page wakes.
-            className={cn(
-              "md:top-[round(down,max(32px,100dvh_-_var(--y2k-dock-h)_-_416px),4px)] md:left-4 md:h-[400px] md:w-[600px]",
-              wins.ipod.minimized && "hidden"
-            )}
+            className="desk:top-[round(down,max(32px,100dvh_-_var(--y2k-dock-h)_-_416px),4px)] desk:left-4 desk:h-[400px] desk:w-[600px]"
           >
             <IPod onEject={ejectIPod} hidden={wins.ipod.minimized} />
           </DesktopWindow>
@@ -1822,7 +2122,9 @@ export function Desktop() {
 
       <Dock
         items={[
-          { id: "finder", label: "Finder", icon: <FaceIcon />, running: wins.finder.open, onClick: openWin("finder") },
+          // The Finder never quits (its menu has no Quit), so its triangle
+          // stays even with every Finder window closed, as in 10.1.
+          { id: "finder", label: "Finder", icon: <FaceIcon />, running: true, onClick: openWin("finder") },
           { id: "readme", label: "Read Me", icon: <NoteIcon />, running: wins.readme.open, onClick: openWin("readme") },
           { id: "tone", label: "Tone Preferences", icon: <PrefsIcon />, running: wins.tone.open, onClick: openWin("tone") },
           { id: "buttons", label: "Design System", icon: <PillIcon />, running: wins.buttons.open, onClick: openWin("buttons") },

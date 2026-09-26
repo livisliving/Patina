@@ -45,7 +45,7 @@ export function Stars() {
   if (!hydrated) return null
 
   return (
-    <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-[9] hidden overflow-hidden md:block">
+    <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-[9] hidden overflow-hidden desk:block">
       {sparks.map((s, i) => (
         <svg
           key={i}

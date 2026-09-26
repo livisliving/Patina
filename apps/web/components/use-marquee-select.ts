@@ -4,10 +4,15 @@ import * as React from "react"
 
 type Rect = { x: number; y: number; w: number; h: number }
 
+/** What a marquee may not start on. */
+const NOT_EMPTY = "[data-select-item], button, a, input, th, [role=separator]"
+
 /**
  * Classic Finder rubber-band selection. Attach `rootProps` to a background
- * layer; only drags that start on the background itself (not on an icon or a
- * window) begin a marquee. At pointer-down it snapshots every element carrying
+ * layer; a drag that starts on empty space in it — the layer itself, or
+ * anything inside it that is not an item or a control (a Finder grid's
+ * padding and gaps) — begins a marquee; one on an icon, a row, a button or
+ * a column header does not. At pointer-down it snapshots every element carrying
  * `data-select-item="<key>"` whose key starts with `keyPrefix` (position read
  * once, since the DOM doesn't move during the drag); each pointer-move then
  * intersects the live band against that snapshot and reports the hits via
@@ -35,8 +40,9 @@ export function useMarqueeSelect(
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent<HTMLElement>) => {
       if (!enabled || e.button !== 0) return
-      // Only start from the background itself, not an icon/window on top of it.
-      if (e.target !== e.currentTarget) return
+      // Only start from empty space: not an icon or a row, not a control.
+      const target = e.target as Element
+      if (!e.currentTarget.contains(target) || target.closest(NOT_EMPTY)) return
       const root = e.currentTarget
       const r = root.getBoundingClientRect()
       // Selectable items may live in sibling layers (the desktop icon nav) or
