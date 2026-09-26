@@ -454,6 +454,7 @@ function ColumnRow({
       type="button"
       onClick={onSelect}
       onDoubleClick={item.onClick}
+      onKeyDown={(e) => e.key === "Enter" && item.onClick?.()}
       className={cn(
         "flex w-full cursor-default items-center gap-1 px-2 text-left text-[12px] outline-none",
         volume ? "h-10 gap-2" : "h-5",
@@ -503,6 +504,9 @@ function ColumnSplit({ width, onResize }: { width: number; onResize: (w: number)
       role="separator"
       aria-orientation="vertical"
       aria-label="Resize column"
+      aria-valuenow={width}
+      aria-valuemin={COLUMN_MIN}
+      aria-valuemax={COLUMN_MAX}
       tabIndex={0}
       onPointerDown={(e) => {
         from.current = { x: e.clientX, w: width }
@@ -720,8 +724,9 @@ function SaveDialog({
 const LOGIN_STAMP = "Sat Sep 20 09:41"
 
 const PROMPT = "patina:~ olivia$ "
-/** A text link in running copy: OS blue, underlined. */
-const LINK = "text-(--y2k-link) underline underline-offset-2"
+/** A text link in running copy: OS blue, underlined, its focus ring drawn
+ *  (outline-solid: Tailwind 4's outline-none leaves the style at none). */
+const LINK = "text-(--y2k-link) underline underline-offset-2 outline-none focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-(--y2k-tone-focus)"
 const INSTALL = ["Installing the Y2K pack…", "✓ DESIGN.md · /y2k-ify · /check-y2k · components.json"]
 
 /** The Terminal window's shell: a handful of commands over the Finder's own
@@ -1280,7 +1285,8 @@ export function Desktop() {
         </div>
       )}
 
-      {/* Desktop icons, top-right. Single click selects; double click opens. */}
+      {/* Desktop icons, top-right. Single click selects; double click, or
+          Enter on the keyboard, opens. */}
       <nav aria-label="Desktop" className="absolute top-9 right-3 z-[1] hidden flex-col items-center gap-3 desk:flex">
         {desktopIcons.map((it) => {
           const key = `desktop:${it.id}`
@@ -1292,6 +1298,7 @@ export function Desktop() {
               aria-pressed={selected.has(key)}
               onClick={() => selectOnly(key)}
               onDoubleClick={it.onOpen}
+              onKeyDown={(e) => e.key === "Enter" && it.onOpen()}
               className="group flex w-[84px] cursor-default flex-col items-center gap-0.5 outline-none"
             >
               <span className="size-14 [&_svg]:size-full [&_svg]:drop-shadow-[0_2px_3px_rgba(0,0,0,0.4)]">{it.icon}</span>
@@ -1453,6 +1460,7 @@ export function Desktop() {
                         aria-pressed={selected.has(key)}
                         onClick={() => !it.disabled && choose(key, it)}
                         onDoubleClick={() => openItem(it, placePath)}
+                        onKeyDown={(e) => e.key === "Enter" && !it.disabled && openItem(it, placePath)}
                         className="group relative z-[2] flex cursor-default flex-col items-center gap-1 outline-none disabled:opacity-45"
                       >
                         <span className="size-12 [&_svg]:size-full">{it.icon}</span>

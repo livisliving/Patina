@@ -109,7 +109,7 @@ function FootButton({ on, className, ...props }: React.ComponentProps<"button"> 
         "shadow-[0_1px_0_rgba(255,255,255,0.75),0_0_0_1px_rgba(0,0,0,0.1)] active:brightness-90",
         "text-[#2b2b2b] [&_svg]:drop-shadow-[0_1px_0_rgba(255,255,255,0.8)]",
         "aria-pressed:text-(--y2k-tone) aria-pressed:[&_svg]:drop-shadow-[0_0_2px_color-mix(in_srgb,var(--y2k-tone)_70%,transparent)]",
-        "focus-visible:outline-3 focus-visible:outline-offset-1 focus-visible:outline-(--y2k-tone-focus)",
+        "focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-offset-1 focus-visible:outline-(--y2k-tone-focus)",
         className
       )}
       {...props}
