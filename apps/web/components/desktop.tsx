@@ -206,9 +206,11 @@ function useWindows() {
   const focus = React.useCallback((id: WinId) => {
     setWins((w) => (w[id].z === top.current ? w : { ...w, [id]: { ...w[id], z: ++top.current } }))
   }, [])
-  // Open (or, if minimized, restore) a window and bring it to the front.
+  // Open (or, if minimized, restore) a window and bring it to the front. One
+  // that was open comes back as it was, zoomed or not; one that was closed
+  // opens afresh.
   const open = React.useCallback((id: WinId) => {
-    setWins((w) => ({ ...w, [id]: { open: true, z: ++top.current, minimized: false, opened: ++opened.current } }))
+    setWins((w) => ({ ...w, [id]: { open: true, z: ++top.current, minimized: false, opened: ++opened.current, zoomed: w[id].open ? w[id].zoomed : undefined } }))
   }, [])
   const close = React.useCallback((id: WinId) => {
     setWins((w) => ({ ...w, [id]: { ...w[id], open: false, minimized: false } }))
@@ -245,6 +247,9 @@ type DesktopWindowProps = Omit<
   initial: { x: number; y: number } | (() => { x: number; y: number })
   z: number
   zoomed?: boolean
+  /** In the Dock: still mounted (its place, its size and what it was doing
+   *  survive the Dock), hidden until it comes back. */
+  minimized?: boolean
   /** How recently it was opened; on a phone the latest goes to the top. */
   opened?: number
   active: boolean
@@ -254,7 +259,7 @@ type DesktopWindowProps = Omit<
   onZoom: (id: WinId) => void
 }
 
-function DesktopWindow({ id, title, initial, z, zoomed, opened, active, onRaise, onDismiss, onMinimize, onZoom, className, style, ...props }: DesktopWindowProps) {
+function DesktopWindow({ id, title, initial, z, zoomed, minimized, opened, active, onRaise, onDismiss, onMinimize, onZoom, className, style, ...props }: DesktopWindowProps) {
   const fixed = WINDOWS[id].closeOnly
   const raise = React.useCallback(() => onRaise(id), [onRaise, id])
   const { pos, handleProps } = useDrag(initial, raise)
@@ -327,6 +332,8 @@ function DesktopWindow({ id, title, initial, z, zoomed, opened, active, onRaise,
         "max-desk:after:z-[5]",
         // Side by side, the window keeps still (see above).
         "pair:sticky pair:top-[min(32px,calc(100dvh-var(--y2k-dock-h)-8px-var(--win-self-h,0px)))]",
+        // A minimised window stays mounted and hidden until it comes back.
+        minimized && "hidden",
         className
       )}
       style={{ ...placement, zIndex: z, ...(isDesktop ? null : { order: -(opened ?? 0) }), ...style }}
@@ -614,7 +621,8 @@ function SectionBar({ sections }: { sections: string[] }) {
     const spy = () => {
       raf = 0
       const doc = body()
-      if (held.current || !doc) return
+      // Not while its window is in the Dock (hidden, it measures nothing).
+      if (held.current || !doc?.offsetParent) return
       const headings = Array.from(doc.querySelectorAll<HTMLElement>("[data-section]"))
       if (!headings.length) return
       let id = headings[0].dataset.section!
@@ -906,6 +914,7 @@ export function Desktop() {
     id,
     z: wins[id].z,
     zoomed: wins[id].zoomed,
+    minimized: wins[id].minimized,
     opened: wins[id].opened,
     active: frontId === id,
     onRaise: focus,
@@ -1325,7 +1334,7 @@ export function Desktop() {
           `order`); two side by side on a phone held sideways, left to
           right, each as tall as it is; floating on a desktop. */}
       <main className="relative isolate z-[2] flex flex-col gap-5 px-3 pt-8 pb-24 pair:grid pair:grid-cols-2 pair:items-start desk:block desk:px-0 desk:pt-0 desk:pb-0">
-        {wins.finder.open && !wins.finder.minimized && (
+        {wins.finder.open && (
           <DesktopWindow
             {...winProps("finder")}
             // The window is named for the folder it shows, its icon before the
@@ -1488,7 +1497,7 @@ export function Desktop() {
           </DesktopWindow>
         )}
 
-        {wins.about.open && !wins.about.minimized && (
+        {wins.about.open && (
           <DesktopWindow
             {...winProps("about")}
             // Top right: its 300px end 16px short of the desktop icons. The
@@ -1517,7 +1526,7 @@ export function Desktop() {
           </DesktopWindow>
         )}
 
-        {wins.appinfo.open && !wins.appinfo.minimized && (
+        {wins.appinfo.open && (
           <DesktopWindow {...winProps("appinfo")} title={titleOf("appinfo")} initial={{ x: 96, y: 96 }} className="desk:w-[300px]">
             <WindowBody className="flex flex-col items-center gap-2 pt-5 pb-6 text-center text-[13px]">
               <span className="size-16 [&_img]:size-full [&_svg]:size-full">
@@ -1529,7 +1538,7 @@ export function Desktop() {
           </DesktopWindow>
         )}
 
-        {wins.readme.open && !wins.readme.minimized && (
+        {wins.readme.open && (
           <DesktopWindow
             {...winProps("readme")}
             initial={{ x: 300, y: 84 }}
@@ -1596,7 +1605,7 @@ export function Desktop() {
           </DesktopWindow>
         )}
 
-        {wins.help.open && !wins.help.minimized && (
+        {wins.help.open && (
           <DesktopWindow
             {...winProps("help")}
             initial={{ x: 240, y: 72 }}
@@ -1688,7 +1697,7 @@ export function Desktop() {
           </DesktopWindow>
         )}
 
-        {wins.buttons.open && !wins.buttons.minimized && (
+        {wins.buttons.open && (
           <DesktopWindow
             {...winProps("buttons")}
             initial={{ x: 200, y: 110 }}
@@ -1710,7 +1719,7 @@ export function Desktop() {
           </DesktopWindow>
         )}
 
-        {wins.window.open && !wins.window.minimized && (
+        {wins.window.open && (
           <DesktopWindow
             {...winProps("window")}
             initial={{ x: 360, y: 150 }}
@@ -1732,7 +1741,7 @@ export function Desktop() {
           </DesktopWindow>
         )}
 
-        {wins.design.open && !wins.design.minimized && (
+        {wins.design.open && (
           <DesktopWindow
             {...winProps("design")}
             initial={{ x: 260, y: 96 }}
@@ -1844,7 +1853,7 @@ export function Desktop() {
           </DesktopWindow>
         )}
 
-        {wins.changelog.open && !wins.changelog.minimized && (
+        {wins.changelog.open && (
           <DesktopWindow
             {...winProps("changelog")}
             initial={{ x: 300, y: 128 }}
@@ -1872,7 +1881,7 @@ export function Desktop() {
           </DesktopWindow>
         )}
 
-        {wins.terminal.open && !wins.terminal.minimized && (
+        {wins.terminal.open && (
           <DesktopWindow
             {...winProps("terminal")}
             material="metal"
@@ -1883,7 +1892,7 @@ export function Desktop() {
           </DesktopWindow>
         )}
 
-        {wins.tone.open && !wins.tone.minimized && (
+        {wins.tone.open && (
           <DesktopWindow
             {...winProps("tone")}
             initial={{ x: 420, y: 190 }}
@@ -1950,8 +1959,8 @@ export function Desktop() {
           </DesktopWindow>
         )}
 
-        {/* The iPod plays on while minimized, so it stays mounted (hidden)
-            until it is closed or ejected. */}
+        {/* The iPod plays on while minimized: like every window it stays
+            mounted (hidden) until it is closed or ejected. */}
         {wins.ipod.open && (
           <DesktopWindow
             {...winProps("ipod")}
@@ -1963,10 +1972,7 @@ export function Desktop() {
               return { x: 16, y: down4(Math.max(32, window.innerHeight - dock - 400 - 16)) }
             }}
             // The same place in CSS, for the paint before the page wakes.
-            className={cn(
-              "desk:top-[round(down,max(32px,100dvh_-_var(--y2k-dock-h)_-_416px),4px)] desk:left-4 desk:h-[400px] desk:w-[600px]",
-              wins.ipod.minimized && "hidden"
-            )}
+            className="desk:top-[round(down,max(32px,100dvh_-_var(--y2k-dock-h)_-_416px),4px)] desk:left-4 desk:h-[400px] desk:w-[600px]"
           >
             <IPod onEject={ejectIPod} hidden={wins.ipod.minimized} />
           </DesktopWindow>
