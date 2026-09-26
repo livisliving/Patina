@@ -286,12 +286,18 @@ export async function update({ cwd, to, source: sourceArg, force, dryRun, add = 
  *  `kept` and every file of the items it `keptItems` keep the fingerprint
  *  patina.json already had for them, or a change made to one here would
  *  pass for the pack's on the next update. The items' file lists come
- *  from the registry init installed from, all at once. */
+ *  from the registry init installed from, all at once, then one at a time
+ *  for any that failed: a small server refuses a burst, and an item left
+ *  out leaves its files with no fingerprint, so update would replace an
+ *  edit to one of them without a word. */
 export async function recordInstall(cwd, { registry, items, version = null, kept = [], keptItems = [] }) {
   const layout = layoutOf(cwd)
   const before = readManifest(cwd)?.files ?? {}
   const registrySource = sourceAt(registry)
-  const jsons = await Promise.all(items.map((name) => registrySource.read(`${name}.json`).catch(() => null)))
+  const readItem = (name) => registrySource.read(`${name}.json`).catch(() => null)
+  const jsons = await Promise.all(items.map(readItem))
+  for (const [i, json] of jsons.entries()) if (json === null) jsons[i] = await readItem(items[i])
+  for (const [i, json] of jsons.entries()) if (json === null) console.log(warn(`${items[i]} — could not read it from ${registry}, so its files are not in ${MANIFEST}`))
   const targets = [
     ...jsons.flatMap((json, i) => (json ? JSON.parse(json).files ?? [] : []).map((file) => [targetPath(layout, file.target ?? file.path), keptItems.includes(items[i])])),
     ...COPIES.map(([, to]) => [path.join(cwd, to), kept.includes(to)]),
