@@ -591,6 +591,9 @@ async function install({ cwd, registry, components, force, dryRun, yes, ...rest 
       }
       fixThemeImport(cwd, themes, { dryRun })
       desktopReady = desktop
+      // shadcn's files are written too: a re-run that only replaces the
+      // components has done what it was asked, and says so by its exit code.
+      written += adding.length
       // What was installed, and each file as it was written: `update` reads
       // it to know which items are the pack's and which files were changed
       // since. The brief written above stays in the file.
