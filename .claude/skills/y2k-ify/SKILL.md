@@ -30,9 +30,11 @@ which one they want:
 Then set `data-tone="<pink|aqua|lime|tangerine|grape>"` on `<html>`.
 Installing the pack for someone: run `npx @pat1na/cli@latest init --setup`
 in their project, in the background, and tell them to answer in the Setup
-Assistant it opens in their browser (the tone is one of its questions). No
-browser where you run? Ask the questions in chat, then run
-`npx @pat1na/cli@latest init --tone <name>` with the other answers as flags.
+Assistant it opens in their browser (the tone is one of its questions); if
+no page opens, give them the address it prints. Only in a cloud sandbox,
+where their browser cannot reach your 127.0.0.1, ask the questions in chat,
+wait for their answers, then run `npx @pat1na/cli@latest init --tone <name>`
+with the other answers as flags. Never answer them yourself.
 
 **Is Patina up to date?** First, in the project, run
 `npx @pat1na/cli@latest outdated`. If it says a newer release is out, tell
