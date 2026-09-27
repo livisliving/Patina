@@ -78,6 +78,17 @@ ${TONES.map(
  *  entry; nothing before 0.1.0 is listed. */
 const CHANGELOG: { version: string; date: string; items: string[] }[] = [
   {
+    version: "0.4.3",
+    date: "27 September 2026",
+    items: [
+      "Your own changes stay yours: update no longer replaces a file you edited that a second init kept, or one a slow registry left out of patina.json. Run init again at a terminal and both answers work: replace the files, or keep them and add what is missing.",
+      "Agents answer you in your language and in plain words, run the Setup Assistant on your own computer, and never answer its questions for you. A new project is no longer called Create Next App, and no tone is the default: you choose.",
+      "On a phone, the Finder's and the iPod's title bars stay solid as their windows scroll away, and the iPod's buttons show the keyboard focus ring. The Finder's toolbar still fits after you hide and show it.",
+      "A site that keeps its own pages names Patina OS in its generator tag, as a desktop does. What init installs is always a release: the registry changes only when one is published.",
+      "This site on a phone: held sideways, two windows side by side; title bars under the menu bar; a section pop-up in long documents; a far window jumps into view.",
+    ],
+  },
+  {
     version: "0.4.2",
     date: "26 September 2026",
     items: [
@@ -164,7 +175,7 @@ const ICON_COLUMN = 84 + 12
 
 /** Patina's version, as the About boxes and the Finder show it: the newest
  *  release, listed in the Changelog or not. Bump it with every release. */
-const VERSION = "0.4.2"
+const VERSION = "0.4.3"
 
 /* ── Window manager ───────────────────────────────────────────────── */
 
@@ -1151,7 +1162,7 @@ export function Desktop() {
     { label: "Design System", icon: <PillIcon />, onClick: openWin("buttons"), kind: "Application", size: "1.8 MB", created: "14/09/26", modified: "20/09/26", version: VERSION },
     { label: "Tone", icon: <PrefsIcon />, onClick: openWin("tone"), kind: "Preference pane", size: "248 KB", created: "14/09/26", modified: "19/09/26", version: VERSION },
     { label: "DESIGN.md", icon: <DocIcon />, onClick: openWin("design"), kind: "Markdown document", size: "36 KB", created: "12/09/26", modified: "20/09/26" },
-    { label: "Changelog", icon: <DocIcon />, onClick: openWin("changelog"), kind: "Markdown document", size: "4 KB", created: "18/09/26", modified: "25/09/26" },
+    { label: "Changelog", icon: <DocIcon />, onClick: openWin("changelog"), kind: "Markdown document", size: "4 KB", created: "18/09/26", modified: "27/09/26" },
     { label: "Terminal", icon: <TerminalIcon />, onClick: openWin("terminal"), kind: "Application", size: "912 KB", created: "14/09/26", modified: "18/09/26", version: VERSION },
   ]
   // The Favourites folder collects a few of them, so it lists the same rows.
