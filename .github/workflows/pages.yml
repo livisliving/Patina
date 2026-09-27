@@ -2,12 +2,21 @@
 # <site>/r/<item>.json). Where the site lives comes from GitHub itself:
 # /Patina under the account's Pages domain, or the root of a custom domain.
 # Needs Settings › Pages › Source set to "GitHub Actions" once.
+#
+# Deployed when a release is published, from that release: the registry is
+# what `npx @pat1na/cli init` installs, so between releases it must stay the
+# last release, not whatever main holds. A release asks for this run (Tell
+# the sites, notify-sites.yml); it runs on main, as the github-pages
+# environment lets only main deploy, and builds the release's tag. Run it by
+# hand to redeploy: the tag you give, or the latest release.
 name: GitHub Pages
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release to deploy (empty: the latest)"
+        required: false
 
 permissions:
   contents: read
@@ -23,6 +32,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      # The release's files, not main's.
+      - name: Check out the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          tag="${TAG:-$(gh release view --json tagName --jq .tagName)}"
+          git checkout --detach "refs/tags/$tag"
+          echo "Deploying $tag ($(git rev-parse --short HEAD))."
       - uses: actions/setup-node@v7
         with:
           node-version: 22

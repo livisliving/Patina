@@ -6,7 +6,7 @@ export const TONES: { id: Tone; label: string; era: string; blurb: string }[] = 
     id: "pink",
     label: "Y2K pink",
     era: "2001–06 · McBling",
-    blurb: "Juicy Couture velour, the pink Razr, rhinestones, Hello Kitty. The default.",
+    blurb: "Juicy Couture velour, the pink Razr, rhinestones, Hello Kitty.",
   },
   {
     id: "aqua",

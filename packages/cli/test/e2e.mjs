@@ -206,6 +206,8 @@ function copy(from, to) {
 }
 
 const read = (dir, rel) => fs.readFileSync(path.join(dir, rel), "utf8")
+/** The line init puts in a site's head when it has no desktop. */
+const GENERATOR = /<meta name="generator" content="Patina OS[^"]*"/
 const exists = (dir, rel) => fs.existsSync(path.join(dir, rel))
 const json = (dir, rel) => {
   try {
@@ -505,6 +507,7 @@ kase("flags", "init --yes --tone aqua --desktop: files, version, licence line, /
   t.ok(manifest?.brief?.answeredBy === "flags", "the brief was answered by flags", manifest?.brief?.answeredBy)
   t.ok(/<html[^>]*data-tone="aqua"/.test(read(dir, "app/layout.tsx")), "data-tone=\"aqua\" is on <html>")
   t.ok(/@\/components\/desktop\/desktop/.test(read(dir, "app/page.tsx")), "app/page.tsx renders the desktop")
+  t.ok(!GENERATOR.test(read(dir, "app/layout.tsx")), "the layout has no generator tag of its own: the desktop carries one")
 
   // Every source file the pack installed ends with its licence line.
   const sources = Object.keys(manifest?.files ?? {}).filter((rel) => /\.(tsx?|css|mjs)$/.test(rel) && exists(dir, rel))
@@ -531,6 +534,24 @@ kase("flags", "init --yes --tone aqua --desktop: files, version, licence line, /
 
   const build = await run("npx", ["next", "build"], { cwd: dir, name: "flags-next-build", timeout: 10 * MIN })
   t.ok(build.code === 0, "npx next build passes", `exit ${build.code}\n${tail(build.out, 25)}`)
+})
+
+kase("components", "init --scope components names Patina in the head; a later --desktop takes the line out", async (t) => {
+  const dir = t.fresh("components")
+  const r = await cli(["init", "--yes", "--tone", "lime", "--scope", "components", "--registry", REGISTRY], { cwd: dir, name: "components-init" })
+  t.must(r.code === 0, "init exits 0", `exit ${r.code}\n${tail(r.out)}`)
+  const layout = read(dir, "app/layout.tsx")
+  t.ok(GENERATOR.test(layout), "the layout carries Patina's generator tag", tail(layout, 30))
+  t.ok(/<body\b[^>]*>\s*\n\s*<meta name="generator"/.test(layout), "it is the first thing in <body> (React puts it in the head)")
+  const again = await cli(["init", "--yes", "--force", "--tone", "lime", "--scope", "components", "--registry", REGISTRY], { cwd: dir, name: "components-again" })
+  t.ok(again.code === 0 && read(dir, "app/layout.tsx").match(new RegExp(GENERATOR.source, "g"))?.length === 1, "a second run leaves one tag, not two", tail(again.out))
+  const build = await run("npx", ["next", "build"], { cwd: dir, name: "components-next-build", timeout: 10 * MIN })
+  t.ok(build.code === 0, "npx next build passes", `exit ${build.code}\n${tail(build.out, 25)}`)
+  const html = exists(dir, ".next/server/app/index.html") ? read(dir, ".next/server/app/index.html") : ""
+  const head = html.slice(0, html.indexOf("</head>"))
+  t.ok(/<meta name="generator" content="Patina OS — built by Olivia Forster"\/?>/.test(head), "the built page has it in its <head>", head.slice(-400))
+  const desk = await cli(["init", "--yes", "--force", "--tone", "lime", "--desktop", "--registry", REGISTRY], { cwd: dir, name: "components-then-desktop" })
+  t.ok(desk.code === 0 && !GENERATOR.test(read(dir, "app/layout.tsx")), "made a desktop later, the layout's line is taken out", tail(desk.out))
 })
 
 kase("dry-run", "init --dry-run writes nothing, fresh or installed (--force)", async (t) => {

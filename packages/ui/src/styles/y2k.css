@@ -5,7 +5,8 @@
  * Structure = Mac OS X Aqua (2000–2005): pinstripes, traffic lights, gel
  * buttons, brushed metal, a translucent Dock. It never changes.
  * Tone = the hue of everything gel and the wallpaper. Switch with
- * data-tone="pink|aqua|lime|tangerine|grape" on <html>. Pink is default.
+ * data-tone="pink|aqua|lime|tangerine|grape" on <html>. None is the default:
+ * the owner chooses (with none set, :root below draws Pink's values).
  */
 
 :root {

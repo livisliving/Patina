@@ -4,11 +4,11 @@ name: Y2K — Aqua × Pink
 description: >-
   The future as it was imagined in 2000. Structure is Mac OS X Aqua
   (2000–2005): pinstripes, brushed metal, traffic lights, gel buttons, a
-  translucent Dock. Color is a millennium "tone" — Pink (McBling) by default,
-  switchable to Aqua, Lime, Tangerine or Grape. Tokens are
+  translucent Dock. Color is a millennium "tone" the site's owner chooses —
+  Pink (McBling), Aqua, Lime, Tangerine or Grape; none is the default. Tokens are
   normative; the prose says how to apply them and what is forbidden.
 colors:
-  # ── Tone: Pink (default). bright = lighten(.22), container = darken(.28) ─
+  # ── Tone: Pink's values (data-tone swaps them). bright = lighten(.22), container = darken(.28) ─
   primary: "#E8449A"
   on-primary: "#000000"
   primary-bright: "#ED6DB0"
@@ -486,10 +486,12 @@ The look has two independent layers:
    changes.
 2. **Tone — the color of everything gel.** Buttons, the checked checkbox,
    the popup arrows, selection, the scroll thumb, the wallpaper. Five
-   millennium color families are defined; **Pink is the default** (the
-   McBling pink of Juicy Couture velour, the pink Razr, rhinestones and
-   Hello Kitty — warm and saturated, never pastel). Switch with
-   `data-tone="pink|aqua|lime|tangerine|grape"` on `<html>`.
+   millennium color families are defined, and **the owner chooses one —
+   none is the default** (Pink is the McBling pink of Juicy Couture velour,
+   the pink Razr, rhinestones and Hello Kitty — warm and saturated, never
+   pastel). Set it with `data-tone="pink|aqua|lime|tangerine|grape"` on
+   `<html>`. With none set the page draws Pink's values, but an agent asks
+   which tone rather than assume one.
 
 **Audience:** designers and developers who vibe-code and can't stand the
 result. **Emotional target:** *"this came out of a 2001 iMac, not a Figma
@@ -511,7 +513,7 @@ desktop follows.
 Color has two jobs: the **Aqua constants** draw the structure; the **tone**
 colors everything gel. Both are always present.
 
-**Tone (Pink, default)**
+**Tone (Pink's values shown; the other four follow below)**
 
 - **Primary — Y2K pink (#E8449A):** the middle of every gel gradient. Default
   buttons, the checked checkbox, popup arrow caps, scroll thumbs, progress,
@@ -569,7 +571,7 @@ wallpaper stops follow):
 
 | Tone | Years · scene | Primary | Bright | Container |
 |:--|:--|:--|:--|:--|
-| Y2K pink (default) | 2001–06 · McBling — Juicy, pink Razr, Bratz | #E8449A | #ED6DB0 | #A7316F |
+| Y2K pink | 2001–06 · McBling — Juicy, pink Razr, Bratz | #E8449A | #ED6DB0 | #A7316F |
 | Aqua | 1998–01 · Bondi Blue iMac, Mac OS X Aqua | #4D83D2 | #749EDC | #375E97 |
 | Lime | 1999–02 · iMac Lime, Nickelodeon slime, Matrix | #7FC31C | #9BD04E | #5B8C14 |
 | Tangerine | 1999–03 · iMac Tangerine, Fanta, inflatable chairs | #E8891A | #EDA34C | #A76313 |
@@ -1081,7 +1083,8 @@ https://github.com/livisliving/Patina. Every file the pack installs ends
 with a line naming her (at the end, as shadcn drops a file's opening
 comment); the MIT licence below asks that this notice stay in every copy. A desktop built with the pack also names her in the ★ menu's
 About Patina OS, and itself on About The Finder and in the page's
-generator tag.
+generator tag; a site without a desktop carries the generator tag in its
+layout, where the installer puts it.
 
 MIT License
 

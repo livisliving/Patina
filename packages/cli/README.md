@@ -13,7 +13,8 @@ Run it in a React project that uses Tailwind (a new create-next-app is fine). It
 - writes `DESIGN.md` at the project root, the spec your agent reads;
 - installs the theme and the components into `components/ui` with shadcn;
 - adds the `/y2k-ify` and `/check-y2k` skills to `.claude/skills`, and the scanner to `scripts/check-y2k.mjs`;
-- sets `data-tone` on your `<html>` and leaves a note in `CLAUDE.md` (and `AGENTS.md`) so the agent reads `DESIGN.md` before it builds anything.
+- sets `data-tone` on your `<html>` and leaves a note in `CLAUDE.md` (and `AGENTS.md`) so the agent reads `DESIGN.md` before it builds anything;
+- on a site with no desktop, adds `<meta name="generator" content="Patina OS — built by Olivia Forster">` to the page's head (a desktop carries its own).
 
 Files you already have are kept unless you pass `--force`.
 

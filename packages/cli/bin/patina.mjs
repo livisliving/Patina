@@ -67,7 +67,8 @@ What init does
   2. Installs the Y2K theme + components from the registry (via shadcn).
   3. Installs the agent skills into .claude/skills/ and the /check-y2k scanner.
   4. Sets data-tone on your <html>, and leaves a note in CLAUDE.md so your
-     agent reads DESIGN.md (and keeps the tone) before building UI.
+     agent reads DESIGN.md (and keeps the tone) before building UI. With no
+     desktop, it also names Patina in the page's generator tag.
   When the site becomes a desktop (--scope whole or content, --desktop),
   step 2 adds the content and desktop items (and ipod when it is wanted),
   then writes content/site.ts with your name in it if you have none, and

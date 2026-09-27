@@ -1,7 +1,9 @@
-# When a Patina release is published, tell each site built on the pack, so
-# its own "Patina update" workflow copies the release in and opens a pull
-# request (see packages/cli: `patina update`). One repository_dispatch per
-# site listed below.
+# When a Patina release is published, deploy it to GitHub Pages (the demo
+# and the registry `init` installs from: pages.yml, run on main for this
+# tag), and tell each site built on the pack, so its own "Patina update"
+# workflow copies the release in and opens a pull request (see
+# packages/cli: `patina update`). One repository_dispatch per site listed
+# below.
 #
 # Needs one secret, SITES_DISPATCH_TOKEN: a fine-grained personal access
 # token with Contents: read and write on those repositories (and nothing
@@ -21,6 +23,19 @@ permissions:
   contents: read
 
 jobs:
+  pages:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Deploy the release to GitHub Pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        run: |
+          gh workflow run pages.yml --repo "${{ github.repository }}" --ref main ${TAG:+-f "tag=$TAG"}
+          echo "Asked GitHub Pages to deploy ${TAG:-the latest release}."
+
   dispatch:
     runs-on: ubuntu-latest
     strategy:

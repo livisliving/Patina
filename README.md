@@ -4,7 +4,7 @@
 
 Put the pack's `DESIGN.md` in a project and what your agent builds there stops looking
 like Inter on a grey card. It comes out as Mac OS X 10.0 Aqua, with pinstripes, traffic
-lights, gel buttons and a Dock, in a millennium tone: hot pink by default, or Aqua, Lime,
+lights, gel buttons and a Dock, in a millennium tone you choose: hot pink, Aqua, Lime,
 Tangerine or Grape. *"The most anti-AI thing in 2026 is 2000's idea of the future."*
 
 Patina isn't a browser extension and doesn't restyle pages you visit. It changes what
@@ -107,8 +107,8 @@ npm pack -w @pat1na/cli  # build the installer tarball (assets are synced on pre
 PATINA_REGISTRY=http://localhost:3000/r npm run registry:build
 
 # the static copy for GitHub Pages (apps/web/out); the workflow in
-# .github/workflows/pages.yml does this on every push to main, with the path
-# and address GitHub gives it
+# .github/workflows/pages.yml does this when a release is published, from
+# that release's tag, with the path and address GitHub gives it
 GITHUB_PAGES=true PAGES_BASE_PATH=/Patina PAGES_BASE_URL=https://example.com/Patina npm run build
 ```
 

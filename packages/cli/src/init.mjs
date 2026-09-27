@@ -122,6 +122,45 @@ function applyTone(cwd, tone, { dryRun }) {
   console.log(skip(`no <html> found — add data-tone="${tone}" to yours`))
 }
 
+/** Who made the pack, in the page's head, on a site with no desktop: a
+ *  desktop says so itself (its own generator tag, About Patina OS in the ★
+ *  menu), so there the line is taken out again rather than said twice. No
+ *  version: `update` never touches the layout, so one would go stale. */
+const GENERATOR = `<meta name="generator" content="Patina OS — built by Olivia Forster" />`
+const GENERATOR_LINE = /\n?[ \t]*<meta name="generator" content="Patina OS[^"]*"\s*\/?>/
+
+function applyGenerator(cwd, { desktop, dryRun }) {
+  for (const rel of HTML_FILES) {
+    const file = path.join(cwd, rel)
+    if (!fs.existsSync(file)) continue
+    const src = fs.readFileSync(file, "utf8")
+    if (!/<html\b/.test(src)) continue
+    const line = src.match(GENERATOR_LINE)
+    if (desktop) {
+      if (!line) return
+      if (!dryRun) fs.writeFileSync(file, src.replace(line[0], ""))
+      console.log(tick(`${rel} — Patina's generator tag taken out: the desktop carries its own`))
+      return
+    }
+    if (line) {
+      console.log(skip(`${rel} already names Patina in its generator tag`))
+      return
+    }
+    // A layout: first thing in <body> (React puts a <meta> in the head).
+    // A Pages Router document: in its <Head>. A plain page: before </head>.
+    const at = rel.endsWith("index.html") ? src.match(/^([ \t]*)<\/head>/m) : rel.includes("_document") ? src.match(/^([ \t]*)<Head>/m) : src.match(/^([ \t]*)<body\b[^>]*>/m)
+    if (!at) {
+      console.log(skip(`${rel} — add ${GENERATOR} to the page's head`))
+      return
+    }
+    const indent = `${at[1]}  `
+    const next = rel.endsWith("index.html") ? src.replace(at[0], `${indent}${GENERATOR.replace(" />", ">")}\n${at[0]}`) : src.replace(at[0], `${at[0]}\n${indent}${GENERATOR}`)
+    if (!dryRun) fs.writeFileSync(file, next)
+    console.log(tick(`${rel} — Patina's generator tag in the head`))
+    return
+  }
+}
+
 /**
  * Where the shipped copies live. In a published package they sit in assets/
  * (written by scripts/sync-assets.mjs at pack time); running from a checkout
@@ -623,8 +662,10 @@ async function install({ cwd, registry, components, force, dryRun, yes, ...rest 
     else console.log(skip("content/site.ts and the page not written — they need the content and desktop items first"))
   }
 
-  /* 4 — the tone on <html>, and the pointer for the coding agent. */
+  /* 4 — the tone on <html>, Patina's name in the head, and the pointer
+     for the coding agent. */
   applyTone(cwd, tone, { dryRun })
+  applyGenerator(cwd, { desktop, dryRun })
   const note = agentNote(tone, desktop || fs.existsSync(path.join(projectDirs(cwd).base, "content", "site.ts")))
   const agents = fs.existsSync(path.join(cwd, "AGENTS.md"))
   for (const name of ["CLAUDE.md", "AGENTS.md"]) {
