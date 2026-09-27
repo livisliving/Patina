@@ -296,8 +296,10 @@ export async function recordInstall(cwd, { registry, items, version = null, kept
   const registrySource = sourceAt(registry)
   const readItem = (name) => registrySource.read(`${name}.json`).catch(() => null)
   const jsons = await Promise.all(items.map(readItem))
-  for (const [i, json] of jsons.entries()) if (json === null) jsons[i] = await readItem(items[i])
-  for (const [i, json] of jsons.entries()) if (json === null) console.log(warn(`${items[i]} — could not read it from ${registry}, so its files are not in ${MANIFEST}`))
+  for (const [i, name] of items.entries()) {
+    jsons[i] ??= await readItem(name)
+    if (jsons[i] === null) console.log(warn(`${name} — could not read it from ${registry}, so its files are not in ${MANIFEST}`))
+  }
   const targets = [
     ...jsons.flatMap((json, i) => (json ? JSON.parse(json).files ?? [] : []).map((file) => [targetPath(layout, file.target ?? file.path), keptItems.includes(items[i])])),
     ...COPIES.map(([, to]) => [path.join(cwd, to), kept.includes(to)]),
@@ -305,8 +307,10 @@ export async function recordInstall(cwd, { registry, items, version = null, kept
   const files = Object.fromEntries(
     targets
       .filter(([abs]) => fs.existsSync(abs))
-      .map(([abs, keep]) => [path.relative(cwd, abs), keep])
-      .map(([rel, keep]) => [rel, keep && before[rel] ? before[rel] : fingerprint(fs.readFileSync(path.join(cwd, rel), "utf8"))])
+      .map(([abs, keep]) => {
+        const rel = path.relative(cwd, abs)
+        return [rel, (keep && before[rel]) || fingerprint(fs.readFileSync(abs, "utf8"))]
+      })
   )
   writeManifest(cwd, { version, items, files })
 }

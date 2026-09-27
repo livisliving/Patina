@@ -15,7 +15,8 @@
  * --work      where the sample projects and logs go (default: a new folder
  *             under the system's temp folder)
  * --template  a clean create-next-app to copy for each case; without it one
- *             is made in <work>/template (and reused from there next time)
+ *             is made in <work>/template, or in the temp folder's
+ *             patina-e2e/template without --work, and reused from there
  * --only      the cases to run, comma-separated; a prefix names several
  *             ("rerun" is rerun-tty and rerun-page)
  *
@@ -116,7 +117,7 @@ function start(cmd, args, { cwd, name, tty = false, extraEnv }) {
   const log = fs.createWriteStream(path.join(LOGS, `${name}.log`))
   log.write(`$ cd ${cwd} && ${[cmd, ...args].join(" ")}${tty ? "   (under a pty)" : ""}\n\n`)
   const child = tty
-    ? spawn("python3", [PTY, cwd, cmd, ...args], { cwd, env: env(extraEnv), stdio: ["pipe", "pipe", "pipe"], detached: true })
+    ? spawn("python3", [PTY, cmd, ...args], { cwd, env: env(extraEnv), stdio: ["pipe", "pipe", "pipe"], detached: true })
     : spawn(cmd, args, { cwd, env: env(extraEnv), stdio: ["ignore", "pipe", "pipe"], detached: true })
   const mine = [child.pid]
   groups.add(child.pid)
@@ -181,16 +182,21 @@ const startCli = (args, o) => start(...cliCmd(args), o)
 
 /* ─────────────────────────────────────────────── projects */
 
-/** A clean create-next-app: the one given, the one made last time, or a new one. */
+/** A clean create-next-app: the one given, the one made last time, or a new
+ *  one. Without --work each run's folder is new, so it is kept outside it. */
 function template() {
   if (opt.template) return path.resolve(opt.template)
-  const dir = path.join(WORK, "template")
-  if (fs.existsSync(path.join(dir, "package.json"))) return dir
+  const home = opt.work ? WORK : path.join(os.tmpdir(), "patina-e2e")
+  const dir = path.join(home, "template")
+  // Installed, not only begun: a create-next-app that stopped part-way is made again.
+  if (fs.existsSync(path.join(dir, "node_modules", "next"))) return dir
+  fs.rmSync(dir, { recursive: true, force: true })
+  fs.mkdirSync(home, { recursive: true })
   console.log(`  making a create-next-app in ${dir} (once)…`)
   const res = spawnSync(
     "npx",
     ["--yes", "create-next-app@latest", "template", "--ts", "--tailwind", "--eslint", "--app", "--no-src-dir", "--import-alias", "@/*", "--use-npm", "--yes"],
-    { cwd: WORK, env: env(), encoding: "utf8" }
+    { cwd: home, env: env(), encoding: "utf8" }
   )
   fs.writeFileSync(path.join(LOGS, "create-next-app.log"), `${res.stdout}\n${res.stderr}`)
   if (res.status !== 0) throw new Error(`create-next-app failed; see ${path.join(LOGS, "create-next-app.log")}`)
@@ -217,6 +223,7 @@ const json = (dir, rel) => {
   }
 }
 const sha = (buf) => crypto.createHash("sha256").update(buf).digest("hex")
+const hashOf = (dir, rel) => (exists(dir, rel) ? sha(fs.readFileSync(path.join(dir, rel))) : null)
 
 /** Every file under a folder and its hash, node_modules and .next left out. */
 function hashTree(dir) {
@@ -240,7 +247,7 @@ function treeDiff(a, b) {
 }
 
 /** The pack's files as patina.json records them, hashed as they are now. */
-const packHashes = (dir) => Object.fromEntries(Object.keys(json(dir, "patina.json")?.files ?? {}).map((rel) => [rel, exists(dir, rel) ? sha(fs.readFileSync(path.join(dir, rel))) : null]))
+const packHashes = (dir) => Object.fromEntries(Object.keys(json(dir, "patina.json")?.files ?? {}).map((rel) => [rel, hashOf(dir, rel)]))
 
 /** A registry item, one request at a time and tried three times: the
  *  local registry is a small server that refuses a burst. */
@@ -396,6 +403,19 @@ async function walkSetup(pw, url, { tone = "Lime", other = false, replace = "rep
   }
 }
 
+/** init --setup in dir, its page answered to the end: what the walk saw,
+ *  and init's exit code and output once it is over. */
+async function initByPage(t, pw, dir, name, walk) {
+  const openLog = path.join(RUN, `${name}-open.log`)
+  const p = startCli(["init", "--setup", "--registry", REGISTRY], { cwd: dir, name, extraEnv: { PATINA_OPEN_LOG: openLog } })
+  try {
+    const seen = await walkSetup(pw, await setupUrl(p, openLog, t), walk, t)
+    return { seen, code: await p.wait(5 * MIN), out: p.text() }
+  } finally {
+    p.stop()
+  }
+}
+
 /**
  * Answer init's terminal questions: when the output has gone quiet on a
  * prompt, the first rule whose pattern fits the last line types its keys.
@@ -543,7 +563,8 @@ kase("components", "init --scope components names Patina in the head; a later --
   const layout = read(dir, "app/layout.tsx")
   t.ok(GENERATOR.test(layout), "the layout carries Patina's generator tag", tail(layout, 30))
   t.ok(/<body\b[^>]*>\s*\n\s*<meta name="generator"/.test(layout), "it is the first thing in <body> (React puts it in the head)")
-  const again = await cli(["init", "--yes", "--force", "--tone", "lime", "--scope", "components", "--registry", REGISTRY], { cwd: dir, name: "components-again" })
+  // The tag is written after the components, so they need not be added again.
+  const again = await cli(["init", "--yes", "--force", "--no-components", "--tone", "lime", "--scope", "components", "--registry", REGISTRY], { cwd: dir, name: "components-again" })
   t.ok(again.code === 0 && read(dir, "app/layout.tsx").match(new RegExp(GENERATOR.source, "g"))?.length === 1, "a second run leaves one tag, not two", tail(again.out))
   const build = await run("npx", ["next", "build"], { cwd: dir, name: "components-next-build", timeout: 10 * MIN })
   t.ok(build.code === 0, "npx next build passes", `exit ${build.code}\n${tail(build.out, 25)}`)
@@ -575,21 +596,13 @@ kase("setup", "init --setup with no terminal: the page renders through the proxy
   const pw = playwright()
   if (!pw.chromium) t.skip(pw.why)
   const dir = t.fresh("setup")
-  const openLog = path.join(RUN, "setup-open.log")
-  const p = startCli(["init", "--setup", "--registry", REGISTRY], { cwd: dir, name: "setup-init", extraEnv: { PATINA_OPEN_LOG: openLog } })
-  try {
-    const url = await setupUrl(p, openLog, t)
-    const seen = await walkSetup(pw, url, { tone: "Lime", other: true }, t)
-    t.ok(seen.other === NOT_SURE || seen.other === `${NOT_SURE}.`, `“Other” comes with “${NOT_SURE}” in its field`, JSON.stringify(seen.other))
-    t.ok(!seen.unknown, "no pane the walk did not know", seen.unknown)
-    t.ok(seen.outcome === "done", "the page reaches Done", `${seen.outcome}${seen.alert ? `: ${seen.alert}` : ""}`)
-    t.ok(seen.closing, "Done says “You can close this page.”")
-    t.ok(seen.laterErrors.length === 0, "no console errors while answering and installing", seen.laterErrors.join("; "))
-    const code = await p.wait(5 * MIN)
-    t.ok(code === 0, "init exits 0 after the last pane", `exit ${code}\n${tail(p.text())}`)
-  } finally {
-    p.stop()
-  }
+  const { seen, code, out } = await initByPage(t, pw, dir, "setup-init", { tone: "Lime", other: true })
+  t.ok(seen.other === NOT_SURE || seen.other === `${NOT_SURE}.`, `“Other” comes with “${NOT_SURE}” in its field`, JSON.stringify(seen.other))
+  t.ok(!seen.unknown, "no pane the walk did not know", seen.unknown)
+  t.ok(seen.outcome === "done", "the page reaches Done", `${seen.outcome}${seen.alert ? `: ${seen.alert}` : ""}`)
+  t.ok(seen.closing, "Done says “You can close this page.”")
+  t.ok(seen.laterErrors.length === 0, "no console errors while answering and installing", seen.laterErrors.join("; "))
+  t.ok(code === 0, "init exits 0 after the last pane", `exit ${code}\n${tail(out)}`)
   for (const rel of [...COPIES, "patina.json", "components/ui/button.tsx", "components/desktop/desktop.tsx"]) t.ok(exists(dir, rel), `${rel} is there`)
   const brief = json(dir, "patina.json")?.brief
   await recordsEveryFile(t, dir)
@@ -612,7 +625,7 @@ function afterRerun(t, dir, choice, before) {
   const edited = read(dir, EDITED).includes(EDIT.trim())
   if (choice === "keep") {
     // The same files as before: the re-run's answers may list fewer items.
-    const changed = Object.keys(before.hashes).filter((rel) => before.hashes[rel] !== (exists(dir, rel) ? sha(fs.readFileSync(path.join(dir, rel))) : null))
+    const changed = Object.keys(before.hashes).filter((rel) => before.hashes[rel] !== hashOf(dir, rel))
     t.ok(changed.length === 0, "keep: every pack file's hash is unchanged", changed.join(", "))
     t.ok(edited, `keep: the local edit to ${EDITED} is still there`)
     const print = json(dir, "patina.json")?.files?.[EDITED]
@@ -651,19 +664,11 @@ kase("rerun-page", "init --setup on an installed project: the files-here pane, k
   for (const choice of ["keep", "replace"]) {
     const dir = copy(base, path.join(RUN, `rerun-page-${choice}`))
     const before = beforeRerun(dir)
-    const openLog = path.join(RUN, `rerun-page-${choice}-open.log`)
-    const p = startCli(["init", "--setup", "--registry", REGISTRY], { cwd: dir, name: `rerun-page-${choice}`, extraEnv: { PATINA_OPEN_LOG: openLog } })
-    try {
-      const url = await setupUrl(p, openLog, t)
-      const seen = await walkSetup(pw, url, { tone: "Aqua", replace: choice }, t)
-      t.ok(seen.titles.includes("Some files are here already"), `${choice}: the files-here pane appears`, seen.titles.join(" → "))
-      t.ok(seen.files.includes(EDITED), `${choice}: it lists the pack's files (${EDITED} among them)`, seen.files.join(", "))
-      t.ok(seen.outcome === "done", `${choice}: the page reaches Done`, `${seen.outcome}${seen.alert ? `: ${seen.alert}` : ""}`)
-      const code = await p.wait(5 * MIN)
-      t.ok(code === 0, `${choice}: init exits 0`, `exit ${code}\n${tail(p.text())}`)
-    } finally {
-      p.stop()
-    }
+    const { seen, code, out } = await initByPage(t, pw, dir, `rerun-page-${choice}`, { tone: "Aqua", replace: choice })
+    t.ok(seen.titles.includes("Some files are here already"), `${choice}: the files-here pane appears`, seen.titles.join(" → "))
+    t.ok(seen.files.includes(EDITED), `${choice}: it lists the pack's files (${EDITED} among them)`, seen.files.join(", "))
+    t.ok(seen.outcome === "done", `${choice}: the page reaches Done`, `${seen.outcome}${seen.alert ? `: ${seen.alert}` : ""}`)
+    t.ok(code === 0, `${choice}: init exits 0`, `exit ${code}\n${tail(out)}`)
     afterRerun(t, dir, choice, before)
   }
 })
@@ -694,12 +699,11 @@ kase("update", "install with @pat1na/cli@0.4.1, edit a file, update with the CLI
   // Every other file as the release has it, read straight from the tag.
   const raw = (rel) => fetch(`https://raw.githubusercontent.com/${REPO}/${latest}/${rel}`).then((res) => (res.ok ? res.text() : null))
   const withoutLead = (s) => s.replace(/^\s*(?:\/\*[\s\S]*?\*\/\s*)+/, "")
-  const wanted = []
-  for (const item of manifest?.items ?? []) {
-    const text = await raw(`apps/web/public/r/${item}.json`)
-    if (text) for (const f of JSON.parse(text).files ?? []) wanted.push([f.target ?? f.path, f.content])
-  }
-  for (const rel of COPIES) wanted.push([rel, await raw(rel)])
+  const [items, copies] = await Promise.all([
+    Promise.all((manifest?.items ?? []).map((item) => raw(`apps/web/public/r/${item}.json`))),
+    Promise.all(COPIES.map(async (rel) => [rel, await raw(rel)])),
+  ])
+  const wanted = [...items.flatMap((text) => (text ? JSON.parse(text).files ?? [] : []).map((f) => [f.target ?? f.path, f.content])), ...copies]
   const differ = wanted.filter(([rel, content]) => rel !== edited && content !== null && (!exists(dir, rel) || (read(dir, rel) !== content && read(dir, rel) !== withoutLead(content)))).map(([rel]) => rel)
   t.ok(wanted.length > 10 && differ.length === 0, `the other ${wanted.length - 1} files match ${latest}`, `differ: ${differ.join(", ")}`)
 })

@@ -99,27 +99,36 @@ const HTML_FILES = ["app", "src/app"]
   .flatMap((d) => ["tsx", "jsx", "js", "ts"].map((x) => `${d}/layout.${x}`))
   .concat(["pages", "src/pages"].flatMap((d) => ["tsx", "jsx", "js"].map((x) => `${d}/_document.${x}`)), ["index.html"])
 
-/** Put `data-tone` on the project's <html>, or say where it goes. */
-function applyTone(cwd, tone, { dryRun }) {
+/** The first of them that has an <html>, read, or null. */
+function pageFile(cwd) {
   for (const rel of HTML_FILES) {
     const file = path.join(cwd, rel)
     if (!fs.existsSync(file)) continue
     const src = fs.readFileSync(file, "utf8")
-    const tag = src.match(/<html\b[^>]*>/)
-    if (!tag) continue
-    const want = `data-tone="${tone}"`
-    const next = /\sdata-tone=/.test(tag[0])
-      ? tag[0].replace(/data-tone=(?:"[^"]*"|'[^']*'|\{[^}]*\})/, want)
-      : tag[0].replace(/^<html\b/, `<html ${want}`)
-    if (next === tag[0]) {
-      console.log(skip(`${rel} already has ${want}`))
-      return
-    }
-    if (!dryRun) fs.writeFileSync(file, src.replace(tag[0], next))
-    console.log(tick(`${rel} — ${want} on <html>`))
+    if (/<html\b/.test(src)) return { rel, file, src }
+  }
+  return null
+}
+
+/** Put `data-tone` on the project's <html>, or say where it goes. */
+function applyTone(cwd, tone, { dryRun }) {
+  const page = pageFile(cwd)
+  const tag = page?.src.match(/<html\b[^>]*>/)
+  if (!tag) {
+    console.log(skip(`no <html> found — add data-tone="${tone}" to yours`))
     return
   }
-  console.log(skip(`no <html> found — add data-tone="${tone}" to yours`))
+  const { rel, file, src } = page
+  const want = `data-tone="${tone}"`
+  const next = /\sdata-tone=/.test(tag[0])
+    ? tag[0].replace(/data-tone=(?:"[^"]*"|'[^']*'|\{[^}]*\})/, want)
+    : tag[0].replace(/^<html\b/, `<html ${want}`)
+  if (next === tag[0]) {
+    console.log(skip(`${rel} already has ${want}`))
+    return
+  }
+  if (!dryRun) fs.writeFileSync(file, src.replace(tag[0], next))
+  console.log(tick(`${rel} — ${want} on <html>`))
 }
 
 /** Who made the pack, in the page's head, on a site with no desktop: a
@@ -130,35 +139,32 @@ const GENERATOR = `<meta name="generator" content="Patina OS — built by Olivia
 const GENERATOR_LINE = /\n?[ \t]*<meta name="generator" content="Patina OS[^"]*"\s*\/?>/
 
 function applyGenerator(cwd, { desktop, dryRun }) {
-  for (const rel of HTML_FILES) {
-    const file = path.join(cwd, rel)
-    if (!fs.existsSync(file)) continue
-    const src = fs.readFileSync(file, "utf8")
-    if (!/<html\b/.test(src)) continue
-    const line = src.match(GENERATOR_LINE)
-    if (desktop) {
-      if (!line) return
-      if (!dryRun) fs.writeFileSync(file, src.replace(line[0], ""))
-      console.log(tick(`${rel} — Patina's generator tag taken out: the desktop carries its own`))
-      return
-    }
-    if (line) {
-      console.log(skip(`${rel} already names Patina in its generator tag`))
-      return
-    }
-    // A layout: first thing in <body> (React puts a <meta> in the head).
-    // A Pages Router document: in its <Head>. A plain page: before </head>.
-    const at = rel.endsWith("index.html") ? src.match(/^([ \t]*)<\/head>/m) : rel.includes("_document") ? src.match(/^([ \t]*)<Head>/m) : src.match(/^([ \t]*)<body\b[^>]*>/m)
-    if (!at) {
-      console.log(skip(`${rel} — add ${GENERATOR} to the page's head`))
-      return
-    }
-    const indent = `${at[1]}  `
-    const next = rel.endsWith("index.html") ? src.replace(at[0], `${indent}${GENERATOR.replace(" />", ">")}\n${at[0]}`) : src.replace(at[0], `${at[0]}\n${indent}${GENERATOR}`)
-    if (!dryRun) fs.writeFileSync(file, next)
-    console.log(tick(`${rel} — Patina's generator tag in the head`))
+  const page = pageFile(cwd)
+  if (!page) return
+  const { rel, file, src } = page
+  const line = src.match(GENERATOR_LINE)
+  if (desktop) {
+    if (!line) return
+    if (!dryRun) fs.writeFileSync(file, src.replace(line[0], ""))
+    console.log(tick(`${rel} — Patina's generator tag taken out: the desktop carries its own`))
     return
   }
+  if (line) {
+    console.log(skip(`${rel} already names Patina in its generator tag`))
+    return
+  }
+  // A layout: first thing in <body> (React puts a <meta> in the head).
+  // A Pages Router document: in its <Head>. A plain page: before </head>.
+  const plain = rel === "index.html"
+  const at = plain ? src.match(/^([ \t]*)<\/head>/m) : rel.includes("_document") ? src.match(/^([ \t]*)<Head>/m) : src.match(/^([ \t]*)<body\b[^>]*>/m)
+  if (!at) {
+    console.log(skip(`${rel} — add ${GENERATOR} to the page's head`))
+    return
+  }
+  const indent = `${at[1]}  `
+  const next = plain ? src.replace(at[0], `${indent}${GENERATOR.replace(" />", ">")}\n${at[0]}`) : src.replace(at[0], `${at[0]}\n${indent}${GENERATOR}`)
+  if (!dryRun) fs.writeFileSync(file, next)
+  console.log(tick(`${rel} — Patina's generator tag in the head`))
 }
 
 /**
@@ -526,7 +532,6 @@ async function install({ cwd, registry, components, force, dryRun, yes, ...rest 
 
   /* 1 + 3 — the files. */
   let written = 0
-  let blocked = 0
   for (const [from, to] of COPIES) {
     const source = path.join(src, from)
     if (!fs.existsSync(source)) {
@@ -536,7 +541,6 @@ async function install({ cwd, registry, components, force, dryRun, yes, ...rest 
     const target = path.join(cwd, to)
     if (fs.existsSync(target) && !force) {
       console.log(skip(`${to} already exists — kept (use --force to overwrite)`))
-      blocked++
       kept.push(to)
       continue
     }
@@ -586,10 +590,7 @@ async function install({ cwd, registry, components, force, dryRun, yes, ...rest 
       const here = packFilesHere(cwd, items)
       const taken = here.map((t) => t.file)
       let overwrite = force || bootstrapped
-      // Kept at the page's word: only the items not here yet are added.
-      let adding = items
       if (taken.length && !overwrite && keepMine) {
-        adding = items.filter((item) => !here.some((t) => t.item === item))
         console.log(skip(`${taken.length} of the pack's files already here — kept, as the page said: ${taken.join(", ")}`))
       } else if (taken.length && !overwrite) {
         console.log(`  ${taken.length} of the pack's files already exist: ${taken.join(", ")}`)
@@ -603,12 +604,12 @@ async function install({ cwd, registry, components, force, dryRun, yes, ...rest 
         }
         // A person who says no keeps theirs and gets the rest: the page's
         // "Keep mine; add only what is missing".
-        if (!overwrite) {
-          keepMine = true
-          adding = items.filter((item) => !here.some((t) => t.item === item))
-          console.log(skip(`kept as they are; only what is missing is added`))
-        }
+        keepMine = !overwrite
+        if (keepMine) console.log(skip(`kept as they are; only what is missing is added`))
       }
+      // Kept, at the page's word or the person's: only the items not here
+      // yet are added.
+      const adding = keepMine && !overwrite ? items.filter((item) => !here.some((t) => t.item === item)) : items
       // Pass our own flags through: shadcn asks before replacing a theme or a
       // component, and an unanswered prompt in a non-interactive shell just
       // stalls the install. The page's Install button is a yes too: the
@@ -647,7 +648,7 @@ async function install({ cwd, registry, components, force, dryRun, yes, ...rest 
       // What was installed, and each file as it was written: `update` reads
       // it to know which items are the pack's and which files were changed
       // since. The brief written above stays in the file.
-      await recordInstall(cwd, { registry: base, items, version: PACK_VERSION, kept, keptItems: keepMine ? items.filter((item) => !adding.includes(item)) : [] })
+      await recordInstall(cwd, { registry: base, items, version: PACK_VERSION, kept, keptItems: items.filter((item) => !adding.includes(item)) })
       console.log(tick(`${MANIFEST} — the items and files installed, for \`patina update\``))
     }
   } else {
@@ -713,7 +714,7 @@ async function install({ cwd, registry, components, force, dryRun, yes, ...rest 
     into it by DESIGN.md › Content.` : ""}
 `)
 
-  if (blocked && !force && !keepMine) console.log(`  ${blocked} file(s) kept as they were. Re-run with --force to replace them.\n`)
+  if (kept.length && !force && !keepMine) console.log(`  ${kept.length} file(s) kept as they were. Re-run with --force to replace them.\n`)
   // Nothing written is a failure, unless keeping was what the page asked.
   return written || dryRun || keepMine ? 0 : 1
 }

@@ -1,12 +1,12 @@
 """Run a command under a real pseudo-terminal, for e2e.mjs.
 
-    python3 under-pty.py <cwd> <command> [args...]
+    python3 under-pty.py <command> [args...]
 
 What the command writes comes out on stdout; what is written to stdin goes
 to the command as if typed. The child's pid goes to stderr first
 ("pty-child <pid>"), so the test can stop its whole process group. Exits
-with the command's exit code. Node has no pty of its own, and init asks its
-questions only when stdin is a TTY.
+with the command's exit code. It runs where it was started. Node has no pty
+of its own, and init asks its questions only when stdin is a TTY.
 """
 
 import fcntl
@@ -19,8 +19,7 @@ import termios
 
 pid, fd = pty.fork()
 if pid == 0:
-    os.chdir(sys.argv[1])
-    os.execvp(sys.argv[2], sys.argv[2:])
+    os.execvp(sys.argv[1], sys.argv[1:])
 
 sys.stderr.write(f"pty-child {pid}\n")
 sys.stderr.flush()
