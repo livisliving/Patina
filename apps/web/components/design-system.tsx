@@ -45,7 +45,7 @@ import { ChromeReflection, TranslucentPlastic } from "@patina/shaders"
 import { DocIcon } from "./aqua-icons"
 import { INIT } from "./install"
 import { Mono } from "./mono"
-import { TONES, type Tone } from "./tones"
+import { TONES, type Tone } from "@/components/ui/desktop/tones"
 
 /** The Design System's table demo, with its own selection. */
 function DemoTable() {

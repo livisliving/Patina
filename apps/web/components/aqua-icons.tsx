@@ -32,8 +32,8 @@ import * as React from "react"
 import { useId } from "react"
 import { cn } from "@patina/ui"
 
-import type { Tone } from "./tones"
-import { asset } from "./asset"
+import type { Tone } from "@/components/ui/desktop/tones"
+import { asset } from "@/components/ui/desktop/asset"
 
 type IconProps = React.ComponentProps<"svg">
 type ImgProps = Omit<React.ComponentProps<"img">, "src" | "alt">

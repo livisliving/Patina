@@ -36,18 +36,19 @@ import {
   menuContentClass,
   menuItemClass,
 } from "@patina/ui"
+// The pack's desktop parts this one shares, from the pack's own files.
+import { asset } from "@/components/ui/desktop/asset"
+import { MiddleTruncate } from "@/components/ui/desktop/middle-truncate"
+import { TONES, type Tone } from "@/components/ui/desktop/tones"
+import { useDrag } from "@/components/ui/desktop/use-drag"
+import { useMarqueeSelect } from "@/components/ui/desktop/use-marquee-select"
+import { DESKTOP, prefersReducedMotion, useMediaQuery } from "@/components/ui/desktop/use-media-query"
+import { useResize } from "@/components/ui/desktop/use-resize"
 
 import { ComputerIcon, DiskIcon, DocIcon, FaceIcon, FolderIcon, HeartIcon, HomeIcon, InfoIcon, IPodIcon, LogoIcon, NoteIcon, PillIcon, PrefsIcon, TerminalIcon, TrashIcon } from "./aqua-icons"
 import { IPod } from "./ipod"
 import { MenuBar, type MenuRow, type MenuSpec } from "./menubar"
-import { TONES, type Tone } from "./tones"
-import { useDrag } from "./use-drag"
-import { useMarqueeSelect } from "./use-marquee-select"
-import { DESKTOP, prefersReducedMotion, useMediaQuery } from "./use-media-query"
-import { MiddleTruncate } from "./middle-truncate"
-import { useResize } from "./use-resize"
 import { Stars } from "./stars"
-import { asset } from "./asset"
 import { INIT } from "./install"
 import { Mono } from "./mono"
 

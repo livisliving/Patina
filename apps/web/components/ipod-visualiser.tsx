@@ -4,7 +4,7 @@ import * as React from "react"
 import { cn, parseColor } from "@patina/ui"
 
 import type { Player, Track } from "./ipod-synth"
-import type { Tone } from "./tones"
+import type { Tone } from "@/components/ui/desktop/tones"
 
 /**
  * The iPod's visualiser, after the ones a desktop played in 2003: Winamp's

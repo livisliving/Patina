@@ -21,10 +21,10 @@ import {
 } from "@patina/ui"
 
 import { STATIONS, TRACKS, createPlayer, duration, type Player, type Track } from "./ipod-synth"
-import { asset } from "./asset"
+import { asset } from "@/components/ui/desktop/asset"
 import { Visualiser } from "./ipod-visualiser"
-import { useVolume } from "./volume"
-import { useTone } from "./use-tone"
+import { useVolume } from "@/components/ui/desktop/volume"
+import { useTone } from "@/components/ui/desktop/use-tone"
 
 /**
  * The iPod: iTunes 2 on 10.1 (Olivia's screenshot), rebuilt from the pack's

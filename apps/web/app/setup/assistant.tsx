@@ -17,10 +17,10 @@ import {
   cn,
 } from "@patina/ui"
 
-import { asset } from "@/components/asset"
+import { asset } from "@/components/ui/desktop/asset"
 import { INIT } from "@/components/install"
 import { Mono } from "@/components/mono"
-import { TONES } from "@/components/tones"
+import { TONES } from "@/components/ui/desktop/tones"
 import { SAMPLE, sampleItems } from "./sample"
 import type { Answers, Project, Question, QuestionId, Session, Status, Tone } from "./types"
 

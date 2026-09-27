@@ -6,7 +6,7 @@
  * tune. A radio station is a track that never ends: a new melody every 16 bars.
  */
 
-import type { Tone } from "./tones"
+import type { Tone } from "@/components/ui/desktop/tones"
 
 export type Track = {
   title: string

@@ -4,8 +4,8 @@ import { DropdownMenu as Menu } from "radix-ui"
 import { MenuBar as PackMenuBar, MenuBarVolume, menuItemClass, menuSeparatorClass, menuTickClass, type MenuSpec } from "@patina/ui"
 
 import { StarIcon } from "./aqua-icons"
-import { TONES, type Tone } from "./tones"
-import { setVolume, useVolume } from "./volume"
+import { TONES, type Tone } from "@/components/ui/desktop/tones"
+import { setVolume, useVolume } from "@/components/ui/desktop/volume"
 
 export type { MenuRow, MenuSpec } from "@patina/ui"
 
