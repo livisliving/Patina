@@ -7,7 +7,7 @@ import { Assistant } from "./assistant"
 // fetched in the browser, so it exports with the rest of the site.
 export const metadata: Metadata = {
   title: "Patina Setup Assistant",
-  description: "Six questions about your site, then Patina installs the pack.",
+  description: "A few questions about your site, then Patina installs the pack.",
 }
 
 export default function SetupPage() {

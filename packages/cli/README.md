@@ -8,7 +8,7 @@ npx @pat1na/cli init
 
 No terminal? Send your AI agent https://github.com/livisliving/Patina and ask it to put Patina on your site: it runs `init --setup` (below), and you answer in your browser.
 
-Run it in a React project that uses Tailwind (a new create-next-app is fine). It opens the Setup Assistant (below) and asks six questions about your site and which tone you want (Y2K pink, Aqua, Lime, Tangerine or Grape), then:
+Run it in a React project that uses Tailwind (a new create-next-app is fine). It opens the Setup Assistant (below) and asks a few questions about your site and which tone you want (Y2K pink, Aqua, Lime, Tangerine or Grape), then:
 
 - writes `DESIGN.md` at the project root, the spec your agent reads;
 - installs the theme and the components into `components/ui` with shadcn;
@@ -20,7 +20,7 @@ Files you already have are kept unless you pass `--force`.
 
 ## The Setup Assistant
 
-At a terminal, `init` scans the project (the framework, every page and what it seems to be for, which pages carry a form, the title and description), starts a small server on `127.0.0.1` and opens a Mac OS X 10.0 Setup Assistant in your browser — the page itself comes from the Patina site, proxied through that server, so the browser only ever talks to your own machine. It asks six questions, one pane each: who the site is about, what a visitor should do first, how much of the site becomes a desktop, where the real content is, the tone, and the small extras from 2001 (an iPod, your own wallpaper, a visitor counter, a marquee), plus whether your old addresses should keep working. Then it installs, with a true progress bar. The answers are saved as `patina.json › brief`: `init` acts on the tone, the scope and the extras, and `/y2k-ify` reads the rest — the About box's kind, what to feature, which routes keep their pages, where to transcribe from.
+At a terminal, `init` scans the project (the framework, every page and what it seems to be for, which pages carry a form, the title and description), starts a small server on `127.0.0.1` and opens a Mac OS X 10.0 Setup Assistant in your browser — the page itself comes from the Patina site, proxied through that server, so the browser only ever talks to your own machine. It asks a few questions, one pane each: who the site is about, what a visitor should do first, how much of the site becomes a desktop, where the real content is, the tone, the small extras from 2001 (an iPod, your own wallpaper, a visitor counter, a marquee), and whether your old addresses should keep working. Then it installs, with a true progress bar. The answers are saved as `patina.json › brief`: `init` acts on the tone, the scope and the extras, and `/y2k-ify` reads the rest — the About box's kind, what to feature, which routes keep their pages, where to transcribe from.
 
 `--setup` opens the Setup Assistant even when there is no terminal — what an AI agent runs for you: it prints the page's address, waits for the answers in the browser (thirty minutes at most) and then installs. `--terminal` asks the same questions at the terminal (over SSH, say). `--no-browser` starts the assistant and only prints its address. Without a terminal and without `--setup` — a script, `--yes` — nothing is asked: the flags below answer what they can, the scan fills in what it safely can, and every question left open is listed in `brief.unanswered`, which `/y2k-ify` asks in chat before it starts.
 

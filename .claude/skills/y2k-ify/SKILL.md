@@ -78,14 +78,14 @@ paint.
    one's title, prompt and options — the same the assistant showed), and
    write the answers back into
    `patina.json › brief.answers` before going on. No `patina.json`, or one without a `brief`? Ask the gist
-   of all six in one message: who the site is about (one person, a team, a
+   of every question in one message: who the site is about (one person, a team, a
    product, an event or a show — and their name and what they do); what a
    visitor should do first (look at the work, read, find the details, sign
    up or buy, listen or watch — and up to three pages to keep at hand); how
    much becomes a desktop (the whole site, its pages to read with tools
    keeping their pages, or none: components only); where the real content
-   is (this project, a live site, an export, a folder); the tone; and the
-   extras (an iPod, their own wallpaper, a visitor counter, a marquee) and
+   is (this project, a live site, an export, a folder); the tone; the
+   extras (an iPod, their own wallpaper, a visitor counter, a marquee); and
    whether old addresses should keep working.
 1. **Content, then structure.** Read DESIGN.md › Content first.
    a. **Inventory** every page in reading order — every heading, paragraph,

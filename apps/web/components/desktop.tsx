@@ -1751,7 +1751,8 @@ export function Desktop() {
                 <p>Run this in a React project that uses Tailwind (a new create-next-app is fine):</p>
                 <Mono className="y2k-field block px-[6px] py-1">{INIT}</Mono>
                 <p>
-                  It first asks which of the five tones you want (or pass <Mono>--tone aqua</Mono>, say). Then it
+                  It first opens the Patina Setup Assistant in your browser: a few questions about your site and
+                  which of the five tones you want. Then it
                   puts <Mono>DESIGN.md</Mono> at the root of the project, the pack&apos;s components in{" "}
                   <Mono>components/ui</Mono>, the <Mono>/y2k-ify</Mono> and <Mono>/check-y2k</Mono> skills in{" "}
                   <Mono>.claude/skills</Mono>, the tone on your <Mono>&lt;html&gt;</Mono>, and a note in{" "}

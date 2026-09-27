@@ -37,15 +37,15 @@ Options for init
 
 The Setup Assistant
   At a terminal, init opens a Mac OS X Setup Assistant in your browser
-  (served from 127.0.0.1) and asks six questions about your site: who it
+  (served from 127.0.0.1) and asks a few questions about your site: who it
   is about, what a visitor does first, how much becomes a desktop, where
-  the real content is, the tone, and the small extras. The answers go into
-  patina.json as a "brief": init installs from it (the tone, the desktop or
-  not, the extras) and /y2k-ify reads the rest. An AI agent runs
-  init --setup, and the person answers in the page it opens. Without a
-  terminal and without --setup (a script, --yes) the flags below answer
-  instead, and whatever they leave out is listed as unanswered, for
-  /y2k-ify to ask in chat.
+  the real content is, the tone, the small extras, and whether your old
+  addresses keep working. The answers go into patina.json as a "brief":
+  init installs from it (the tone, the desktop or not, the extras) and
+  /y2k-ify reads the rest. An AI agent runs init --setup, and the person
+  answers in the page it opens. Without a terminal and without --setup (a
+  script, --yes) the flags below answer instead, and whatever they leave
+  out is listed as unanswered, for /y2k-ify to ask in chat.
 
   --about <kind>        person, team, product, event, show or other=<words>
   --name <text>         Their name         --role <text>   What they do
@@ -62,7 +62,7 @@ The Setup Assistant
   --old-urls <what>     redirect (old addresses open their windows) or drop
 
 What init does
-  0. Asks the six questions and the tone (or takes them from the flags).
+  0. Asks the Setup Assistant's questions (or takes them from the flags).
   1. Writes DESIGN.md to the project root — the spec your coding agent reads.
   2. Installs the Y2K theme + components from the registry (via shadcn).
   3. Installs the agent skills into .claude/skills/ and the /check-y2k scanner.

@@ -1,9 +1,11 @@
 /**
  * The brief: what the person installing Patina wants their site to become.
  *
- * `init` asks six questions (plus the tone and a confirmation of the names
- * it detected) in the Setup Assistant page, at the terminal (--terminal) or
- * from flags (--yes, a script, an agent). The answers go into
+ * `init` asks the questions below in the Setup Assistant page, at the
+ * terminal (--terminal) or from flags (--yes, a script, an agent). How
+ * many depends on the answers — two are skipped when only the components
+ * change, and the page adds one when the pack's files are already there —
+ * so the copy says "a few questions", never a number. The answers go into
  * `patina.json › brief`, where the installer reads the tone, the scope and
  * the extras, and `/y2k-ify` reads the rest — the About box's kind, what to
  * feature, which routes keep their pages, where to transcribe from — and

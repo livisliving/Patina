@@ -49,8 +49,8 @@ On the user's own computer, run `init --setup` even when you are not sure a brow
 open: it prints the page's address, and they can open it themselves. Only in a cloud
 sandbox, where their browser cannot reach your 127.0.0.1, ask them the Setup Assistant's
 questions in chat instead — who the site is about, what a visitor should do first, how
-much becomes a desktop, where the real content is, the tone, the extras — wait for their
-answers, and pass them as flags:
+much becomes a desktop, where the real content is, the tone, the extras, whether old
+addresses should keep working — wait for their answers, and pass them as flags:
 `npx @pat1na/cli@latest init --tone <pink|aqua|lime|tangerine|grape> --scope whole …`
 (`npx @pat1na/cli --help` lists them). Never answer the questions yourself: the tone and
 how much of the site becomes a desktop are the user's choice. Whatever they leave out,
