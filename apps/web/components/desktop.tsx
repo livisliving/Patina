@@ -39,6 +39,7 @@ import {
 // The pack's desktop parts this one shares, from the pack's own files.
 import { asset } from "@/components/ui/desktop/asset"
 import { MiddleTruncate } from "@/components/ui/desktop/middle-truncate"
+import { Chevron, useToolbarFit } from "@/components/ui/desktop/toolbar-fit"
 import { TONES, type Tone } from "@/components/ui/desktop/tones"
 import { useDrag } from "@/components/ui/desktop/use-drag"
 import { useMarqueeSelect } from "@/components/ui/desktop/use-marquee-select"
@@ -601,39 +602,13 @@ const ColGlyph = () => (
   </svg>
 )
 
-/** The search field at its narrowest, before it goes. */
-const SEARCH_MIN = 96
-
-/** The 10.1 toolbar's overflow: a » at the far end, which lists the places
- *  the window is too narrow for. */
-function Chevron({ className, ...props }: React.ComponentProps<"button">) {
-  return (
-    <button
-      type="button"
-      aria-label="More places"
-      className={cn(
-        "mt-[2px] flex h-8 w-4 shrink-0 cursor-default items-center justify-center rounded-[4px] text-[#1e1e1e] outline-none",
-        "focus-visible:shadow-(--y2k-focus-ring) data-[state=open]:bg-black/10",
-        className
-      )}
-      {...props}
-    >
-      {/* The chevron is drawn, as 10.1 drew it: two 4 × 7 carets 2px
-          apart, black. */}
-      <svg viewBox="0 0 10 7" width="10" height="7" shapeRendering="crispEdges" aria-hidden>
-        <path d="M0 0h1v1h1v1h1v1h1v1H3v1H2v1H1v1H0zM6 0h1v1h1v1h1v1h1v1H9v1H8v1H7v1H6z" fill="currentColor" />
-      </svg>
-    </button>
-  )
-}
-
 /**
  * The Finder's toolbar: Back, the view control, the places, Search. Sized to
  * its window, as the 10.1 Finder's is: the search field gives up its width
  * (160px down to 96px), then goes; then the places go from the right into
  * the » menu at the end. Never a second row. Measured, not set at a
  * breakpoint: each place at its own width, with its label or (on a phone)
- * without. Its own component, so it measures again each time it is shown.
+ * without, by the pack's useToolbarFit, as the pack's Finder is.
  */
 function FinderToolbar({
   canGoBack,
@@ -654,39 +629,7 @@ function FinderToolbar({
   query: string
   onQuery: (query: string) => void
 }) {
-  const barRef = React.useRef<HTMLDivElement>(null)
-  const rulerRef = React.useRef<HTMLDivElement>(null)
-  const [fit, setFit] = React.useState({ places: Infinity, search: true })
-  React.useLayoutEffect(() => {
-    const bar = barRef.current
-    const ruler = rulerRef.current
-    if (!bar || !ruler) return
-    const measure = () => {
-      const css = getComputedStyle(bar)
-      const gap = parseFloat(css.columnGap) || 0
-      const room = bar.clientWidth - parseFloat(css.paddingLeft) - parseFloat(css.paddingRight)
-      // Each at its width with its margins (the separator's 4px either side),
-      // to the fraction of a pixel.
-      const outer = (el: Element) => {
-        const m = getComputedStyle(el)
-        return el.getBoundingClientRect().width + parseFloat(m.marginLeft) + parseFloat(m.marginRight)
-      }
-      const fixed = [...bar.querySelectorAll(":scope > [data-fixed]")].map(outer)
-      const [chevron, ...widths] = [...ruler.children].map(outer)
-      const width = (n: number, search: boolean) => {
-        const row = [...fixed, ...widths.slice(0, n), ...(search ? [SEARCH_MIN] : []), ...(n < widths.length ? [chevron] : [])]
-        return row.reduce((a, b) => a + b, 0) + gap * (row.length - 1)
-      }
-      let n = widths.length
-      const search = width(n, true) <= room
-      if (!search) while (n > 0 && width(n, false) > room) n--
-      setFit((f) => (f.places === n && f.search === search ? f : { places: n, search }))
-    }
-    measure()
-    const observer = new ResizeObserver(measure)
-    observer.observe(bar)
-    return () => observer.disconnect()
-  }, [])
+  const { fit, barRef, rulerRef } = useToolbarFit()
   const shown = Math.min(fit.places, places.length)
   return (
     <WindowToolbar ref={barRef} className="relative overflow-hidden">
@@ -731,7 +674,7 @@ function FinderToolbar({
         </Menu.Root>
       )}
       {/* The ruler: the chevron and every place at its own width, out of
-          sight, for the measure above. */}
+          sight, for useToolbarFit to measure. */}
       <div ref={rulerRef} aria-hidden inert className="pointer-events-none invisible absolute top-0 left-0 flex w-max">
         <Chevron tabIndex={-1} />
         {places.map((place) => (
