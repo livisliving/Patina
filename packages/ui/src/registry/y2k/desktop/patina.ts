@@ -6,7 +6,7 @@
  */
 export const PATINA = {
   name: "Patina OS",
-  version: "0.4.4",
+  version: "0.4.5",
   taste: "Aqua × millennium",
   by: "Olivia Forster",
   site: "https://oliviaforster.com",

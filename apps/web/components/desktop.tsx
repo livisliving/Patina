@@ -70,6 +70,15 @@ const WALLPAPERS = Object.fromEntries(
  *  entry; nothing before 0.1.0 is listed. */
 const CHANGELOG: { version: string; date: string; items: string[] }[] = [
   {
+    version: "0.4.5",
+    date: "27 September 2026",
+    items: [
+      "The keyboard's focus ring is one class in y2k.css, focus-visible:y2k-focus-ring. Use it on your own controls: it draws even beside outline-none, which switched the old three-class ring off.",
+      "The Finder's toolbar measures itself again when a place is renamed, not only when its window is resized or its toolbar comes back.",
+      "This site's desktop is built from the pack's own files rather than copies of them, so what the pack fixes is fixed here too.",
+    ],
+  },
+  {
     version: "0.4.4",
     date: "27 September 2026",
     items: [
@@ -176,7 +185,7 @@ const ICON_COLUMN = 84 + 12
 
 /** Patina's version, as the About boxes and the Finder show it: the newest
  *  release, listed in the Changelog or not. Bump it with every release. */
-const VERSION = "0.4.4"
+const VERSION = "0.4.5"
 
 /* ── Window manager ───────────────────────────────────────────────── */
 
