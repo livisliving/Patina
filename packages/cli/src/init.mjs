@@ -439,7 +439,10 @@ async function collectBrief({ cwd, registry, yes, dryRun, terminal, setup, brows
   const inTheWay = filesInTheWay(cwd)
   const questions = inTheWay.length ? [...QUESTIONS, replaceQuestion(inTheWay)] : QUESTIONS
   if (inTheWay.length) defaults.replace = "replace"
-  const server = await startSetupServer({ session: { mode: "live", project, questions, defaults }, registry, open: browser })
+  // openedBy: with no terminal it is an agent, which runs /y2k-ify itself
+  // once init exits, so the page's Done sends the person back to it.
+  const openedBy = atTerminal ? "terminal" : "agent"
+  const server = await startSetupServer({ session: { mode: "live", openedBy, project, questions, defaults }, registry, open: browser })
   ctx.server = server
   console.log(`  Answer in the browser${browser ? "" : " (open this)"}: ${server.url}`)
   if (atTerminal) console.log(`  (or run again with --terminal to answer here)\n`)

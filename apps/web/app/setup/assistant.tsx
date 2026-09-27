@@ -396,7 +396,9 @@ async function copyText(value: string) {
   }
 }
 
-function Install({ run, onCopy, copied, closing }: { run: Run; onCopy: () => void; copied: boolean; closing: boolean }) {
+/** `agent`: an agent ran init (Session › openedBy), and it carries on with
+ *  /y2k-ify once init exits, so the way on is back to it. */
+function Install({ run, onCopy, copied, closing, agent }: { run: Run; onCopy: () => void; copied: boolean; closing: boolean; agent: boolean }) {
   if (run.phase === "error")
     return (
       <WindowAlert
@@ -405,9 +407,13 @@ function Install({ run, onCopy, copied, closing }: { run: Run; onCopy: () => voi
         icon={<IconWarning />}
         message={run.message || "The installer reported an error."}
         informative={
-          <>
-            Go Back to try again, or look at the terminal where you ran <Mono>npx @pat1na/cli init</Mono>.
-          </>
+          agent ? (
+            <>Go Back to try again, or ask your agent what the installer said.</>
+          ) : (
+            <>
+              Go Back to try again, or look at the terminal where you ran <Mono>npx @pat1na/cli init</Mono>.
+            </>
+          )
         }
       />
     )
@@ -428,7 +434,16 @@ function Install({ run, onCopy, copied, closing }: { run: Run; onCopy: () => voi
       {done && (
         <div className="mt-6">
           <p>
-            Ask your agent to run <Mono>/y2k-ify</Mono>. It reads your answers from <Mono>patina.json</Mono>.
+            {agent ? (
+              <>
+                Go back to your agent: it carries on with <Mono>/y2k-ify</Mono>, which reads your answers from{" "}
+                <Mono>patina.json</Mono>. If it is waiting for you, paste this:
+              </>
+            ) : (
+              <>
+                Ask your agent to run <Mono>/y2k-ify</Mono>. It reads your answers from <Mono>patina.json</Mono>.
+              </>
+            )}
           </p>
           <div className="mt-3 flex items-center gap-3">
             <TextField readOnly value="/y2k-ify" aria-label="Command for your agent" className="w-40 font-(family-name:--y2k-font-mono) text-[11px]" />
@@ -437,7 +452,16 @@ function Install({ run, onCopy, copied, closing }: { run: Run; onCopy: () => voi
               {copied ? "Copied." : ""}
             </span>
           </div>
-          {closing && <p className="mt-4">You can close this page.</p>}
+          <p role="status" className={cn(closing && "mt-4")}>
+            {closing &&
+              (agent ? (
+                "You can close this page and go back to your agent."
+              ) : (
+                <>
+                  You can close this page, then paste <Mono>/y2k-ify</Mono> into your agent.
+                </>
+              ))}
+          </p>
         </div>
       )}
     </>
@@ -687,6 +711,7 @@ export function Assistant() {
                     run={run}
                     copied={copied}
                     closing={closing}
+                    agent={session?.openedBy === "agent"}
                     onCopy={() => {
                       void copyText("/y2k-ify").then(setCopied)
                     }}

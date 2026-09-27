@@ -74,6 +74,10 @@ export type Defaults = {
 
 export type Session = {
   mode: "live" | "demo"
+  /** Who ran init: an AI agent (`--setup` with no terminal), which goes on
+   *  to /y2k-ify by itself once init exits, or a person at a terminal, who
+   *  has to ask for it. A CLI that sends none is read as a terminal. */
+  openedBy?: "agent" | "terminal"
   project: Project
   questions: Question[]
   defaults: Defaults

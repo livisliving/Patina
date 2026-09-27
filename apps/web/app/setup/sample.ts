@@ -116,6 +116,8 @@ export const QUESTIONS: Question[] = [
  */
 export const SAMPLE: Session = {
   mode: "demo",
+  // The way most people come: their agent ran init for them.
+  openedBy: "agent",
   project: {
     name: "linden-studio",
     framework: "Next.js 16 (app router)",

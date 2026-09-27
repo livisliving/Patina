@@ -394,7 +394,7 @@ async function walkSetup(pw, url, { tone = "Lime", other = false, replace = "rep
       seen.progress = (await page.locator("body").innerText()).match(/\d+ of \d+ items installed/)?.[0]
       for (let i = 0; i < 40 && !(await done.isEnabled()); i++) await page.waitForTimeout(250)
       await done.click()
-      seen.closing = await page.getByText("You can close this page.").isVisible()
+      seen.closing = await page.getByText("You can close this page and go back to your agent.").isVisible()
     }
     seen.laterErrors = seen.errors.slice(loadErrors)
     return seen
@@ -600,7 +600,7 @@ kase("setup", "init --setup with no terminal: the page renders through the proxy
   t.ok(seen.other === NOT_SURE || seen.other === `${NOT_SURE}.`, `“Other” comes with “${NOT_SURE}” in its field`, JSON.stringify(seen.other))
   t.ok(!seen.unknown, "no pane the walk did not know", seen.unknown)
   t.ok(seen.outcome === "done", "the page reaches Done", `${seen.outcome}${seen.alert ? `: ${seen.alert}` : ""}`)
-  t.ok(seen.closing, "Done says “You can close this page.”")
+  t.ok(seen.closing, "Done sends the person back to their agent")
   t.ok(seen.laterErrors.length === 0, "no console errors while answering and installing", seen.laterErrors.join("; "))
   t.ok(code === 0, "init exits 0 after the last pane", `exit ${code}\n${tail(out)}`)
   for (const rel of [...COPIES, "patina.json", "components/ui/button.tsx", "components/desktop/desktop.tsx"]) t.ok(exists(dir, rel), `${rel} is there`)
