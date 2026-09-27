@@ -776,6 +776,17 @@ function SectionBar({ sections }: { sections: string[] }) {
   )
 }
 
+/** A long document's section heading. Its label is its `data-section` too,
+ *  which SectionBar finds it by; DESIGN.md's are marked "# ", as in the file. */
+function SectionHeading({ name, hash = false }: { name: string; hash?: boolean }) {
+  return (
+    <h3 data-section={name} className="mt-1 font-bold">
+      {hash && "# "}
+      {name}
+    </h3>
+  )
+}
+
 /** The long documents' sections, as their headings name them (DESIGN.md's
  *  without the heading's "# "). */
 const HELP_SECTIONS = ["Install", "Build something", "Restyle a page you already have", "Check before you ship", "Change the tone", "Using this desktop", "Source"]
@@ -1713,7 +1724,7 @@ export function Desktop() {
                   card. Y2K is the first pack: Mac OS X Aqua in five millennium colours. This desktop is built with it.
                 </p>
 
-                <h3 data-section="Install" className="mt-1 font-bold">Install</h3>
+                <SectionHeading name="Install" />
                 <p>Run this in a React project that uses Tailwind (a new create-next-app is fine):</p>
                 <Mono className="y2k-field block px-[6px] py-1">{INIT}</Mono>
                 <p>
@@ -1734,13 +1745,13 @@ export function Desktop() {
                   npx shadcn@latest add {process.env.NEXT_PUBLIC_REGISTRY}/window.json
                 </Mono>
 
-                <h3 data-section="Build something" className="mt-1 font-bold">Build something</h3>
+                <SectionHeading name="Build something" />
                 <p>
                   Ask your agent the way you normally would, for example &ldquo;make a settings page&rdquo;. It reads
                   DESIGN.md first and builds the page from the pack&apos;s windows, buttons and controls.
                 </p>
 
-                <h3 data-section="Restyle a page you already have" className="mt-1 font-bold">Restyle a page you already have</h3>
+                <SectionHeading name="Restyle a page you already have" />
                 <p>
                   Run <Mono>/y2k-ify</Mono> in your agent. It rebuilds the page with the pack&apos;s components and
                   keeps what the page does (same routes, same data), then runs <Mono>/check-y2k</Mono> on what it
@@ -1748,14 +1759,14 @@ export function Desktop() {
                   variant and size names.
                 </p>
 
-                <h3 data-section="Check before you ship" className="mt-1 font-bold">Check before you ship</h3>
+                <SectionHeading name="Check before you ship" />
                 <p>
                   <Mono>/check-y2k</Mono>, or <Mono className="whitespace-nowrap">node scripts/check-y2k.mjs .</Mono> in a terminal, reads the rules
                   out of DESIGN.md and lists every place the page slips back to the defaults: grey cards, the
                   purple-to-blue gradient, thin-line icons. It exits with an error when it finds one, so it can run in CI.
                 </p>
 
-                <h3 data-section="Change the tone" className="mt-1 font-bold">Change the tone</h3>
+                <SectionHeading name="Change the tone" />
                 <p>
                   There are five: Y2K pink, Aqua, Lime, Tangerine and Grape. The tone colours the gel, the selection
                   and the wallpaper. The installer sets the one you pick on <Mono>&lt;html&gt;</Mono>; to change it
@@ -1763,7 +1774,7 @@ export function Desktop() {
                   Here, choose one from the ★ menu or open Tone Preferences.
                 </p>
 
-                <h3 data-section="Using this desktop" className="mt-1 font-bold">Using this desktop</h3>
+                <SectionHeading name="Using this desktop" />
                 <p>
                   Double-click an icon to open it and drag a window by its title bar. The three lights at the top left
                   close, minimise and zoom. Everything else is in the Dock. The Design System app shows the pack&apos;s
@@ -1774,7 +1785,7 @@ export function Desktop() {
                   has the rules in full.
                 </p>
 
-                <h3 data-section="Source" className="mt-1 font-bold">Source</h3>
+                <SectionHeading name="Source" />
                 <p>
                   The code is on GitHub:{" "}
                   <a href="https://github.com/livisliving/Patina" target="_blank" rel="noopener noreferrer" className={LINK}>
@@ -1851,7 +1862,7 @@ export function Desktop() {
                   shorter version.
                 </p>
 
-                <h3 data-section="Two layers" className="mt-1 font-bold"># Two layers</h3>
+                <SectionHeading name="Two layers" hash />
                 <p>
                   <strong>Structure</strong> is Mac OS X Aqua from 2000 to 2005, and it is the same in every tone:
                   pinstriped windows, three glossy traffic lights at the top left, a centred bold title, soft drop
@@ -1861,7 +1872,7 @@ export function Desktop() {
                   screen, and don&apos;t colour text with a tone.
                 </p>
 
-                <h3 data-section="Grid" className="mt-1 font-bold"># Grid</h3>
+                <SectionHeading name="Grid" hash />
                 <p>
                   Everything except text snaps to a <strong>4px</strong> grid: spacing, sizes, radii and offsets. There
                   are three exceptions: 1px hairlines, the 2 or 3px highlights on gel, and Aqua 10.0&apos;s own
@@ -1870,7 +1881,7 @@ export function Desktop() {
                   <strong>Font sizes don&apos;t snap.</strong> They stay at the sizes Apple used.
                 </p>
 
-                <h3 data-section="Colours" className="mt-1 font-bold"># Colours</h3>
+                <SectionHeading name="Colours" hash />
                 <p>
                   The base colours are Y2K pink <Mono>#e8449a</Mono>, aqua <Mono>#4d83d2</Mono>,
                   lime <Mono>#7fc31c</Mono>, tangerine <Mono>#e8891a</Mono> and grape{" "}
@@ -1887,7 +1898,7 @@ export function Desktop() {
                   System app.
                 </p>
 
-                <h3 data-section="Type" className="mt-1 font-bold"># Type</h3>
+                <SectionHeading name="Type" hash />
                 <p>
                   Lucida Grande comes first, then open-source Lato on machines that aren&apos;t Macs, then the system
                   sans. EB Garamond is only for the wordmark, at 44px, as gel text. Code is Monaco at 11px. Aqua uses
@@ -1898,14 +1909,14 @@ export function Desktop() {
                   is here to replace.
                 </p>
 
-                <h3 data-section="Materials" className="mt-1 font-bold"># Materials</h3>
+                <SectionHeading name="Materials" hash />
                 <p>
                   Controls are white gel or tone gel. Every window surface is pinstriped, title and menu bars included.
                   iTunes-style windows are brushed metal, and hero surfaces are translucent plastic or chrome. Only
                   windows, menus, the Dock and gel have shadows. There are no cards, so there are no card shadows.
                 </p>
 
-                <h3 data-section="Shapes" className="mt-1 font-bold"># Shapes</h3>
+                <SectionHeading name="Shapes" hash />
                 <p>
                   Push buttons are capsules. Windows have 8px corners on top and 6px below; group boxes, tab panels and
                   menus 5px; segmented controls and pop-ups 4px; folder tabs 7px on top; text fields 2px and search
@@ -1913,7 +1924,7 @@ export function Desktop() {
                   cap, never a thin-line set.
                 </p>
 
-                <h3 data-section="Components" className="mt-1 font-bold"># Components</h3>
+                <SectionHeading name="Components" hash />
                 <p>
                   Push buttons are 20px tall and at least 68px wide, with a 13px regular label in black on gel and a
                   deep, soft shadow. Each window has one default button, in the tone gel; the throb it does in dialogues
@@ -1927,7 +1938,7 @@ export function Desktop() {
                   black triangle under apps that are running.
                 </p>
 
-                <h3 data-section="Don't" className="mt-1 font-bold"># Don&apos;t</h3>
+                <SectionHeading name="Don't" hash />
                 <p>
                   <Mono>/check-y2k</Mono> fails on any of these: grey cards and zinc or slate surfaces; the
                   purple-to-blue AI gradient; 8 to 16px card radii; shadows on anything that isn&apos;t a window; thin-line
