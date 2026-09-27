@@ -77,6 +77,7 @@ const CHANGELOG: { version: string; date: string; items: string[] }[] = [
       "Desktop icons, Finder icons and column rows show the focus ring when the keyboard reaches them.",
       "A pop-up is named by its label and what it shows (“Show General”), and a dialog such as the Bin by its title, so screen readers and voice control find them.",
       "The column view's dividers are a softer, wider shade, and an alias's arrow stays small in the preview column.",
+      "When your agent runs init, the Setup Assistant's last page sends you back to it, with /y2k-ify to paste if it is waiting.",
     ],
   },
   {
