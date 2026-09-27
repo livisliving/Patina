@@ -693,7 +693,9 @@ function WindowFrame({
           zoomable={zoomable}
           closeAs={closeAs}
         />
-        <WindowTitleText as={titleAs} active={active} id={titleAs ? undefined : titleId}>
+        {/* A dialog's title keeps the id Radix gives it, which its Dialog
+            is labelled by; even `id={undefined}` would replace that. */}
+        <WindowTitleText as={titleAs} active={active} {...(titleAs ? {} : { id: titleId })}>
           {title}
         </WindowTitleText>
         {onToolbarToggle && <WindowToolbarToggle active={active} onClick={onToolbarToggle} />}

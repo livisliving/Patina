@@ -510,9 +510,10 @@ export const IPod = React.memo(function IPod({ onEject, hidden }: { onEject: () 
         </div>
       </div>
 
-      {/* The source list and the songs, sunk into the metal. */}
+      {/* The source list and the songs, sunk into the metal. The list shows
+          on a desk only: a phone's window, even on its side, has no room. */}
       <div className="flex min-h-0 flex-1 px-4">
-        <WindowWell className="hidden w-36 shrink-0 flex-col overflow-hidden shadow-[0_0_0_1px_#636363,1px_1px_0_1px_rgba(255,255,255,0.7)] sm:flex">
+        <WindowWell className="hidden w-36 shrink-0 flex-col overflow-hidden shadow-[0_0_0_1px_#636363,1px_1px_0_1px_rgba(255,255,255,0.7)] desk:flex">
           <div className="h-[17px] shrink-0 bg-(image:--y2k-listheader) text-center text-[12px] leading-[17px]">Source</div>
           <WindowSidebar aria-label="Source" className="w-full flex-1 border-0 py-0 shadow-none">
             {sources.map((s) => (
@@ -524,7 +525,7 @@ export const IPod = React.memo(function IPod({ onEject, hidden }: { onEject: () 
         </WindowWell>
 
         {/* The splitter between the panes, its grip halfway down. */}
-        <div aria-hidden className="hidden w-2 shrink-0 items-center justify-center sm:flex">
+        <div aria-hidden className="hidden w-2 shrink-0 items-center justify-center desk:flex">
           <span className="size-1 rounded-full bg-black/80" />
         </div>
 

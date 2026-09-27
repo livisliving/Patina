@@ -17,7 +17,9 @@ import { cn } from "@/lib/utils"
  * 10px in, ending in a 21px gem — the tone control rows, parted from the
  * body by a darker 1px line, its round right end darkening — with two white
  * 5×4 arrows. It opens that menu with the options as radio items, the
- * current one ticked.
+ * current one ticked. Its `aria-label` is a label, not its whole name: the
+ * name is the label and then the value it shows ("Show General"), so a
+ * person who says "click General" reaches it (WCAG 2.5.3).
  */
 
 const menuContentClass = cn(
@@ -57,7 +59,6 @@ function PopupButton({
       <Menu.Trigger
         type="button"
         data-slot="popup-button"
-        aria-label={ariaLabel}
         className={cn(
           "relative inline-flex h-(--y2k-popup-h) min-w-[60px] cursor-default items-center rounded-[4px] pr-[calc(var(--y2k-popup-gem)+2px)] pl-[10px] text-left",
           "font-(family-name:--y2k-font-ui) text-[13px] text-black outline-none",
@@ -66,6 +67,7 @@ function PopupButton({
           className
         )}
       >
+        {ariaLabel && <span className="sr-only">{ariaLabel} </span>}
         <span className="relative z-[1] truncate">{value}</span>
         <span
           aria-hidden

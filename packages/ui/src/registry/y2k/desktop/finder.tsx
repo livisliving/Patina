@@ -161,7 +161,7 @@ function ColumnRow({
       onDoubleClick={item.onClick}
       onKeyDown={(e) => e.key === "Enter" && item.onClick?.()}
       className={cn(
-        "flex w-full cursor-default items-center gap-1 px-2 text-left text-[12px] outline-none",
+        "flex w-full cursor-default items-center gap-1 px-2 text-left text-[12px] outline-none focus-visible:y2k-focus-ring focus-visible:-outline-offset-3",
         volume ? "h-10 gap-2" : "h-5",
         on && focused && "bg-(--y2k-tone-selection) text-(--y2k-tone-selection-text)",
         on && !focused && "bg-[#dedede]"
@@ -208,9 +208,10 @@ const COLUMN_MIN = 96
 const COLUMN_MAX = 320
 const COLUMN = 176
 
-/** The strip between two columns: a light bevel with the Aqua column-resize
- *  grip at its foot — and, as in the real Finder, the drag handle that sizes
- *  the column to its LEFT. Arrow keys nudge it by one grid step. */
+/** The strip between two columns: a soft 12px shade, lightest where the next
+ *  column starts, with the Aqua column-resize grip at its foot — and, as in
+ *  the real Finder, the drag handle that sizes the column to its LEFT. Arrow
+ *  keys nudge it by one grid step. */
 function ColumnSplit({ width, onResize }: { width: number; onResize: (w: number) => void }) {
   const from = React.useRef<{ x: number; w: number } | null>(null)
   const clamp = (w: number) => Math.min(COLUMN_MAX, Math.max(COLUMN_MIN, Math.round(w / 4) * 4))
@@ -246,7 +247,7 @@ function ColumnSplit({ width, onResize }: { width: number; onResize: (w: number)
         onResize(clamp(width + (e.key === "ArrowRight" ? 8 : -8)))
       }}
       className={cn(
-        "relative w-2 shrink-0 cursor-col-resize touch-none bg-[linear-gradient(to_right,#d6d6d6,#e7e7e7,#f7f7f7)]",
+        "relative w-3 shrink-0 cursor-col-resize touch-none bg-[linear-gradient(to_right,#e0e0e0,#ebebeb_35%,#f5f5f5_70%,#fcfcfc)]",
         // The pack's focus halo, same as every other focusable surface.
         "outline-none focus-visible:shadow-[0_0_0_3px_var(--y2k-tone-focus)]"
       )}
@@ -321,8 +322,8 @@ export function Band({ rect, z }: { rect: Rect | null; z?: boolean }) {
 const HEADERS: { col: SortCol; label: string; className?: string }[] = [
   { col: "label", label: "Name" },
   { col: "created", label: "Date Created", className: "w-[100px]" },
-  // A phone has room for three columns; Kind goes.
-  { col: "kind", label: "Kind", className: "w-32 max-sm:hidden" },
+  // A Finder under 600px wide has room for three columns; Kind goes.
+  { col: "kind", label: "Kind", className: "w-32 @max-[600px]/finder:hidden" },
   { col: "size", label: "Size", className: "w-16" },
 ]
 
@@ -334,8 +335,8 @@ export function kindsOf(items: FinderItem[]): string[] {
 }
 
 /** A folder's source list: its items by Kind, the picked one in the tone,
- *  each with its count. A phone has no room for the column, so there it is
- *  a pop-up over the files. */
+ *  each with its count. A Finder under 600px wide has no room for the
+ *  column, so there it is a pop-up over the files. */
 function KindFilter({ items, kinds, value, onChange }: { items: FinderItem[]; kinds: string[]; value: string | null; onChange: (kind: string | null) => void }) {
   const rows = [
     { kind: null, label: `All items (${items.length})` },
@@ -344,7 +345,7 @@ function KindFilter({ items, kinds, value, onChange }: { items: FinderItem[]; ki
   const current = rows.find((r) => r.kind === value) ?? rows[0]
   return (
     <>
-      <WindowSidebar aria-label="Kind" className="max-sm:hidden">
+      <WindowSidebar aria-label="Kind" className="@max-[600px]/finder:hidden">
         <WindowSidebarGroup label="Kind" />
         {rows.map((r) => (
           <WindowSidebarItem key={r.label} icon={<FolderIcon />} selected={r === current} onClick={() => onChange(r.kind)}>
@@ -352,7 +353,7 @@ function KindFilter({ items, kinds, value, onChange }: { items: FinderItem[]; ki
           </WindowSidebarItem>
         ))}
       </WindowSidebar>
-      <div className="flex items-center gap-2 border-b border-(--y2k-separator) px-2 py-1 sm:hidden">
+      <div className="flex items-center gap-2 border-b border-(--y2k-separator) px-2 py-1 @min-[600px]/finder:hidden">
         <span className="text-[12px]">Kind:</span>
         <PopupButton
           aria-label="Kind"
@@ -581,126 +582,133 @@ export function Finder({
         )
       }
     >
-      {/* A folder of several Kinds gets its source list at the left, in every view. */}
-      <div className="flex min-h-0 flex-1 max-sm:flex-col">
-        {kindFilter && <KindFilter items={hereItems} kinds={kindFilter.kinds} value={kindFilter.value} onChange={kindFilter.onChange} />}
-        <WindowScrollArea viewportRef={viewportRef} className={cn("bg-white", view === "columns" && "overflow-hidden")}>
-          {narrowed && visible.length === 0 ? (
-            <p className="p-6 text-center text-[12px] text-(--y2k-ink-secondary)">{query.trim() ? <>No items match “{query}”.</> : "No items."}</p>
-          ) : view === "columns" ? (
-            // Aqua column view, rebuilt from the 10.2 reference. The FIRST
-            // column lists volumes — double-height rows, 32px icons, a
-            // disclosure arrow on every one — and each folder on the path
-            // opens the next. Columns are 176px, parted by an 8px bevel
-            // with a grip at its foot; the strip scrolls sideways once the
-            // path runs past the window, as the real Finder does.
-            <div className="flex min-h-full w-max min-w-full">
-              {columns.map((col, depth) => (
-                <React.Fragment key={depth}>
-                  <div data-finder-column className="shrink-0 overflow-y-auto py-1" style={{ width: columnWidths[depth] ?? COLUMN }}>
-                    {col.items.map((it) => (
-                      <ColumnRow
-                        key={it.label}
-                        item={it}
-                        volume={col.volume}
-                        on={col.on === it.label}
-                        focused={depth === chain.length - 1}
-                        chevron={it.contents !== undefined}
-                        onSelect={() => selectColumn(depth, it)}
+      {/* A folder of several Kinds gets its source list at the left, in every
+          view. The Finder lays itself out by its own width, not the
+          screen's: under 600px (a phone, a phone on its side, a tablet's
+          narrower window, one dragged narrow) the Kind sidebar becomes a
+          pop-up over the files and the Kind column goes, so the names keep
+          their room. */}
+      <div className="@container/finder flex min-h-0 flex-1 flex-col">
+        <div className="flex min-h-0 flex-1 @max-[600px]/finder:flex-col">
+          {kindFilter && <KindFilter items={hereItems} kinds={kindFilter.kinds} value={kindFilter.value} onChange={kindFilter.onChange} />}
+          <WindowScrollArea viewportRef={viewportRef} className={cn("bg-white", view === "columns" && "overflow-hidden")}>
+            {narrowed && visible.length === 0 ? (
+              <p className="p-6 text-center text-[12px] text-(--y2k-ink-secondary)">{query.trim() ? <>No items match “{query}”.</> : "No items."}</p>
+            ) : view === "columns" ? (
+              // Aqua column view, rebuilt from the 10.2 reference. The FIRST
+              // column lists volumes — double-height rows, 32px icons, a
+              // disclosure arrow on every one — and each folder on the path
+              // opens the next. Columns are 176px, parted by a 12px shade
+              // with a grip at its foot; the strip scrolls sideways once the
+              // path runs past the window, as the real Finder does.
+              <div className="flex min-h-full w-max min-w-full">
+                {columns.map((col, depth) => (
+                  <React.Fragment key={depth}>
+                    <div data-finder-column className="shrink-0 overflow-y-auto py-1" style={{ width: columnWidths[depth] ?? COLUMN }}>
+                      {col.items.map((it) => (
+                        <ColumnRow
+                          key={it.label}
+                          item={it}
+                          volume={col.volume}
+                          on={col.on === it.label}
+                          focused={depth === chain.length - 1}
+                          chevron={it.contents !== undefined}
+                          onSelect={() => selectColumn(depth, it)}
+                        />
+                      ))}
+                    </div>
+                    <ColumnSplit width={columnWidths[depth] ?? COLUMN} onResize={(w) => setColumnWidth(depth, w)} />
+                  </React.Fragment>
+                ))}
+                {columnShown && <ColumnInspector item={columnShown} />}
+                {/* The reference pads the rest of the width with an empty
+                    column, ready for the next level. */}
+                <div className="w-44 min-w-0 flex-1 border-l border-black/10" />
+              </div>
+            ) : view === "list" ? (
+              // Aqua list view: the pack's Table — the list header, 12px
+              // rows, every other row pale blue, the selection in the tone.
+              // A click on a header sorts by it; another turns it round.
+              <div className="relative min-h-full select-none" {...rootProps}>
+                <Band rect={band} z />
+                <Table className="table-fixed">
+                  <TableHeader>
+                    <tr>
+                      {HEADERS.map((h) => (
+                        <TableHead
+                          key={h.col}
+                          sorted={sort?.col === h.col ? sort.dir : undefined}
+                          onClick={() => onSort(h.col)}
+                          className={cn("cursor-default select-none", h.className)}
+                        >
+                          {h.label}
+                        </TableHead>
+                      ))}
+                    </tr>
+                  </TableHeader>
+                  <TableBody>
+                    {visible.map((it) => {
+                      const key = finderKey(placePath, it)
+                      return (
+                        <FileRow
+                          key={it.label}
+                          item={it}
+                          data-select-item={key}
+                          selected={selected.has(key)}
+                          onSelect={() => choose(key, it)}
+                          onOpen={() => onOpenItem(it, placePath)}
+                          className="relative z-[2]"
+                        >
+                          <TableCell>{it.created}</TableCell>
+                          <TableCell className="truncate @max-[600px]/finder:hidden">{it.kind}</TableCell>
+                          <TableCell>{it.size}</TableCell>
+                        </FileRow>
+                      )
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              // A drag from anywhere that is not an icon or its name — the
+              // padding, the gaps, the sides of a cell, the space under the
+              // last row — draws the rubber band (an icon is only as wide as
+              // its name, centred in its cell, so the rest of the cell is free).
+              <div className="relative grid min-h-full grid-cols-3 content-start gap-y-3 p-3 select-none @min-[600px]/finder:grid-cols-4" {...rootProps}>
+                <Band rect={band} z />
+                {visible.map((it) => {
+                  const key = finderKey(placePath, it)
+                  return (
+                    <button
+                      key={it.label}
+                      type="button"
+                      data-select-item={key}
+                      disabled={it.disabled}
+                      aria-pressed={selected.has(key)}
+                      onClick={() => !it.disabled && choose(key, it)}
+                      onDoubleClick={() => onOpenItem(it, placePath)}
+                      onKeyDown={(e) => e.key === "Enter" && !it.disabled && onOpenItem(it, placePath)}
+                      className="group relative z-[2] flex max-w-full cursor-default flex-col items-center gap-1 justify-self-center outline-none focus-visible:y2k-focus-ring focus-visible:outline-offset-1 disabled:opacity-45"
+                    >
+                      <span className="size-12 [&_svg]:size-full">{it.icon}</span>
+                      {/* Two lines at most, then cut from the middle, as the
+                          Finder cuts a name: the start and the suffix stay. */}
+                      <MiddleTruncate
+                        text={it.label}
+                        lines={2}
+                        className="w-full text-center"
+                        labelClassName={cn(
+                          "inline-block max-w-full rounded-[3px] px-1.5 py-[1px] text-[12px]",
+                          // The light tone under black ink, the same in every tone.
+                          selected.has(key) && "bg-(--y2k-tone-focus) text-(--y2k-ink)"
+                        )}
                       />
-                    ))}
-                  </div>
-                  <ColumnSplit width={columnWidths[depth] ?? COLUMN} onResize={(w) => setColumnWidth(depth, w)} />
-                </React.Fragment>
-              ))}
-              {columnShown && <ColumnInspector item={columnShown} />}
-              {/* The reference pads the rest of the width with an empty
-                  column, ready for the next level. */}
-              <div className="w-44 min-w-0 flex-1 border-l border-black/10" />
-            </div>
-          ) : view === "list" ? (
-            // Aqua list view: the pack's Table — the list header, 12px
-            // rows, every other row pale blue, the selection in the tone.
-            // A click on a header sorts by it; another turns it round.
-            <div className="relative min-h-full select-none" {...rootProps}>
-              <Band rect={band} z />
-              <Table className="table-fixed">
-                <TableHeader>
-                  <tr>
-                    {HEADERS.map((h) => (
-                      <TableHead
-                        key={h.col}
-                        sorted={sort?.col === h.col ? sort.dir : undefined}
-                        onClick={() => onSort(h.col)}
-                        className={cn("cursor-default select-none", h.className)}
-                      >
-                        {h.label}
-                      </TableHead>
-                    ))}
-                  </tr>
-                </TableHeader>
-                <TableBody>
-                  {visible.map((it) => {
-                    const key = finderKey(placePath, it)
-                    return (
-                      <FileRow
-                        key={it.label}
-                        item={it}
-                        data-select-item={key}
-                        selected={selected.has(key)}
-                        onSelect={() => choose(key, it)}
-                        onOpen={() => onOpenItem(it, placePath)}
-                        className="relative z-[2]"
-                      >
-                        <TableCell>{it.created}</TableCell>
-                        <TableCell className="truncate max-sm:hidden">{it.kind}</TableCell>
-                        <TableCell>{it.size}</TableCell>
-                      </FileRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          ) : (
-            // A drag from anywhere that is not an icon or its name — the
-            // padding, the gaps, the sides of a cell, the space under the
-            // last row — draws the rubber band (an icon is only as wide as
-            // its name, centred in its cell, so the rest of the cell is free).
-            <div className="relative grid min-h-full grid-cols-3 content-start gap-y-3 p-3 select-none sm:grid-cols-4" {...rootProps}>
-              <Band rect={band} z />
-              {visible.map((it) => {
-                const key = finderKey(placePath, it)
-                return (
-                  <button
-                    key={it.label}
-                    type="button"
-                    data-select-item={key}
-                    disabled={it.disabled}
-                    aria-pressed={selected.has(key)}
-                    onClick={() => !it.disabled && choose(key, it)}
-                    onDoubleClick={() => onOpenItem(it, placePath)}
-                    onKeyDown={(e) => e.key === "Enter" && !it.disabled && onOpenItem(it, placePath)}
-                    className="group relative z-[2] flex max-w-full cursor-default flex-col items-center gap-1 justify-self-center outline-none disabled:opacity-45"
-                  >
-                    <span className="size-12 [&_svg]:size-full">{it.icon}</span>
-                    {/* Two lines at most, then cut from the middle, as the
-                        Finder cuts a name: the start and the suffix stay. */}
-                    <MiddleTruncate
-                      text={it.label}
-                      lines={2}
-                      className="w-full text-center"
-                      labelClassName={cn(
-                        "inline-block max-w-full rounded-[3px] px-1.5 py-[1px] text-[12px]",
-                        // The light tone under black ink, the same in every tone.
-                        selected.has(key) && "bg-(--y2k-tone-focus) text-(--y2k-ink)"
-                      )}
-                    />
-                  </button>
-                )
-              })}
-            </div>
-          )}
-        </WindowScrollArea>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </WindowScrollArea>
+        </div>
       </div>
     </DesktopWindow>
   )

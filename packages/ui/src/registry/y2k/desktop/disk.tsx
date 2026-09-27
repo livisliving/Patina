@@ -129,12 +129,13 @@ export function Thumb({ img, alias }: { img: Img; alias?: boolean }) {
 }
 
 /** The 10.x alias badge: the curved black arrow in a white box. A quarter
- *  of the icon's width, never under 8px — 12px on a 48px icon, 8px on a
- *  16px row, 32px in the inspector. */
+ *  of the icon's width, from 8px to 16px — 8px on a 16px row, 12px on a
+ *  48px icon, 16px in the 128px inspector, where a quarter (32px) would
+ *  thicken its lines to 3px. */
 function AliasBadge() {
   return (
     // Important, because every icon box sizes the svgs in it to fill it.
-    <svg viewBox="0 0 12 12" aria-label="Alias" role="img" className="absolute bottom-0 left-0 block h-auto! w-[max(8px,25%)]!">
+    <svg viewBox="0 0 12 12" aria-label="Alias" role="img" className="absolute bottom-0 left-0 block h-auto! w-[clamp(8px,25%,16px)]!">
       <rect x="0.5" y="0.5" width="11" height="11" fill="#fff" stroke="#000" />
       <path d="M3.5 10V7.5a2.5 2.5 0 0 1 2.5-2.5h1.5" fill="none" stroke="#000" strokeWidth="1.6" />
       <path d="M6.8 2.3L10.2 5 6.8 7.7z" fill="#000" />

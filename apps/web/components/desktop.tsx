@@ -489,7 +489,7 @@ function ColumnRow({
       onDoubleClick={item.onClick}
       onKeyDown={(e) => e.key === "Enter" && item.onClick?.()}
       className={cn(
-        "flex w-full cursor-default items-center gap-1 px-2 text-left text-[12px] outline-none",
+        "flex w-full cursor-default items-center gap-1 px-2 text-left text-[12px] outline-none focus-visible:y2k-focus-ring focus-visible:-outline-offset-3",
         volume ? "h-10 gap-2" : "h-5",
         on && focused && "bg-(--y2k-tone-selection) text-(--y2k-tone-selection-text)",
         on && !focused && "bg-[#dedede]"
@@ -525,9 +525,10 @@ function ColumnInspector({ item }: { item: FinderItem }) {
 const COLUMN_MIN = 96
 const COLUMN_MAX = 320
 
-/** The strip between two columns: a light bevel with the Aqua column-resize
- *  grip at its foot — and, as in the real Finder, the drag handle that sizes
- *  the column to its LEFT. Arrow keys nudge it by one grid step. */
+/** The strip between two columns: a soft 12px shade, lightest where the next
+ *  column starts, with the Aqua column-resize grip at its foot — and, as in
+ *  the real Finder, the drag handle that sizes the column to its LEFT. Arrow
+ *  keys nudge it by one grid step. */
 function ColumnSplit({ width, onResize }: { width: number; onResize: (w: number) => void }) {
   const from = React.useRef<{ x: number; w: number } | null>(null)
   const clamp = (w: number) => Math.min(COLUMN_MAX, Math.max(COLUMN_MIN, Math.round(w / 4) * 4))
@@ -563,7 +564,7 @@ function ColumnSplit({ width, onResize }: { width: number; onResize: (w: number)
         onResize(clamp(width + (e.key === "ArrowRight" ? 8 : -8)))
       }}
       className={cn(
-        "relative w-2 shrink-0 cursor-col-resize touch-none bg-[linear-gradient(to_right,#d6d6d6,#e7e7e7,#f7f7f7)]",
+        "relative w-3 shrink-0 cursor-col-resize touch-none bg-[linear-gradient(to_right,#e0e0e0,#ebebeb_35%,#f5f5f5_70%,#fcfcfc)]",
         // The pack's focus halo, same as every other focusable surface.
         "outline-none focus-visible:shadow-[0_0_0_3px_var(--y2k-tone-focus)]"
       )}
@@ -1424,7 +1425,7 @@ export function Desktop() {
               onClick={() => selectOnly(key)}
               onDoubleClick={it.onOpen}
               onKeyDown={(e) => e.key === "Enter" && it.onOpen()}
-              className="group flex w-[84px] cursor-default flex-col items-center gap-0.5 outline-none"
+              className="group flex w-[84px] cursor-default flex-col items-center gap-0.5 outline-none focus-visible:y2k-focus-ring focus-visible:outline-offset-1"
             >
               <span className="size-14 [&_svg]:size-full [&_svg]:drop-shadow-[0_2px_3px_rgba(0,0,0,0.4)]">{it.icon}</span>
               {/* Two lines at most, then cut from the middle, as in the Finder. */}
@@ -1493,14 +1494,17 @@ export function Desktop() {
               )
             }
           >
-            <WindowScrollArea viewportRef={finderViewportRef} className={cn("bg-white", finderView === "columns" && "overflow-hidden")}>
+            {/* The Finder lays itself out by its own width, not the screen's:
+                under 600px (a phone, even on its side, or dragged narrow) the
+                Kind column goes and the icons take three columns. */}
+            <WindowScrollArea viewportRef={finderViewportRef} className={cn("@container/finder bg-white", finderView === "columns" && "overflow-hidden")}>
               {q && visibleFinderItems.length === 0 ? (
                 <p className="p-6 text-center text-[12px] text-(--y2k-ink-secondary)">No items match “{finderQuery}”.</p>
               ) : finderView === "columns" ? (
                 // Aqua column view, rebuilt from the 10.2 reference. The FIRST
                 // column lists volumes — double-height rows, 32px icons, a
                 // disclosure arrow on every one — and each folder on the path
-                // opens the next. Columns are 176px, parted by an 8px bevel
+                // opens the next. Columns are 176px, parted by a 12px shade
                 // with a grip at its foot; the strip scrolls sideways once the
                 // path runs past the window, as the real Finder does.
                 <div className="flex min-h-full w-max min-w-full">
@@ -1538,8 +1542,8 @@ export function Desktop() {
                         <TableHead sorted="ascending">Name</TableHead>
                         <TableHead>Date Modified</TableHead>
                         <TableHead>Size</TableHead>
-                        {/* A phone has room for three columns; Kind goes. */}
-                        <TableHead className="max-sm:hidden">Kind</TableHead>
+                        {/* A Finder under 600px wide has room for three columns; Kind goes. */}
+                        <TableHead className="@max-[600px]/finder:hidden">Kind</TableHead>
                       </tr>
                     </TableHeader>
                     <TableBody>
@@ -1557,7 +1561,7 @@ export function Desktop() {
                           >
                             <TableCell>{it.modified}</TableCell>
                             <TableCell>{it.size}</TableCell>
-                            <TableCell className="max-sm:hidden">{it.kind}</TableCell>
+                            <TableCell className="@max-[600px]/finder:hidden">{it.kind}</TableCell>
                           </FileRow>
                         )
                       })}
@@ -1569,7 +1573,7 @@ export function Desktop() {
                 // padding, the gaps, the sides of a cell, the space under the
                 // last row — draws the rubber band (an icon is only as wide as
                 // its name, centred in its cell, so the rest of the cell is free).
-                <div className="relative grid min-h-full grid-cols-3 content-start gap-y-3 p-3 select-none sm:grid-cols-4" {...finderRootProps}>
+                <div className="relative grid min-h-full grid-cols-3 content-start gap-y-3 p-3 select-none @min-[600px]/finder:grid-cols-4" {...finderRootProps}>
                   <Band rect={finderBand} z />
                   {visibleFinderItems.map((it) => {
                     const key = `finder:${it.label}`
@@ -1583,7 +1587,7 @@ export function Desktop() {
                         onClick={() => !it.disabled && choose(key, it)}
                         onDoubleClick={() => openItem(it, placePath)}
                         onKeyDown={(e) => e.key === "Enter" && !it.disabled && openItem(it, placePath)}
-                        className="group relative z-[2] flex max-w-full cursor-default flex-col items-center gap-1 justify-self-center outline-none disabled:opacity-45"
+                        className="group relative z-[2] flex max-w-full cursor-default flex-col items-center gap-1 justify-self-center outline-none focus-visible:y2k-focus-ring focus-visible:outline-offset-1 disabled:opacity-45"
                       >
                         <span className="size-12 [&_svg]:size-full">{it.icon}</span>
                         {/* Two lines at most, then cut from the middle. */}
