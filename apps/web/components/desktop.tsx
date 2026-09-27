@@ -343,7 +343,7 @@ function DesktopWindow({ id, title, initial, z, zoomed, minimized, opened, activ
         // is the frame's): it gets the frame's, as .y2k-metal paints it.
         "max-desk:[&>[data-slot=window-titlebar]]:sticky max-desk:[&>[data-slot=window-titlebar]]:top-(--y2k-menubar-h) max-desk:[&>[data-slot=window-titlebar]]:z-[4]",
         "max-desk:[&:not([data-material=metal])>[data-slot=window-titlebar]]:bg-[#e3e3e3]",
-        "max-desk:[&[data-material=metal]>[data-slot=window-titlebar]]:bg-[#c9c9c9] max-desk:[&[data-material=metal]>[data-slot=window-titlebar]]:bg-(image:--y2k-metal) max-desk:[&[data-material=metal]>[data-slot=window-titlebar]]:[background-size:512px_96px]",
+        "max-desk:[&[data-material=metal]>[data-slot=window-titlebar]]:[background:inherit]",
         // …and the metal's rim light stays over it, as on a desktop, where
         // the title bar is not lifted above the frame.
         "max-desk:after:z-[5]",
