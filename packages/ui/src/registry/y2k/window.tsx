@@ -155,7 +155,7 @@ function WindowToolbarToggle({ className, active = true, ...props }: React.Compo
       onPointerDown={(e) => e.stopPropagation()}
       className={cn(
         "relative z-10 ml-auto h-[12px] w-[20px] shrink-0 cursor-default rounded-[6px] outline-none",
-        "focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-offset-1 focus-visible:outline-(--y2k-tone-focus)",
+        "focus-visible:y2k-focus-ring focus-visible:outline-offset-1",
         "bg-(image:--y2k-toolbar-toggle) shadow-[var(--y2k-light-drop),inset_0_0_0_1px_rgba(0,0,0,0.25)]",
         "active:bg-[image:var(--y2k-gel-pressed),var(--y2k-toolbar-toggle)] active:shadow-(--y2k-light-drop-active)",
         !active && "opacity-50",

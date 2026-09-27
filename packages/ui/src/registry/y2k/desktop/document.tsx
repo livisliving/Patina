@@ -161,7 +161,7 @@ export function DocumentView({ win, doc }: { win: WinEntry; doc: DocumentEntry }
         "[&_li>div:has([aria-current])]:bg-(--y2k-tone-selection) [&_li>div:has([aria-current])]:text-(--y2k-tone-selection-text)",
         // A label fills its row, so the whole row is the click target, and
         // the keyboard focus ring sits on the row's edge.
-        "[&_li>div>span]:flex-1 [&_li>div:has(:focus-visible)]:outline-3 [&_li>div:has(:focus-visible)]:-outline-offset-3 [&_li>div:has(:focus-visible)]:outline-(--y2k-tone-focus)"
+        "[&_li>div>span]:flex-1 [&_li>div:has(:focus-visible)]:y2k-focus-ring [&_li>div:has(:focus-visible)]:-outline-offset-3"
       )}
     />
   )

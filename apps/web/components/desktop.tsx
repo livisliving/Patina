@@ -836,7 +836,7 @@ const LOGIN_STAMP = "Sat Sep 20 09:41"
 const PROMPT = "patina:~ olivia$ "
 /** A text link in running copy: OS blue, underlined, its focus ring drawn
  *  (outline-solid: Tailwind 4's outline-none leaves the style at none). */
-const LINK = "text-(--y2k-link) underline underline-offset-2 outline-none focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-(--y2k-tone-focus)"
+const LINK = "text-(--y2k-link) underline underline-offset-2 outline-none focus-visible:y2k-focus-ring"
 const INSTALL = ["Installing the Y2K pack…", "✓ DESIGN.md · /y2k-ify · /check-y2k · components.json"]
 
 /** The Terminal window's shell: a handful of commands over the Finder's own
@@ -2022,7 +2022,7 @@ export function Desktop() {
                           className={cn(
                             "relative size-9 overflow-hidden rounded-full bg-(image:--y2k-tone-button-fluid)",
                             "shadow-[inset_0_0_0_1px_var(--y2k-tone-button-edge),inset_0_0_6px_color-mix(in_srgb,var(--y2k-tone-button-edge)_50%,transparent),0_2px_3px_rgba(0,0,0,0.35)]",
-                            "group-hover:brightness-105 group-focus-visible:outline-3 group-focus-visible:outline-(--y2k-tone-focus)",
+                            "group-hover:brightness-105 group-focus-visible:y2k-focus-ring",
                             tone === t.id && "outline-3 outline-offset-1 outline-black/40"
                           )}
                         />

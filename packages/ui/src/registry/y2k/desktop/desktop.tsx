@@ -70,7 +70,7 @@ function AboutPatina({ tone }: { tone: Tone }) {
 }
 
 /** A text link in the About box: OS blue, underlined, its focus ring drawn. */
-const LINK = "text-(--y2k-link) underline underline-offset-2 outline-none focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-(--y2k-tone-focus)"
+const LINK = "text-(--y2k-link) underline underline-offset-2 outline-none focus-visible:y2k-focus-ring"
 
 /** Once per page, in the browser's console: what the desktop is built with. */
 let signed = false

@@ -407,6 +407,15 @@
   }
 }
 
+/* The keyboard's focus ring on a control (DESIGN.md › focus-ring): 3px of
+   the tone's focus colour, as an outline — focus-visible:y2k-focus-ring,
+   with an outline-offset where the ring sits off the edge. One shorthand,
+   so an outline-none beside it cannot take its style away (outline-3 on
+   its own reads the style outline-none clears, and draws nothing). */
+@utility y2k-focus-ring {
+  outline: 3px solid var(--y2k-tone-focus);
+}
+
 /* ── Keyframes ────────────────────────────────────────────────────── */
 @keyframes y2k-window-in {
   from { scale: 0.95; opacity: 0; }

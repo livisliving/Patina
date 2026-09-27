@@ -302,7 +302,7 @@ export function DesignSystem({ query, tone, onTone }: { query: string; tone: Ton
         <Button disabled>Disabled (white)</Button>
         <Button variant="tone" disabled>Disabled (tone)</Button>
         {/* The ring drawn, not focus taken: autoFocus scrolled the window to it. */}
-        <Button className="outline-3 outline-offset-1 outline-(--y2k-tone-focus)">Focused</Button>
+        <Button className="y2k-focus-ring outline-offset-1">Focused</Button>
       </div>
     </WindowGroup>
     )}

@@ -99,7 +99,7 @@ function FootButton({ on, className, ...props }: React.ComponentProps<"button"> 
         "text-[#2b2b2b] [&_svg]:drop-shadow-[0_1px_0_rgba(255,255,255,0.8)]",
         "aria-pressed:text-(--y2k-tone) aria-pressed:[&_svg]:drop-shadow-[0_0_2px_color-mix(in_srgb,var(--y2k-tone)_70%,transparent)]",
         // outline-none leaves the style at none: the ring needs it back.
-        "focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-offset-1 focus-visible:outline-(--y2k-tone-focus)",
+        "focus-visible:y2k-focus-ring focus-visible:outline-offset-1",
         className
       )}
       {...props}
