@@ -37,7 +37,7 @@ import {
   menuItemClass,
 } from "@patina/ui"
 
-import { ComputerIcon, DiskIcon, DocIcon, FaceIcon, FolderIcon, HeartIcon, HomeIcon, InfoIcon, IPodIcon, loadPackIcons, LogoIcon, NoteIcon, PillIcon, PrefsIcon, TerminalIcon, TrashIcon } from "./aqua-icons"
+import { ComputerIcon, DiskIcon, DocIcon, FaceIcon, FolderIcon, HeartIcon, HomeIcon, InfoIcon, IPodIcon, LogoIcon, NoteIcon, PillIcon, PrefsIcon, TerminalIcon, TrashIcon } from "./aqua-icons"
 import { IPod } from "./ipod"
 import { MenuBar, type MenuRow, type MenuSpec } from "./menubar"
 import { TONES, type Tone } from "./tones"
@@ -56,22 +56,12 @@ import { Mono } from "./mono"
 const loadDesignSystem = () => import("./design-system")
 const DesignSystem = dynamic(() => loadDesignSystem().then((m) => m.DesignSystem))
 
-/** Olivia's photo wallpapers, a 16:9 one and a phone one per tone. */
+/** Olivia's photo wallpapers, a 16:9 one and a phone one per tone, and the
+ *  phone one again 860 pixels wide in AVIF for a phone that can't show more
+ *  (scripts/site-images.mjs). */
 const WALLPAPERS = Object.fromEntries(
-  TONES.map((t) => [t.id, { desktop: asset(`/wallpapers/${t.id}.webp`), mobile: asset(`/wallpapers/${t.id}-mobile.webp`) }])
+  TONES.map((t) => [t.id, { desktop: asset(`/wallpapers/${t.id}.webp`), mobile: asset(`/wallpapers/${t.id}-mobile.webp`), small: asset(`/wallpapers/${t.id}-mobile-small.avif`) }])
 )
-/** The phone wallpaper is made for 3×; a phone up to 430px wide at 2× or less
- *  draws it at most 860 pixels across, so it gets a copy that size in AVIF
- *  (scripts/site-images.mjs), half the download. Plain CSS, not the
- *  wallpaper's custom properties: a browser that can't read image-set()
- *  drops the rule and keeps the full picture. The tone picks it, as it picks
- *  the full one (pink when unset). */
-const SMALL_WALLPAPER_CSS = `@media (max-width: 430px) and (max-resolution: 2dppx) {
-${TONES.map(
-  (t) =>
-    `${t.id === "pink" ? "html" : `html[data-tone="${t.id}"]`} div[data-slot="wallpaper"]{background-image:image-set(url(${asset(`/wallpapers/${t.id}-mobile-small.avif`)}) type("image/avif"), url(${WALLPAPERS[t.id].mobile}) type("image/webp"))}`
-).join("\n")}
-}`
 
 /** The Changelog window: the releases worth a line, newest first, as their
  *  notes on GitHub put them. A release too small to mention (0.2.1) has no
@@ -1090,18 +1080,15 @@ export function Desktop() {
   // (populated by single-click or the desktop marquee drag-select).
   const [finderQuery, setFinderQuery] = React.useState("")
   const [dsQuery, setDsQuery] = React.useState("")
-  // Code the page didn't wait for, fetched a few seconds after it has
-  // loaded, so a window opens with its contents rather than filling in.
-  React.useEffect(() => {
-    const t = setTimeout(() => {
-      loadDesignSystem()
-      loadPackIcons()
-    }, 3000)
-    return () => clearTimeout(t)
-  }, [])
   const [toneQuery, setToneQuery] = React.useState("")
   const [selected, setSelected] = React.useState<Set<string>>(() => new Set())
   const selectOnly = React.useCallback((key: string) => setSelected(new Set([key])), [])
+  // The Design System's code, fetched a few seconds after the page has
+  // loaded, so its window opens with its contents rather than filling in.
+  React.useEffect(() => {
+    const t = setTimeout(loadDesignSystem, 3000)
+    return () => clearTimeout(t)
+  }, [])
   const [finderView, setFinderView] = React.useState<"icons" | "list" | "columns">("icons")
   // Where the Finder is: the labels from Computer down. In the column view it
   // is also the selection, one row per column, and may end on a file.
@@ -1435,9 +1422,6 @@ export function Desktop() {
     // stick to the top of the screen on a phone.
     <div className="min-h-dvh overflow-x-clip font-(family-name:--y2k-font-ui) text-(--y2k-ink)">
       <Wallpaper photos={WALLPAPERS} />
-      <style href="y2k-wallpaper-small" precedence="default">
-        {SMALL_WALLPAPER_CSS}
-      </style>
       <Stars />
       <MenuBar tone={tone} onToneChange={setTone} onOpen={show} menus={menus} />
 

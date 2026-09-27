@@ -824,15 +824,12 @@ const skipName = (name) => (name.startsWith(".") && name !== ".claude") || SKIP_
 function gitFiles(dir) {
   const git = (...args) => execFileSync("git", ["-C", dir, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], maxBuffer: 1 << 28 })
   try {
-    git("rev-parse", "--is-inside-work-tree")
-  } catch {
-    return null
-  }
-  try {
     git("check-ignore", "-q", ".")
-    return null
-  } catch {
-    // Not ignored (check-ignore exits 1): list what git keeps.
+    return null // `dir` itself is ignored
+  } catch (e) {
+    // 1: not ignored, so list what git keeps; 128: not a repository; no
+    // status: no git.
+    if (e.status !== 1) return null
   }
   try {
     return git("ls-files", "--cached", "--others", "--exclude-standard", "-z").split("\0").filter(Boolean)

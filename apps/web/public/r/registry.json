@@ -200,7 +200,7 @@
       "name": "wallpaper",
       "type": "registry:ui",
       "title": "Wallpaper",
-      "description": "The desktop behind every window: Aqua's swoosh in the current tone, or your own photos per tone (desktop and phone).",
+      "description": "The desktop behind every window: Aqua's swoosh in the current tone, or your own photos per tone (desktop, phone, and a smaller phone copy for 2× phones).",
       "registryDependencies": ["https://livisliving.github.io/Patina/r/theme.json"],
       "files": [
         {

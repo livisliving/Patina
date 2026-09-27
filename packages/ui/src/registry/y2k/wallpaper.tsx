@@ -13,9 +13,14 @@ import { cn } from "@/lib/utils"
  * --y2k-wall-* stops so it follows the tone. Pass `photos` — per tone, a 16:9
  * image and an optional portrait one for phones (below md) — to use your own
  * artwork; a tone without one keeps the swoosh.
+ *
+ * A portrait picture made for a 3× phone is more than a phone up to 430px
+ * wide at 2× or less can draw: it shows 860 pixels across at most. Give a
+ * tone's photo a `small` copy that wide (AVIF halves it again) and those
+ * phones fetch it instead; the rest keep the portrait one.
  */
 
-type WallpaperPhoto = { desktop: string; mobile?: string }
+type WallpaperPhoto = { desktop: string; mobile?: string; small?: string }
 
 /** The tones, as y2k.css names them on <html data-tone> (pink when unset). */
 const TONES = ["pink", "aqua", "lime", "tangerine", "grape"] as const
@@ -42,6 +47,28 @@ const HIDE_SWOOSH: Record<ToneId, string> = {
   grape: "[html[data-tone=grape]_&]:hidden",
 }
 
+const TYPES: Record<string, string> = { avif: "image/avif", webp: "image/webp", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg" }
+/** A picture for image-set(), with its type when its extension says it, so
+ *  a browser that can't show AVIF moves on to the next one. */
+const candidate = (src: string) => {
+  const type = TYPES[src.split(/[?#]/)[0].split(".").pop()!.toLowerCase()]
+  return `url(${JSON.stringify(src)})${type ? ` type("${type}")` : ""}`
+}
+/** Where the tone on <html> is `tone` (pink when unset). */
+const onTone = (tone: ToneId, el: string) =>
+  tone === "pink" ? `html:not([data-tone]) ${el}, html[data-tone="pink"] ${el}` : `html[data-tone="${tone}"] ${el}`
+
+/** The small copies, as a stylesheet rather than the custom properties the
+ *  rest use: a browser that can't read image-set() drops the rule and keeps
+ *  the portrait picture, where a property holding it would paint nothing. */
+function smallCss(photos: Partial<Record<string, WallpaperPhoto>>, toned: ToneId[]) {
+  const rules = toned.flatMap((t) => {
+    const p = photos[t]!
+    return p.small ? [`${onTone(t, 'div[data-slot="wallpaper"]')}{background-image:image-set(${candidate(p.small)}, ${candidate(p.mobile ?? p.desktop)})}`] : []
+  })
+  return rules.length ? `@media (max-width: 430px) and (max-resolution: 2dppx) {\n${rules.join("\n")}\n}` : ""
+}
+
 function Wallpaper({ photos, className }: { photos?: Partial<Record<string, WallpaperPhoto>>; className?: string }) {
   const toned = TONES.filter((t) => photos?.[t])
   const vars = Object.fromEntries(
@@ -50,8 +77,14 @@ function Wallpaper({ photos, className }: { photos?: Partial<Record<string, Wall
       [`--wp-m-${t}`, `url(${photos![t]!.mobile ?? photos![t]!.desktop})`],
     ])
   ) as React.CSSProperties
+  const small = photos ? smallCss(photos, toned) : ""
   return (
     <>
+      {small && (
+        <style href="y2k-wallpaper-small" precedence="default">
+          {small}
+        </style>
+      )}
       <WallpaperSwoosh className={cn(toned.map((t) => HIDE_SWOOSH[t]), className)} />
       {toned.length > 0 && (
         <div

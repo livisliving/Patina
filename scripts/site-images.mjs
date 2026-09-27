@@ -24,48 +24,33 @@ import fs from "node:fs"
 import path from "node:path"
 import sharp from "sharp"
 
+import { TONES } from "./tones-data.mjs"
+
 const root = new URL("..", import.meta.url).pathname
 const pub = path.join(root, "apps/web/public")
 
-/** Source file in icons/ → the longer side it is scaled down to. */
-const ICONS = {
-  "bin.png": 384,
-  "disk.png": 384,
-  "doc.png": 384,
-  "finder.png": 384,
-  "ipod-icon.png": 384,
-  "note.png": 384,
-  "terminal.png": 384,
-  "logo.png": 512,
-  "star.webp": 128,
-  ...Object.fromEntries(
-    ["blue", "green", "orange", "pink", "purple"].map((c) => [`folder-${c}.png`, 384])
-  ),
-  ...Object.fromEntries(
-    ["aqua", "green", "orange", "pink", "red"].map((c) => [`heart-${c}.png`, 384])
-  ),
-}
-const TONES = ["pink", "aqua", "lime", "tangerine", "grape"]
-
-let before = 0
-let after = 0
-const tally = (from, { size }) => {
-  before += fs.statSync(from).size
-  after += size
-}
+/** The icons in icons/, each scaled down to 384 on its longer side but the
+ *  logo (512) and the star (128). */
+const ICONS = [
+  "bin.png", "disk.png", "doc.png", "finder.png", "ipod-icon.png", "note.png", "terminal.png", "logo.png", "star.webp",
+  ...["blue", "green", "orange", "pink", "purple"].map((c) => `folder-${c}.png`),
+  ...["aqua", "green", "orange", "pink", "red"].map((c) => `heart-${c}.png`),
+]
+const SIDE = { "logo.png": 512, "star.webp": 128 }
 
 fs.mkdirSync(path.join(pub, "icons/webp"), { recursive: true })
-for (const [file, side] of Object.entries(ICONS)) {
-  const from = path.join(pub, "icons", file)
-  const to = path.join(pub, "icons/webp", file.replace(/\.\w+$/, ".webp"))
-  tally(from, await sharp(from)
-    .resize(side, side, { fit: "inside", withoutEnlargement: true })
-    .webp({ nearLossless: true, quality: 80, effort: 6 })
-    .toFile(to))
-}
-for (const tone of TONES) {
-  const from = path.join(pub, `wallpapers/${tone}-mobile.webp`)
-  const to = path.join(pub, `wallpapers/${tone}-mobile-small.avif`)
-  tally(from, await sharp(from).resize(860).avif({ quality: 65, effort: 6 }).toFile(to))
-}
-console.log(`site-images: ${Object.keys(ICONS).length} icons and ${TONES.length} phone wallpapers, ${Math.round(before / 1024)} KB → ${Math.round(after / 1024)} KB`)
+const made = await Promise.all([
+  ...ICONS.map((file) => {
+    const side = SIDE[file] ?? 384
+    return [path.join(pub, "icons", file), sharp(path.join(pub, "icons", file))
+      .resize(side, side, { fit: "inside", withoutEnlargement: true })
+      .webp({ nearLossless: true, quality: 80, effort: 6 })
+      .toFile(path.join(pub, "icons/webp", file.replace(/\.\w+$/, ".webp")))]
+  }),
+  ...TONES.map(({ id }) => {
+    const from = path.join(pub, `wallpapers/${id}-mobile.webp`)
+    return [from, sharp(from).resize(860).avif({ quality: 65, effort: 6 }).toFile(path.join(pub, `wallpapers/${id}-mobile-small.avif`))]
+  }),
+].map(async ([from, out]) => [fs.statSync(from).size, (await out).size]))
+const kb = (i) => Math.round(made.reduce((sum, m) => sum + m[i], 0) / 1024)
+console.log(`site-images: ${ICONS.length} icons and ${TONES.length} phone wallpapers, ${kb(0)} KB → ${kb(1)} KB`)

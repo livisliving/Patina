@@ -6,9 +6,10 @@
  * /public/icons/webp/, scaled to the most the page draws them
  * (scripts/site-images.mjs; run it again after changing the artwork).
  *
- * Every icon but the logo sits beside its name (a label, a row, a Dock
- * button's aria-label), so its picture is decorative: alt="", or a screen
- * reader says the name twice. The logo is the About box's heading.
+ * An icon sits beside its name (a label, a row, a Dock button's
+ * aria-label), so its picture is decorative: alt="", or a screen reader says
+ * the name twice. Two say "Patina": the logo, the About box's heading, and
+ * the star, the menu bar's mark.
  *
  * Tone adaptation:
  *   • StarIcon (Patina brand mark) recolours the single pink gel PNG via the
@@ -29,7 +30,6 @@
 
 import * as React from "react"
 import { useId } from "react"
-import dynamic from "next/dynamic"
 import { cn } from "@patina/ui"
 
 import type { Tone } from "./tones"
@@ -58,7 +58,7 @@ const WRAP = "flex h-full w-full items-center justify-center"
 /** Lazy: a phone hides the desktop's icons and scrolls the Dock's end out of
     sight, and an image that isn't shown isn't fetched until it is. One on
     screen loads at once. */
-function PngIcon({ src, alt, className, style, ...props }: ImgProps & { src: string; alt: string }) {
+function PngIcon({ src, alt = "", className, style, ...props }: ImgProps & { src: string; alt?: string }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
@@ -78,7 +78,7 @@ function makePngIcon(src: string, name: string) {
   function PngIconComponent({ className, style }: IconProps) {
     return (
       <span className={cn(WRAP, className)} style={style}>
-        <PngIcon src={src} alt="" />
+        <PngIcon src={src} />
       </span>
     )
   }
@@ -157,7 +157,7 @@ export function StarIcon({ className, style }: IconProps) {
 export function FaceIcon({ className, style }: IconProps) {
   return (
     <span className={cn(WRAP, className)} style={style}>
-      <PngIcon src="/icons/webp/finder.webp" alt="" style={{ filter: "var(--y2k-face-filter, none)" }} />
+      <PngIcon src="/icons/webp/finder.webp" style={{ filter: "var(--y2k-face-filter, none)" }} />
     </span>
   )
 }
@@ -257,11 +257,5 @@ export function PillIcon(props: IconProps) {
 }
 
 /** Computer, Home and Info are the pack's own: the same drawings, the same in
- *  every tone. Its icon set carries two pictures inlined (86 KB), and only
- *  the Finder and Help draw from it, so it loads when one of them first
- *  does (or when the desktop fetches it, a few seconds in), not with the
- *  page. */
-export const loadPackIcons = () => import("@patina/ui")
-export const ComputerIcon = dynamic(() => loadPackIcons().then((m) => m.IconComputer))
-export const HomeIcon = dynamic(() => loadPackIcons().then((m) => m.IconHome))
-export const InfoIcon = dynamic(() => loadPackIcons().then((m) => m.IconInfo))
+ *  every tone. */
+export { IconComputer as ComputerIcon, IconHome as HomeIcon, IconInfo as InfoIcon } from "@patina/ui"

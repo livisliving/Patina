@@ -33,9 +33,11 @@ type DesktopProps = {
   /** The volume's name: the Finder's root and the first desktop icon
    *  ("Your Name HD"). */
   volume: string
-  /** Your own photos per tone, a 16:9 one and a phone one; a tone without
-   *  one keeps the pack's swoosh. Paths under public/. */
-  wallpaper?: Partial<Record<Tone, { desktop: string; mobile?: string }>>
+  /** Your own photos per tone, a 16:9 one and a phone one (and, if you
+   *  like, a `small` copy of the phone one, 860 pixels wide, for phones that
+   *  can't show more); a tone without one keeps the pack's swoosh. Paths
+   *  under public/. */
+  wallpaper?: Partial<Record<Tone, { desktop: string; mobile?: string; small?: string }>>
   /** The `ipod` item's IPod, passed in so the desktop never imports an item
    *  that may not be installed. Without it there is no iPod. */
   ipod?: IPodComponent
@@ -424,7 +426,7 @@ function DesktopShell({ wallpaper, IPod, className }: { wallpaper?: DesktopProps
   const photos = React.useMemo(
     () =>
       wallpaper &&
-      Object.fromEntries(Object.entries(wallpaper).map(([t, p]) => [t, p && { desktop: asset(p.desktop), mobile: p.mobile ? asset(p.mobile) : undefined }])),
+      Object.fromEntries(Object.entries(wallpaper).map(([t, p]) => [t, p && { desktop: asset(p.desktop), mobile: p.mobile ? asset(p.mobile) : undefined, small: p.small ? asset(p.small) : undefined }])),
     [wallpaper]
   )
 

@@ -27,7 +27,7 @@ colors:
   neutral-dim: "#D4D4D4"
   neutral-tint: "#F8F8F8"
   neutral-variant: "#7F7F7F"
-  neutral-glass: "rgba(236, 236, 236, 0.55)"
+  neutral-glass: "rgba(236, 236, 236, 0.75)"
   neutral-veil: "rgba(250, 250, 250, 0.9)"
   surface: "#E8449A"
   surface-bright: "#F298C7"
@@ -550,7 +550,7 @@ colors everything gel. Both are always present.
   status bars a placard stripe (#F1F1F1 / #FFFFFF / #F1F1F1 / #EAEAEA).
   Neutral-bright (#FFFFFF) is the field of an input; neutral-tint (#F8F8F8)
   the status bar. Neutral-variant (#7F7F7F) is dimmed text; #8D8D8D is a
-  disabled label and #4B4B4B secondary text. Neutral-glass (#ECECEC at 55%,
+  disabled label and #4B4B4B secondary text. Neutral-glass (#ECECEC at 75%,
   pinstriped) is the Dock shelf.
 - **Secondary — OS blue (#2765CA, `--y2k-link`):** links, underlined. The
   one blue Aqua never lets go of, even in a pink tone.
@@ -658,7 +658,7 @@ is no hero section, no max-width container, no footer.
      allows an off-grid value only when a token names it.
   Font sizes are **not** snapped (see Typography).
 - **Dock:** bottom center, 64px icons edge to edge (4px in from each end) on
-  a 70px translucent shelf (the Dock pinstripe at 55% under a 1px white
+  a 70px translucent shelf (the Dock pinstripe at 75% under a 1px white
   rim), hover magnifies to 2× with a 140px falloff, a
   black triangle marks running apps, minimized windows park to the right of a
   divider, the Bin at the far right behind another. It is the `Dock`
@@ -847,8 +847,9 @@ cards.
     #FAFAFA / #E9E9E9 / #FAFAFA / #FFFFFF — the menu bar. An open menu wears
     it at 90% (`--y2k-pinstripe-menu`), so the screen shows faintly through.
   - **Dock pinstripe** (`--y2k-pinstripe-dock`): #ECECEC / #E8E8E8 /
-    #ECECEC / #F5F5F5 at 55% — the Dock shelf, the desktop showing through;
-    solved from 10.1's shelf over two wallpaper blues.
+    #ECECEC / #F5F5F5 at 75% — the Dock shelf, the desktop showing through;
+    the rows solved from 10.1's shelf over two wallpaper blues. 10.1 drew
+    them at 55%; at 75% a busy wallpaper doesn't show through too much.
   - **Pinstripe** (`--y2k-pinstripe`, `.y2k-pinstripe`): #DEDEDE / #EBEBEB /
     #DEDEDE / #D7D7D7 — every window body and title bar.
   - **Dark pinstripe** (`--y2k-pinstripe-dark`, `.y2k-pinstripe-dark`):
@@ -860,7 +861,9 @@ cards.
   tone-reactive swoosh: a deep-to-light diagonal of the tone with two
   blurred white ribbons, Aqua's swoosh recoloured. A project can pass its
   own photos per tone — a 16:9 one and a portrait one for phones, picked at
-  md; the Patina site uses Olivia's collages.
+  md, and if it likes a `small` copy of the portrait one, 860 pixels wide
+  (AVIF), which a phone up to 430px wide at 2× or less fetches instead: it
+  can't show more. The Patina site uses Olivia's collages.
 - **Toolbar buttons and group boxes** sit *on* the pinstripes with a 1px
   hairline and a 1–2px shadow. No card floats above another card.
 

@@ -40,10 +40,10 @@ const FADE = 48
 /**
  * Patina Dock — DESIGN.md › Layout › Dock.
  *
- * The Aqua Dock, as 10.1 draws it: the pinstripe at 55% so the desktop shows
- * through, a 1px white rim along the top and ends, icons edge to edge; they
- * magnify with the cursor (falloff over 140px, spring-ish via CSS
- * transitions). The hovered icon's name floats above it in bold white with a
+ * The Aqua Dock, as 10.1 draws it: the pinstripe (at 75%, where 10.1 has
+ * 55%) so the desktop shows through, a 1px white rim along the top and ends,
+ * icons edge to edge; they magnify with the cursor (falloff over 140px,
+ * spring-ish via CSS transitions). The hovered icon's name floats above it in bold white with a
  * dark shadow; a black triangle marks running apps; minimized windows and
  * the Bin sit after white hairline dividers on the right. On a phone the shelf
  * scrolls sideways, and an edge with more icons past it fades out — the cue
