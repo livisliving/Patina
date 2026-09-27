@@ -68,6 +68,15 @@ const WALLPAPERS = Object.fromEntries(
  *  entry; nothing before 0.1.0 is listed. */
 const CHANGELOG: { version: string; date: string; items: string[] }[] = [
   {
+    version: "0.4.4",
+    date: "27 September 2026",
+    items: [
+      "The Dock is less see-through: its shelf is the 10.1 pinstripe at 75%, so a busy wallpaper no longer shows through too much.",
+      "Your own wallpaper can have a small copy for phones: a picture 860 pixels wide that a phone up to 430px wide at 2× fetches instead of the full one, which it can't show anyway.",
+      "On this site, the Finder's and Help's icons are there the moment their windows open.",
+    ],
+  },
+  {
     version: "0.4.3",
     date: "27 September 2026",
     items: [
@@ -165,7 +174,7 @@ const ICON_COLUMN = 84 + 12
 
 /** Patina's version, as the About boxes and the Finder show it: the newest
  *  release, listed in the Changelog or not. Bump it with every release. */
-const VERSION = "0.4.3"
+const VERSION = "0.4.4"
 
 /* ── Window manager ───────────────────────────────────────────────── */
 
