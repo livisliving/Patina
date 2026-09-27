@@ -70,6 +70,16 @@ const WALLPAPERS = Object.fromEntries(
  *  entry; nothing before 0.1.0 is listed. */
 const CHANGELOG: { version: string; date: string; items: string[] }[] = [
   {
+    version: "0.4.6",
+    date: "28 September 2026",
+    items: [
+      "The Finder lays itself out by its own width, not the screen's: under 600px (a phone, a phone on its side, a window dragged narrow) the Kind list becomes a pop-up and the Kind column goes, so the names keep their room.",
+      "Desktop icons, Finder icons and column rows show the focus ring when the keyboard reaches them.",
+      "A pop-up is named by its label and what it shows (“Show General”), and a dialog such as the Bin by its title, so screen readers and voice control find them.",
+      "The column view's dividers are a softer, wider shade, and an alias's arrow stays small in the preview column.",
+    ],
+  },
+  {
     version: "0.4.5",
     date: "27 September 2026",
     items: [
@@ -185,7 +195,7 @@ const ICON_COLUMN = 84 + 12
 
 /** Patina's version, as the About boxes and the Finder show it: the newest
  *  release, listed in the Changelog or not. Bump it with every release. */
-const VERSION = "0.4.5"
+const VERSION = "0.4.6"
 
 /* ── Window manager ───────────────────────────────────────────────── */
 
@@ -1123,7 +1133,7 @@ export function Desktop() {
     { label: "Design System", icon: <PillIcon />, onClick: openWin("buttons"), kind: "Application", size: "1.8 MB", created: "14/09/26", modified: "20/09/26", version: VERSION },
     { label: "Tone", icon: <PrefsIcon />, onClick: openWin("tone"), kind: "Preference pane", size: "248 KB", created: "14/09/26", modified: "19/09/26", version: VERSION },
     { label: "DESIGN.md", icon: <DocIcon />, onClick: openWin("design"), kind: "Markdown document", size: "36 KB", created: "12/09/26", modified: "20/09/26" },
-    { label: "Changelog", icon: <DocIcon />, onClick: openWin("changelog"), kind: "Markdown document", size: "4 KB", created: "18/09/26", modified: "27/09/26" },
+    { label: "Changelog", icon: <DocIcon />, onClick: openWin("changelog"), kind: "Markdown document", size: "4 KB", created: "18/09/26", modified: "28/09/26" },
     { label: "Terminal", icon: <TerminalIcon />, onClick: openWin("terminal"), kind: "Application", size: "912 KB", created: "14/09/26", modified: "18/09/26", version: VERSION },
   ]
   // The Favourites folder collects a few of them, so it lists the same rows.
