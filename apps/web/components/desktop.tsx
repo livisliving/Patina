@@ -39,6 +39,7 @@ import {
 // The pack's desktop parts this one shares, from the pack's own files.
 import { asset } from "@/components/ui/desktop/asset"
 import { MiddleTruncate } from "@/components/ui/desktop/middle-truncate"
+import { PATINA } from "@/components/ui/desktop/patina"
 import { Chevron, useToolbarFit } from "@/components/ui/desktop/toolbar-fit"
 import { TONES, type Tone } from "@/components/ui/desktop/tones"
 import { useDrag } from "@/components/ui/desktop/use-drag"
@@ -46,7 +47,7 @@ import { useMarqueeSelect } from "@/components/ui/desktop/use-marquee-select"
 import { DESKTOP, prefersReducedMotion, useMediaQuery } from "@/components/ui/desktop/use-media-query"
 import { useResize } from "@/components/ui/desktop/use-resize"
 
-import { ComputerIcon, DiskIcon, DocIcon, FaceIcon, FolderIcon, HeartIcon, HomeIcon, InfoIcon, IPodIcon, LogoIcon, NoteIcon, PillIcon, PrefsIcon, TerminalIcon, TrashIcon } from "./aqua-icons"
+import { ComputerIcon, DiskIcon, DocIcon, FaceIcon, FolderIcon, GlobeIcon, HeartIcon, HomeIcon, InfoIcon, IPodIcon, LogoIcon, NoteIcon, PillIcon, PrefsIcon, TerminalIcon, TrashIcon } from "./aqua-icons"
 import { IPod } from "./ipod"
 import { MenuBar, type MenuRow, type MenuSpec } from "./menubar"
 import { Stars } from "./stars"
@@ -2126,7 +2127,17 @@ export function Desktop() {
             dividerBefore: i === 0,
             onClick: openWin(id),
           })),
-          { id: "trash", label: "Bin", icon: <TrashIcon />, dividerBefore: true, onClick: () => setTrashOpen(true) },
+          // The code on GitHub, where a Mac OS X Dock kept a web location: on
+          // the right, by the Bin. It opens in a new tab, as the Read Me's
+          // link does, so the desktop stays as it was.
+          {
+            id: "github",
+            label: "Patina on GitHub",
+            icon: <GlobeIcon />,
+            dividerBefore: true,
+            onClick: () => window.open(PATINA.source, "_blank", "noopener,noreferrer"),
+          },
+          { id: "trash", label: "Bin", icon: <TrashIcon />, onClick: () => setTrashOpen(true) },
         ]}
       />
 
