@@ -71,6 +71,16 @@ const WALLPAPERS = Object.fromEntries(
  *  entry; nothing before 0.1.0 is listed. */
 const CHANGELOG: { version: string; date: string; items: string[] }[] = [
   {
+    version: "0.4.8",
+    date: "28 September 2026",
+    items: [
+      "The pack's icons are things, as Aqua drew them, with a fine hairline: a check box, a light bulb, graph paper, an open box, a glass bubble, the light switch, a pager. The document, Bin, folder, heart, star and music are Olivia's own pictures. Code is gone.",
+      "Anything you can click shows the pointing hand; a disabled control keeps the arrow.",
+      "The default button is the lighter gel of a selected control, in every tone.",
+      "The Finder's face is blue in every tone, and the iPod is the silver one.",
+    ],
+  },
+  {
     version: "0.4.7",
     date: "28 September 2026",
     items: [
@@ -206,7 +216,7 @@ const ICON_COLUMN = 84 + 12
 
 /** Patina's version, as the About boxes and the Finder show it: the newest
  *  release, listed in the Changelog or not. Bump it with every release. */
-const VERSION = "0.4.7"
+const VERSION = "0.4.8"
 
 /* ── Window manager ───────────────────────────────────────────────── */
 
