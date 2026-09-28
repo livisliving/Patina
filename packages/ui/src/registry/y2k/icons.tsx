@@ -463,8 +463,53 @@ export function IconGlobe(props: IconProps) {
         </g>
         <ellipse cx={64} cy={96} rx={36} ry={18} fill="#bdf0ff" fillOpacity={0.3} />
       </g>
-      <circle cx={64} cy={62} r={50} fill="none" stroke="#0a2c6b" strokeWidth={2.5} />
+      {/* A 1px rim (at 128), as dark as the Aqua pictures beside it in the
+          Dock draw theirs: 2.5 made the only heavy outline among them. */}
+      <circle cx={64} cy={62} r={50} fill="none" stroke="#0a2c6b" strokeWidth={1} />
       <Gloss d={ell(64, 34, 36, 20)} s={[[0, "#fff", 0.92], [1, "#fff", 0.08]]} />
+    </Svg>
+  )
+}
+
+/** Pager — a white pager, a greeting on its green screen, three black keys
+    (read, up, next) and the speaker's slots; its belt clip along the top.
+    White plastic and the green LCD are neutral: the same in every tone. */
+export function IconPager(props: IconProps) {
+  const [id, url] = useIds()
+  return (
+    <Svg {...props}>
+      <defs>
+        <Lin id={id("body")} s={PLASTIC} />
+        <Lin id={id("clip")} s={[[0, "#f6f8fa"], [1, "#c3cbd5"]]} />
+        <Lin id={id("bezel")} s={[[0, "#dde2e8"], [1, "#aab4c0"]]} />
+        <Lin id={id("lcd")} s={[[0, "#cfe8a4"], [0.55, "#a8cc74"], [1, "#86ad52"]]} x2={1} y2={1} />
+        <Lin id={id("key")} s={[[0, "#55524d"], [0.5, "#26241f"], [1, "#0d0c0a"]]} />
+        <Rad id={id("led")} s={[[0, "#e4ffc8"], [0.6, "#8fd65a"], [1, "#3f8a22"]]} cx={0.4} cy={0.35} r={0.7} />
+      </defs>
+      <Shadow cy={111} rx={50} />
+      <path d="M52 31V27Q52 24 56 24H104Q109 24 110 28L111 31Z" fill={url("clip")} stroke={INK} />
+      <path d={rr(10, 28, 108, 78, 14)} fill={url("body")} stroke={INK} />
+      <Gloss d="M14 42Q14 31 26 31H102Q114 31 114 42Q64 49 14 42Z" s={[[0, "#fff", 0.95], [1, "#fff", 0.2]]} />
+      {/* The screen: a grey bezel round the green glass, the greeting on it */}
+      <path d={rr(20, 40, 72, 28, 6)} fill={url("bezel")} stroke="#8a95a3" />
+      <path d={rr(25, 44, 62, 20, 3)} fill={url("lcd")} stroke="#5d7a3a" strokeOpacity={0.6} />
+      <g fill="#223d16" fillOpacity={0.85}>
+        <rect x={29} y={48} width={30} height={3} rx={1} />
+        <rect x={29} y={55} width={20} height={3} rx={1} />
+        <rect x={51} y={55} width={3} height={3} />
+      </g>
+      <path d="M26 45H70L40 63H26Z" fill="#fff" fillOpacity={0.18} />
+      <circle cx={104} cy={46} r={3.5} fill={url("led")} stroke={INK} strokeOpacity={0.6} />
+      {/* Three black keys, their glyphs: read, up, next */}
+      {[17, 50, 83].map((x) => (
+        <g key={x}>
+          <path d={rr(x, 73, 28, 11, 5.5)} fill={url("key")} stroke="#000" strokeOpacity={0.5} />
+          <path d={rr(x + 3, 74.5, 22, 3, 1.5)} fill="#fff" fillOpacity={0.18} />
+        </g>
+      ))}
+      <path d={rr(26, 77.5, 10, 2.5, 1.25)} fill="#a8ec72" />
+      <path d="M64 75.5L68 80.5H60ZM95 76L100 78.5L95 81Z" fill="#fff" />
+      <path d="M98 99L102 90M103 99L107 90M108 99L112 90" stroke="#5a636e" strokeWidth={2} strokeLinecap="round" />
     </Svg>
   )
 }
@@ -924,6 +969,7 @@ export const ICONS = {
   preferences: IconPreferences,
   mail: IconMail,
   globe: IconGlobe,
+  pager: IconPager,
   people: IconPeople,
   heart: IconHeart,
   star: IconStar,
