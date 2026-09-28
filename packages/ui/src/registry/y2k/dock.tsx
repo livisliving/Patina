@@ -23,6 +23,12 @@ type DockItem = {
   icon: React.ReactNode
   running?: boolean
   onClick?: () => void
+  /** A web location instead of an app: the tile is a link, so it has a
+   *  link's name for a screen reader, its address on hover, ⌘-click and
+   *  middle-click to a new tab and its context menu. It doesn't bounce. */
+  href?: string
+  /** Where the link opens ("_blank" for a new tab, with noopener). */
+  target?: string
   /** Draw the Aqua Dock divider (a hairline) to the left of this item. */
   dividerBefore?: boolean
   /** Minimized-window tile: parked look (nudged into the shelf, slightly
@@ -50,9 +56,28 @@ const FADE = 48
  * that there is more to swipe to.
  *
  * Click an app that isn't running and its icon bounces twice while it
- * starts. `genie` pours a window into its Dock tile when it is minimised, and
+ * starts. An item with `href` is a web location: a link, drawn the same. `genie` pours a window into its Dock tile when it is minimised, and
  * back out when it is restored; each tile carries `data-dock-id` to aim at.
  */
+/** A tile: a button that launches its app, or a link when it has `href`. */
+function DockTile({
+  item,
+  onLaunch,
+  ...props
+}: { item: DockItem; onLaunch: () => void } & React.HTMLAttributes<HTMLElement> & { "data-dock-icon"?: boolean; "data-dock-id"?: string }) {
+  if (item.href)
+    return (
+      <a
+        href={item.href}
+        target={item.target}
+        rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
+        onClick={item.onClick}
+        {...props}
+      />
+    )
+  return <button type="button" onClick={onLaunch} {...props} />
+}
+
 function Dock({ items, className }: { items: DockItem[]; className?: string }) {
   const listRef = React.useRef<HTMLUListElement>(null)
   const [sizes, setSizes] = React.useState<number[]>(() => items.map(() => BASE))
@@ -149,12 +174,12 @@ function Dock({ items, className }: { items: DockItem[]; className?: string }) {
                   <span aria-hidden className="mx-3 -mb-[3px] h-[calc(var(--y2k-dock-h)-1px)] w-px shrink-0 bg-white/78" />
                 )}
                 <div className="relative flex flex-col items-center">
-                  <button
-                    type="button"
+                  <DockTile
+                    item={item}
+                    onLaunch={() => launch(item)}
                     data-dock-icon
                     data-dock-id={item.id}
                     aria-label={item.label}
-                    onClick={() => launch(item)}
                     className={cn(
                       "relative flex cursor-default items-end justify-center outline-none",
                       "transition-[width,height] duration-[80ms] ease-out",
@@ -186,7 +211,7 @@ function Dock({ items, className }: { items: DockItem[]; className?: string }) {
                     >
                       {item.label}
                     </span>
-                  </button>
+                  </DockTile>
                   <span
                     aria-hidden
                     className={cn(

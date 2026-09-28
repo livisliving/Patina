@@ -2128,14 +2128,15 @@ export function Desktop() {
             onClick: openWin(id),
           })),
           // The code on GitHub, where a Mac OS X Dock kept a web location: on
-          // the right, by the Bin. It opens in a new tab, as the Read Me's
-          // link does, so the desktop stays as it was.
+          // the right, by the Bin. A link that opens in a new tab, as the Read
+          // Me's link does, so the desktop stays as it was.
           {
             id: "github",
             label: "Patina on GitHub",
             icon: <GlobeIcon />,
             dividerBefore: true,
-            onClick: () => window.open(PATINA.source, "_blank", "noopener,noreferrer"),
+            href: PATINA.source,
+            target: "_blank",
           },
           { id: "trash", label: "Bin", icon: <TrashIcon />, onClick: () => setTrashOpen(true) },
         ]}

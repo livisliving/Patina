@@ -431,20 +431,24 @@ function ScrollBar({
   axis,
   thumb,
   thumbRef,
+  troughRef,
   onScrollBy,
   thumbHandlers,
+  className,
 }: {
   axis: Axis
   thumb: number
   thumbRef: React.Ref<HTMLButtonElement>
+  troughRef: React.Ref<HTMLDivElement>
   onScrollBy: (delta: number) => void
   thumbHandlers: React.ComponentProps<"button">
+  className?: string
 }) {
   const a = AXIS[axis]
   return (
-    <div data-slot="window-scrollbar" data-axis={axis} className={cn("flex shrink-0", a.bar)}>
+    <div data-slot="window-scrollbar" data-axis={axis} className={cn("flex shrink-0", a.bar, className)}>
       <ScrollArrow axis={axis} end={0} onScrollBy={onScrollBy} />
-      <div className={cn("relative min-h-0 min-w-0 flex-1", a.trough)}>
+      <div ref={troughRef} className={cn("relative min-h-0 min-w-0 flex-1", a.trough)}>
         <span aria-hidden className={cn("pointer-events-none absolute", a.cups[0])} />
         <span aria-hidden className={cn("pointer-events-none absolute", a.cups[1])} />
         <button
@@ -462,10 +466,11 @@ function ScrollBar({
   )
 }
 
-/** Where a thumb sits: its length (0 = no bar) and its offset down the trough. */
-function thumbFor(client: number, total: number, scrolled: number) {
+/** Where a thumb sits: its length (0 = no bar) and its offset down the
+ *  trough. `trough` is the bar's own, once it is drawn; before, the length
+ *  a bar as long as the view would have. */
+function thumbFor(client: number, total: number, scrolled: number, trough = client - ARROW * 2) {
   if (total <= client + 1) return { thumb: 0, offset: 0 }
-  const trough = client - ARROW * 2
   const thumb = Math.max(MIN_THUMB, (client / total) * trough)
   return { thumb, offset: (scrolled / (total - client)) * (trough - thumb) }
 }
@@ -477,6 +482,11 @@ function thumbFor(client: number, total: number, scrolled: number) {
  * when it is too wide, and the square between them when both do. Wraps native
  * overflow, so scrolling (wheel, keyboard, drag) is real; the visuals are ours.
  * `viewportRef` hands the scrolling element to the caller.
+ *
+ * When its window's resize grip sits on its bottom-right corner (a window
+ * with no status bar), that square is kept for the grip even with one bar,
+ * as NSScrollView kept it: the bar stops short of the grip and the content
+ * still runs to the edge.
  */
 function WindowScrollArea({
   className,
@@ -484,10 +494,14 @@ function WindowScrollArea({
   viewportRef: viewportRefProp,
   ...props
 }: React.ComponentProps<"div"> & { viewportRef?: React.Ref<HTMLDivElement> }) {
+  const rootRef = React.useRef<HTMLDivElement>(null)
   const viewportRef = React.useRef<HTMLDivElement>(null)
   const thumbY = React.useRef<HTMLButtonElement>(null)
   const thumbX = React.useRef<HTMLButtonElement>(null)
+  const troughY = React.useRef<HTMLDivElement>(null)
+  const troughX = React.useRef<HTMLDivElement>(null)
   const [thumbs, setThumbs] = React.useState({ y: 0, x: 0 })
+  const [gripCorner, setGripCorner] = React.useState(false)
   const drag = React.useRef<{ axis: Axis; at: number; scroll: number } | null>(null)
 
   // The caller's ref gets the scrolling element without this component
@@ -499,24 +513,41 @@ function WindowScrollArea({
   const measure = React.useCallback(() => {
     const el = viewportRef.current
     if (!el) return
-    const y = thumbFor(el.clientHeight, el.scrollHeight, el.scrollTop)
-    const x = thumbFor(el.clientWidth, el.scrollWidth, el.scrollLeft)
+    const y = thumbFor(el.clientHeight, el.scrollHeight, el.scrollTop, troughY.current?.clientHeight)
+    const x = thumbFor(el.clientWidth, el.scrollWidth, el.scrollLeft, troughX.current?.clientWidth)
     setThumbs((t) => (t.y === y.thumb && t.x === x.thumb ? t : { y: y.thumb, x: x.thumb }))
     if (thumbY.current) thumbY.current.style.transform = `${AXIS.y.translate}(${y.offset}px)`
     if (thumbX.current) thumbX.current.style.transform = `${AXIS.x.translate}(${x.offset}px)`
   }, [])
 
+  // Whether the window's grip covers this area's bottom-right corner: checked
+  // whenever the area changes size, as a status bar coming or going does.
+  const findGrip = React.useCallback(() => {
+    const root = rootRef.current
+    const grip = root?.closest("[data-slot=window]")?.querySelector("[data-slot=window-resize-grip]")
+    if (!root || !grip) return setGripCorner(false)
+    const r = root.getBoundingClientRect()
+    const g = grip.getBoundingClientRect()
+    setGripCorner(g.left < r.right && g.right >= r.right - 1 && g.top < r.bottom && g.bottom >= r.bottom - 1)
+  }, [])
+
   React.useEffect(() => {
     measure()
+    findGrip()
     const el = viewportRef.current
-    if (!el) return
+    if (!el || !rootRef.current) return
     const ro = new ResizeObserver(measure)
     ro.observe(el)
     for (const c of Array.from(el.children)) ro.observe(c)
-    return () => ro.disconnect()
-  }, [measure])
+    const rootRo = new ResizeObserver(findGrip)
+    rootRo.observe(rootRef.current)
+    return () => {
+      ro.disconnect()
+      rootRo.disconnect()
+    }
+  }, [measure, findGrip])
   // A bar that has just appeared needs its thumb placed.
-  React.useLayoutEffect(measure, [thumbs, measure])
+  React.useLayoutEffect(measure, [thumbs, gripCorner, measure])
 
   const thumbHandlers = (axis: Axis): React.ComponentProps<"button"> => {
     const y = axis === "y"
@@ -532,7 +563,7 @@ function WindowScrollArea({
       onPointerMove: (e) => {
         const el = viewportRef.current
         if (!el || drag.current?.axis !== axis) return
-        const trough = (y ? el.clientHeight : el.clientWidth) - ARROW * 2 - thumbs[axis]
+        const trough = ((y ? troughY : troughX).current?.[y ? "clientHeight" : "clientWidth"] ?? 0) - thumbs[axis]
         const max = y ? el.scrollHeight - el.clientHeight : el.scrollWidth - el.clientWidth
         const next = drag.current.scroll + (((y ? e.clientY : e.clientX) - drag.current.at) / trough) * max
         if (y) el.scrollTop = next
@@ -548,8 +579,14 @@ function WindowScrollArea({
     }
   }
 
+  // One bar under the grip stops a square short of it; with both, the
+  // square between them is already the grip's.
+  const lone = gripCorner && (thumbs.y > 0) !== (thumbs.x > 0)
+  const corner = "size-(--y2k-scrollbar-size) bg-(image:--y2k-scroll-track) shadow-[inset_1px_1px_0_rgba(0,0,0,0.2)]"
+
   return (
     <div
+      ref={rootRef}
       data-slot="window-scrollarea"
       className={cn("relative grid min-h-0 min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] grid-rows-[minmax(0,1fr)_auto]", className)}
       {...props}
@@ -570,14 +607,15 @@ function WindowScrollArea({
               axis={axis}
               thumb={thumbs[axis]}
               thumbRef={axis === "y" ? thumbY : thumbX}
+              troughRef={axis === "y" ? troughY : troughX}
+              className={lone ? (axis === "y" ? "mb-(--y2k-scrollbar-size)" : "mr-(--y2k-scrollbar-size)") : undefined}
               onScrollBy={(d) => viewportRef.current?.scrollBy(axis === "y" ? { top: d } : { left: d })}
               thumbHandlers={thumbHandlers(axis)}
             />
           )
       )}
-      {thumbs.y > 0 && thumbs.x > 0 && (
-        <span aria-hidden className="col-start-2 row-start-2 size-(--y2k-scrollbar-size) bg-(image:--y2k-scroll-track) shadow-[inset_1px_1px_0_rgba(0,0,0,0.2)]" />
-      )}
+      {thumbs.y > 0 && thumbs.x > 0 && <span aria-hidden className={cn("col-start-2 row-start-2", corner)} />}
+      {lone && <span aria-hidden className={cn("absolute right-0 bottom-0", corner)} />}
     </div>
   )
 }
