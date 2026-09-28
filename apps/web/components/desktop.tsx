@@ -71,6 +71,15 @@ const WALLPAPERS = Object.fromEntries(
  *  entry; nothing before 0.1.0 is listed. */
 const CHANGELOG: { version: string; date: string; items: string[] }[] = [
   {
+    version: "0.4.7",
+    date: "28 September 2026",
+    items: [
+      "A window with no status bar keeps its bottom-right corner for the resize grip: the scroll bar stops short of it, as 10.0's did, and the content still runs to the edge.",
+      "A Dock item can be a web location: give it href and it is a real link, so it opens in a new tab on ⌘-click and a screen reader calls it one.",
+      "A globe in this site's Dock, by the Bin, opens Patina on GitHub.",
+    ],
+  },
+  {
     version: "0.4.6",
     date: "28 September 2026",
     items: [
@@ -197,7 +206,7 @@ const ICON_COLUMN = 84 + 12
 
 /** Patina's version, as the About boxes and the Finder show it: the newest
  *  release, listed in the Changelog or not. Bump it with every release. */
-const VERSION = "0.4.6"
+const VERSION = "0.4.7"
 
 /* ── Window manager ───────────────────────────────────────────────── */
 
