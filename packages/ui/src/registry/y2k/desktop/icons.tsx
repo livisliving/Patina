@@ -4,7 +4,7 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-import { tonePictureCss } from "@/components/ui/icons"
+import { PICTURE_SCALE, tonePictureCss } from "@/components/ui/icons"
 import { BIN, DOC, FOLDER_AQUA, FOLDER_GRAPE, FOLDER_LIME, FOLDER_PINK, FOLDER_TANGERINE, STAR } from "@/components/ui/icon-pictures"
 
 import { DISK, FINDER, IPOD, NOTE } from "./icon-data"
@@ -21,6 +21,9 @@ import { DISK, FINDER, IPOD, NOTE } from "./icon-data"
  *
  * Two document icons: DocIcon, the clean sheet, for a file in a window or
  * on the desktop; NoteIcon, the letter and pen, for TextEdit itself.
+ *
+ * Each picture is drawn at its PICTURE_SCALE, so they look one size side by
+ * side: the Finder face and the folder have the most room round them.
  */
 
 type IconProps = { className?: string; style?: React.CSSProperties }
@@ -35,42 +38,42 @@ const WRAP = "flex h-full w-full items-center justify-center"
 /** An icon is drawn beside its name everywhere it appears (a label, a row,
  *  a Dock tile's aria-label, a title), so the picture itself says nothing:
  *  an empty alt, or a screen reader reads "Finder Finder". */
-function Png({ src, className, style }: IconProps & { src: string }) {
+function Png({ src, scale = 1, className, style }: IconProps & { src: string; scale?: number }) {
   return (
     <span className={cn(WRAP, className)} style={style}>
       {/* eslint-disable-next-line @next/next/no-img-element -- a data URI, nothing for next/image to optimise */}
-      <img src={src} alt="" draggable={false} className="block size-full object-contain" />
+      <img src={src} alt="" draggable={false} className="block size-full object-contain" style={scale === 1 ? undefined : { scale }} />
     </span>
   )
 }
 
-function makeIcon(src: string, name: string) {
+function makeIcon(src: string, name: string, scale?: number) {
   function PngIcon(props: IconProps) {
-    return <Png src={src} {...props} />
+    return <Png src={src} scale={scale} {...props} />
   }
   PngIcon.displayName = `${name}Icon`
   return PngIcon
 }
 
 /** Finder — the Aqua smiley face, drawn for Patina (not Apple's icon). */
-export const FaceIcon = makeIcon(FINDER, "Finder")
+export const FaceIcon = makeIcon(FINDER, "Finder", PICTURE_SCALE.finder)
 /** The hard disk: the volume the site is. */
 export const DiskIcon = makeIcon(DISK, "Disk")
 /** A document: the clean sheet. */
 export const DocIcon = makeIcon(DOC, "Document")
 /** TextEdit: the letter and pen. */
-export const NoteIcon = makeIcon(NOTE, "TextEdit")
+export const NoteIcon = makeIcon(NOTE, "TextEdit", PICTURE_SCALE.note)
 /** The Bin — wire mesh. */
-export const TrashIcon = makeIcon(BIN, "Bin")
+export const TrashIcon = makeIcon(BIN, "Bin", PICTURE_SCALE.bin)
 /** The iPod: its Dock tile and its app icon. */
-export const IPodIcon = makeIcon(IPOD, "iPod")
+export const IPodIcon = makeIcon(IPOD, "iPod", PICTURE_SCALE.ipod)
 
 /** Each tone's folder as CSS, keyed to the tone on <html> (pink when
  *  unset). The server's HTML then paints the right folder — it cannot know
  *  the tone; the stylesheet can — and a tone change needs no render. React
  *  hoists the one <style> into the head, however many folders there are,
  *  and it is the same one the icon set's Folder writes. */
-const FOLDER_CSS = tonePictureCss("y2k-folder", [FOLDER_PINK, FOLDER_AQUA, FOLDER_LIME, FOLDER_TANGERINE, FOLDER_GRAPE])
+const FOLDER_CSS = tonePictureCss("y2k-folder", [FOLDER_PINK, FOLDER_AQUA, FOLDER_LIME, FOLDER_TANGERINE, FOLDER_GRAPE], PICTURE_SCALE.folder)
 
 /** An Aqua folder in the tone's colour. */
 export function FolderIcon({ className, style }: IconProps) {

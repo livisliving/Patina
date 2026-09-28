@@ -25,12 +25,15 @@
  *
  * Icons with no PNG yet (PillIcon/Components, PrefsIcon, ComputerIcon,
  * HomeIcon) keep their SVG.
+ *
+ * Each picture is drawn at the pack's PICTURE_SCALE, so they look one size
+ * side by side; the Terminal, the demo's own, at TERMINAL_SCALE.
  */
 "use client"
 
 import * as React from "react"
 import { useId } from "react"
-import { cn } from "@patina/ui"
+import { cn, PICTURE_SCALE } from "@patina/ui"
 
 import type { Tone } from "@/components/ui/desktop/tones"
 import { asset } from "@/components/ui/desktop/asset"
@@ -58,7 +61,7 @@ const WRAP = "flex h-full w-full items-center justify-center"
 /** Lazy: a phone hides the desktop's icons and scrolls the Dock's end out of
     sight, and an image that isn't shown isn't fetched until it is. One on
     screen loads at once. */
-function PngIcon({ src, alt = "", className, style, ...props }: ImgProps & { src: string; alt?: string }) {
+function PngIcon({ src, alt = "", scale = 1, className, style, ...props }: ImgProps & { src: string; alt?: string; scale?: number }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
@@ -67,18 +70,18 @@ function PngIcon({ src, alt = "", className, style, ...props }: ImgProps & { src
       loading="lazy"
       draggable={false}
       className={className}
-      style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", ...style }}
+      style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", ...(scale === 1 ? {} : { scale }), ...style }}
       {...props}
     />
   )
 }
 
 /** Factory for a neutral (non-tone) PNG icon. */
-function makePngIcon(src: string, name: string) {
+function makePngIcon(src: string, name: string, scale?: number) {
   function PngIconComponent({ className, style }: IconProps) {
     return (
       <span className={cn(WRAP, className)} style={style}>
-        <PngIcon src={src} />
+        <PngIcon src={src} scale={scale} />
       </span>
     )
   }
@@ -107,13 +110,13 @@ const HEART_BY_TONE: Record<Tone, string> = {
  *  unset): the server's HTML paints the right one — it cannot know the
  *  tone; the stylesheet can — a tone change needs no render, and only the
  *  file in use is fetched. React hoists each <style> into the head once. */
-const tonedCss = (cls: string, byTone: Record<Tone, string>) =>
+const tonedCss = (cls: string, byTone: Record<Tone, string>, scale: number) =>
   [
-    `.${cls}{background:url(${asset(byTone.pink)}) center/contain no-repeat}`,
+    `.${cls}{background:url(${asset(byTone.pink)}) center/${Math.round(scale * 100)}% no-repeat}`,
     ...(["aqua", "lime", "tangerine", "grape"] as const).map((t) => `html[data-tone="${t}"] .${cls}{background-image:url(${asset(byTone[t])})}`),
   ].join("\n")
-const FOLDER_CSS = tonedCss("y2k-folder", FOLDER_BY_TONE)
-const HEART_CSS = tonedCss("y2k-heart", HEART_BY_TONE)
+const FOLDER_CSS = tonedCss("y2k-folder", FOLDER_BY_TONE, PICTURE_SCALE.folder)
+const HEART_CSS = tonedCss("y2k-heart", HEART_BY_TONE, PICTURE_SCALE.heart)
 
 /** Aqua folder — tone-matched to the active data-tone. */
 export function FolderIcon({ className, style }: IconProps) {
@@ -155,25 +158,28 @@ export function StarIcon({ className, style }: IconProps) {
 export function FaceIcon({ className, style }: IconProps) {
   return (
     <span className={cn(WRAP, className)} style={style}>
-      <PngIcon src="/icons/webp/finder.webp" />
+      <PngIcon src="/icons/webp/finder.webp" scale={PICTURE_SCALE.finder} />
     </span>
   )
 }
 
 /* ── Neutral PNG icons (same across tones) ─────────────────────────── */
 
+/** The Terminal fills 90% of its box, measured as PICTURE_SCALE's are. */
+const TERMINAL_SCALE = 0.96
+
 /** Hard disk (Patina HD). */
 export const DiskIcon = makePngIcon("/icons/webp/disk.webp", "Disk")
 /** Document — the SIMPLE clean-paper doc. Use inside windows / file lists. */
 export const DocIcon = makePngIcon("/icons/webp/doc.webp", "Document")
 /** Note — the DETAILED letter+pen scene (TextEdit). Use in the Dock. */
-export const NoteIcon = makePngIcon("/icons/webp/note.webp", "TextEdit")
+export const NoteIcon = makePngIcon("/icons/webp/note.webp", "TextEdit", PICTURE_SCALE.note)
 /** The Bin — wire mesh. */
-export const TrashIcon = makePngIcon("/icons/webp/bin.webp", "Bin")
+export const TrashIcon = makePngIcon("/icons/webp/bin.webp", "Bin", PICTURE_SCALE.bin)
 /** Terminal — the Install step. */
-export const TerminalIcon = makePngIcon("/icons/webp/terminal.webp", "Terminal")
+export const TerminalIcon = makePngIcon("/icons/webp/terminal.webp", "Terminal", TERMINAL_SCALE)
 /** iPod — the music player (Finder toolbar, Dock). */
-export const IPodIcon = makePngIcon("/icons/webp/ipod-icon.webp", "iPod")
+export const IPodIcon = makePngIcon("/icons/webp/ipod-icon.webp", "iPod", PICTURE_SCALE.ipod)
 
 /** Patina logo — the chrome wordmark and its stars: About Patina's icon, in
     the Dock and the About box. Drawn at 120% so the art, not the file's
