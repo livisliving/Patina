@@ -103,7 +103,7 @@ function FileRow({
       aria-disabled={item.disabled || undefined}
       onClick={() => !item.disabled && onSelect()}
       onOpen={item.disabled ? undefined : onOpen}
-      className={cn("cursor-default aria-disabled:opacity-45", className)}
+      className={cn("aria-disabled:opacity-45", className)}
       {...props}
     >
       {/* The name takes the width the other columns leave (max-w-0 keeps
@@ -161,7 +161,7 @@ function ColumnRow({
       onDoubleClick={item.onClick}
       onKeyDown={(e) => e.key === "Enter" && item.onClick?.()}
       className={cn(
-        "flex w-full cursor-default items-center gap-1 px-2 text-left text-[12px] outline-none focus-visible:y2k-focus-ring focus-visible:-outline-offset-3",
+        "flex w-full items-center gap-1 px-2 text-left text-[12px] outline-none focus-visible:y2k-focus-ring focus-visible:-outline-offset-3",
         volume ? "h-10 gap-2" : "h-5",
         on && focused && "bg-(--y2k-tone-selection) text-(--y2k-tone-selection-text)",
         on && !focused && "bg-[#dedede]"
@@ -639,7 +639,7 @@ export function Finder({
                           key={h.col}
                           sorted={sort?.col === h.col ? sort.dir : undefined}
                           onClick={() => onSort(h.col)}
-                          className={cn("cursor-default select-none", h.className)}
+                          className={cn("select-none", h.className)}
                         >
                           {h.label}
                         </TableHead>
@@ -687,7 +687,7 @@ export function Finder({
                       onClick={() => !it.disabled && choose(key, it)}
                       onDoubleClick={() => onOpenItem(it, placePath)}
                       onKeyDown={(e) => e.key === "Enter" && !it.disabled && onOpenItem(it, placePath)}
-                      className="group relative z-[2] flex max-w-full cursor-default flex-col items-center gap-1 justify-self-center outline-none focus-visible:y2k-focus-ring focus-visible:outline-offset-1 disabled:opacity-45"
+                      className="group relative z-[2] flex max-w-full flex-col items-center gap-1 justify-self-center outline-none focus-visible:y2k-focus-ring focus-visible:outline-offset-1 disabled:opacity-45"
                     >
                       <span className="size-12 [&_svg]:size-full">{it.icon}</span>
                       {/* Two lines at most, then cut from the middle, as the

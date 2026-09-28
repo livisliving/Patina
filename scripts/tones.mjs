@@ -57,10 +57,13 @@ function block(t) {
   const barber = `repeating-linear-gradient(45deg, ${BARBER.map(([c, p]) => `${one(c)} ${p}px`).join(", ")})`
   const lines = [
     `--y2k-tone: ${rgbStr(b)};`,
-    `--y2k-tone-button: ${tone(TONED.gel)};`,
-    `--y2k-tone-button-edge: ${one(TONED.gel[0])};`,
+    // The default button takes the selected control's lighter gel (Olivia,
+    // 2026-09-28: the View segment's lightness is the right one), so it
+    // equals --y2k-tone-control in every tone.
+    `--y2k-tone-button: ${tone(TONED.segmentOn)};`,
+    `--y2k-tone-button-edge: ${one(TONED.segmentOn[0])};`,
     // The same rows spread over any height, for gel larger than a button.
-    `--y2k-tone-button-fluid: ${tone(TONED.gel, { unit: "%" })};`,
+    `--y2k-tone-button-fluid: ${tone(TONED.segmentOn, { unit: "%" })};`,
     `--y2k-tone-tab: ${tone(TONED.tab)};`,
     `--y2k-tone-tab-edge: ${one(TONED.tab[0])};`,
     `--y2k-tone-control: ${tone(TONED.segmentOn)};`,
@@ -90,7 +93,6 @@ function block(t) {
     `--y2k-wall-hi: ${rgbStr(mix(b, 0.45))};`,
     `--y2k-wall-mid: ${rgbStr(b)};`,
     `--y2k-wall-lo: ${rgbStr(b.map((v) => v * 0.45))};`,
-    `--y2k-face-filter: ${t.face};`,
     `--y2k-star-filter: ${t.star};`,
   ]
   const sel = t.root ? `:root,\n[data-tone="${t.id}"]` : `[data-tone="${t.id}"]`

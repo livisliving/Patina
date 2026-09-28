@@ -181,7 +181,7 @@ function Dock({ items, className }: { items: DockItem[]; className?: string }) {
                     data-dock-id={item.id}
                     aria-label={item.label}
                     className={cn(
-                      "relative flex cursor-default items-end justify-center outline-none",
+                      "relative flex items-end justify-center outline-none",
                       "transition-[width,height] duration-[80ms] ease-out",
                       "active:brightness-75 focus-visible:[&>span>svg]:drop-shadow-[0_0_4px_var(--y2k-tone)]"
                     )}

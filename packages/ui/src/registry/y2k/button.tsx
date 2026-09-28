@@ -9,8 +9,10 @@ import { cn } from "@/lib/utils"
  *
  * The Aqua 10.0 push button, at the original's measurements: 20px tall, a
  * full 10px round end, 68px minimum, 14px end caps, 13px regular text. The
- * body is the original's 20 rows (--y2k-gel-white / --y2k-tone-button); the
- * round ends darken toward the rim; it sits on a short, tight drop shadow.
+ * body is measured rows: the original's white (--y2k-gel-white), or in the
+ * tone --y2k-tone-button, which is the selected control's lighter gel
+ * (--y2k-tone-control), not the original's deeper one; the round ends
+ * darken toward the rim; it sits on a short, tight drop shadow.
  *   white  — the neutral push button (Cancel, Show All…). The default.
  *   tone   — the gel in the current tone. `isDefault` marks the window's
  *            default action; `pulsing` adds the dialog throb.
@@ -35,7 +37,7 @@ import { cn } from "@/lib/utils"
  */
 const packVariants = cva(
   [
-    "relative inline-flex shrink-0 cursor-default select-none items-center justify-center gap-1.5 whitespace-nowrap",
+    "relative inline-flex shrink-0 select-none items-center justify-center gap-1.5 whitespace-nowrap",
     "border-0 font-(family-name:--y2k-font-ui) font-normal leading-none text-(--y2k-ink) antialiased outline-none",
     "focus-visible:y2k-focus-ring focus-visible:outline-offset-1",
     "disabled:pointer-events-none disabled:text-(--y2k-ink-disabled) disabled:opacity-55 disabled:shadow-(--rim)",
@@ -160,7 +162,7 @@ function BevelButton({ className, pressed, ...props }: React.ComponentProps<"but
       data-slot="bevel-button"
       aria-pressed={pressed}
       className={cn(
-        "relative inline-flex h-(--y2k-bevel-h) shrink-0 cursor-default items-center justify-center rounded-[2px] px-[10px] whitespace-nowrap outline-none",
+        "relative inline-flex h-(--y2k-bevel-h) shrink-0 items-center justify-center rounded-[2px] px-[10px] whitespace-nowrap outline-none",
         "font-(family-name:--y2k-font-ui) text-[11px] text-black select-none",
         "bg-(image:--y2k-bevel) shadow-(--y2k-shadow-bevel)",
         "active:bg-[image:var(--y2k-gel-pressed),var(--y2k-bevel)] aria-pressed:bg-[image:var(--y2k-gel-pressed),var(--y2k-bevel)]",

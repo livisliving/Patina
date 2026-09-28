@@ -53,7 +53,7 @@ function TrafficLight({
       aria-label={light.label}
       data-slot="window-light"
       disabled={disabled}
-      className="absolute -inset-2 z-10 cursor-default opacity-0 outline-none"
+      className="absolute -inset-2 z-10 opacity-0 outline-none"
       onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation()
         onClick?.(e)
@@ -154,7 +154,7 @@ function WindowToolbarToggle({ className, active = true, ...props }: React.Compo
       aria-label="Toggle toolbar"
       onPointerDown={(e) => e.stopPropagation()}
       className={cn(
-        "relative z-10 ml-auto h-[12px] w-[20px] shrink-0 cursor-default rounded-[6px] outline-none",
+        "relative z-10 ml-auto h-[12px] w-[20px] shrink-0 rounded-[6px] outline-none",
         "focus-visible:y2k-focus-ring focus-visible:outline-offset-1",
         "bg-(image:--y2k-toolbar-toggle) shadow-[var(--y2k-light-drop),inset_0_0_0_1px_rgba(0,0,0,0.25)]",
         "active:bg-[image:var(--y2k-gel-pressed),var(--y2k-toolbar-toggle)] active:shadow-(--y2k-light-drop-active)",
@@ -223,7 +223,7 @@ function WindowToolbarItem({
       data-slot="window-toolbar-item"
       className={cn(
         toolbarSlot,
-        "cursor-default rounded-[4px] outline-none",
+        "rounded-[4px] outline-none",
         toolbarLabel,
         "active:bg-black/10 aria-pressed:bg-black/[0.13] disabled:opacity-50 focus-visible:ring-3 focus-visible:ring-(--y2k-tone-focus)",
         className

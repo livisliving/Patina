@@ -57,13 +57,15 @@ colors:
   tone-grape-bright: "#9765C9"
   tone-grape-container: "#582A86"
   # ── Gel body under a button label (the darkest stop the text sits on) and
-  #    the light control gel (checkbox, radio, selected segment, pop-up gem)
-  primary-gel: "#EC7BAF"
+  #    the light control gel (checkbox, radio, selected segment, pop-up gem).
+  #    The default button takes the control gel (2026-09-28), lighter than
+  #    the deep gel it had: the selected segment's lightness is the right one.
+  primary-gel: "#FD84BB"
   primary-control: "#FF8AC1"
-  tone-aqua-gel: "#6E9FD3"
-  tone-lime-gel: "#A6D776"
-  tone-tangerine-gel: "#EFAC6F"
-  tone-grape-gel: "#8963BA"
+  tone-aqua-gel: "#77ABE3"
+  tone-lime-gel: "#B0E47D"
+  tone-tangerine-gel: "#FFB776"
+  tone-grape-gel: "#966DCA"
 typography:
   display-wordmark:
     fontFamily: EB Garamond
@@ -1020,17 +1022,22 @@ pinstriped panel (1px #9A9A9A rim, 5px corners, 12px padding); the selected
 tab is the light tone tab gel with **black** ink — the original's white
 label on that light gel fails AA, so the pack departs from it.
 
-**Icons** — 64px glossy objects with a gloss cap and a hairline. An icon
-looks the same in every tone: its gel parts are its own fixed colour (OS
-blue for most; Mail's seal red, the lock brass, the bolt yellow), and only
-Folder, Heart and Star take the tone. The pack ships 24 of them (`icons`:
-`IconComputer`, `IconHome`, `IconFolder`, `IconDocument`, `IconMail`,
-`IconChart`, `IconLock`…), drawn for it on a 128px grid and legible from
-16px; the materials (paper, glass, metal, white plastic) are neutral, and
-the status ones keep their own colours — Info's OS blue, Warning's yellow,
-Check's green. `lucideToPack` names the one
-to use for a lucide-react icon; one with no match is removed, not kept as a
-line icon.
+**Icons** — 64px glossy objects with a gloss cap and a hairline: 1px on
+the 128px grid, as dark as the Aqua pictures beside them draw their edge,
+never a heavy outline. Things, as 10.0–10.3 drew them, not symbols: a
+check box for Check, a light bulb for Lightning, Olivia's CD under a blue
+note for Music, an open box for Download, a sheet of graph paper for Chart, the light switch for
+Preferences. An icon looks the same in every tone: its gel parts are its
+own fixed colour (OS blue for most; Mail's seal red, the lock brass, the
+bulb yellow), and only Folder, Heart and Star take the tone. The pack
+ships 25 of them (`icons`): eight are Olivia's own pictures, loaded when
+first drawn (Preview, QuickTime, Music, Document, Trash, Folder, Heart,
+Star),
+the rest drawn for it on a 128px grid and legible from 16px; the materials
+(paper, glass, metal, white plastic) are neutral, and the status ones keep
+their own colours — Info's OS blue, Warning's yellow, Check's aqua check
+box. `lucideToPack` names the one to use for a lucide-react icon; one with
+no match is removed, not kept as a line icon.
 
 **Copy voice** — system voice, short, sentence case: `Save`, `Cancel`,
 `Read Me`, `6 items, 56k available`, `Public Beta`. No
@@ -1049,9 +1056,11 @@ line icon.
   nothing else.
 - Do lay out dialogs with right-aligned labels and Cancel left of the default.
 - Do keep WCAG AA, measured on the rendered gel rather than a flat colour:
-  black on the default button is 8.6:1 in pink, 8.1:1 in aqua, 13.3:1 in lime,
-  11.5:1 in tangerine and 4.9:1 in grape (its darkest tenth, on the measured
-  rows); black on the pinstripe about 15:1.
+  black on the default button is at least 8.6:1 in pink, 8.1:1 in aqua,
+  13.3:1 in lime, 11.5:1 in tangerine and 4.9:1 in grape (its darkest tenth,
+  on the measured rows of the deeper gel it had until 2026-09-28; the
+  lighter control gel it takes now only raises them); black on the
+  pinstripe about 15:1.
   White ink on a selected row and on the sidebar's selected row is at least
   4.5:1 in every tone: `scripts/tones.mjs` deepens a tone in its own hue
   until it is (pink's selection 4.6:1, its sidebar 4.6:1 at the lightest).

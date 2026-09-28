@@ -91,7 +91,7 @@ function WindowSidebarItem({
       aria-current={selected ? "true" : undefined}
       className={cn(
         // Square, full-width, 20px tall, 8px inset, 16px icon.
-        "flex h-5 w-full cursor-default items-center gap-1.5 px-2 text-left outline-none",
+        "flex h-5 w-full items-center gap-1.5 px-2 text-left outline-none",
         // The row's own height as the line height: the label is a flex item,
         // so its `truncate` clips to its line box, and at leading-none a
         // 12px line box cut off Lucida Grande's descenders.

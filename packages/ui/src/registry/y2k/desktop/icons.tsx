@@ -4,14 +4,20 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-import { BIN, DISK, DOC, FINDER, FOLDER_AQUA, FOLDER_GRAPE, FOLDER_LIME, FOLDER_PINK, FOLDER_TANGERINE, IPOD, NOTE } from "./icon-data"
-import type { Tone } from "./tones"
+import { tonePictureCss } from "@/components/ui/icons"
+import { BIN, DOC, FOLDER_AQUA, FOLDER_GRAPE, FOLDER_LIME, FOLDER_PINK, FOLDER_TANGERINE, STAR } from "@/components/ui/icon-pictures"
+
+import { DISK, FINDER, IPOD, NOTE } from "./icon-data"
 
 /**
- * The desktop's icons: Olivia's own PNG artwork, inlined by
- * scripts/desktop-icons.mjs (icon-data.ts) so they install with the source.
- * An icon looks the same in every tone; only the Folder follows it, in the
- * tone's own colour of folder (real per-colour art, swapped by file).
+ * The desktop's icons: Olivia's own artwork, inlined by
+ * scripts/desktop-icons.mjs so they install with the source — what only the
+ * desktop draws in icon-data.ts, what the icon set draws too (the document,
+ * the Bin, the star, the folders) in the icons item's icon-pictures.ts,
+ * loaded with the page here where the icon set loads it late. An icon looks
+ * the same in every tone; only the Folder follows it, in the tone's own
+ * colour of folder (real per-colour art, swapped by file), and the star,
+ * turned by --y2k-star-filter.
  *
  * Two document icons: DocIcon, the clean sheet, for a file in a window or
  * on the desktop; NoteIcon, the letter and pen, for TextEdit itself.
@@ -59,22 +65,12 @@ export const TrashIcon = makeIcon(BIN, "Bin")
 /** The iPod: its Dock tile and its app icon. */
 export const IPodIcon = makeIcon(IPOD, "iPod")
 
-const FOLDER_BY_TONE: Record<Tone, string> = {
-  pink: FOLDER_PINK,
-  aqua: FOLDER_AQUA,
-  lime: FOLDER_LIME,
-  tangerine: FOLDER_TANGERINE,
-  grape: FOLDER_GRAPE,
-}
-
 /** Each tone's folder as CSS, keyed to the tone on <html> (pink when
  *  unset). The server's HTML then paints the right folder — it cannot know
  *  the tone; the stylesheet can — and a tone change needs no render. React
- *  hoists the one <style> into the head, however many folders there are. */
-const FOLDER_CSS = [
-  `.y2k-folder{background:url(${FOLDER_BY_TONE.pink}) center/contain no-repeat}`,
-  ...(["aqua", "lime", "tangerine", "grape"] as const).map((t) => `html[data-tone="${t}"] .y2k-folder{background-image:url(${FOLDER_BY_TONE[t]})}`),
-].join("\n")
+ *  hoists the one <style> into the head, however many folders there are,
+ *  and it is the same one the icon set's Folder writes. */
+const FOLDER_CSS = tonePictureCss("y2k-folder", [FOLDER_PINK, FOLDER_AQUA, FOLDER_LIME, FOLDER_TANGERINE, FOLDER_GRAPE])
 
 /** An Aqua folder in the tone's colour. */
 export function FolderIcon({ className, style }: IconProps) {
@@ -101,7 +97,13 @@ export function StarMark({ className }: { className?: string }) {
   )
 }
 
-/** Computer and the Aqua star are the pack's own. */
-export { IconComputer as ComputerIcon, IconStar as StarIcon } from "@/components/ui/icons"
+/** The Patina star in the tone, where the menu bar has its Apple menu and
+ *  the About box its logo: loaded with the page, so it never pops in. */
+export function StarIcon({ className, style }: IconProps) {
+  return <Png src={STAR} className={className} style={{ filter: "var(--y2k-star-filter, none)", ...style }} />
+}
+
+/** Computer is the pack's own. */
+export { IconComputer as ComputerIcon } from "@/components/ui/icons"
 
 /* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */

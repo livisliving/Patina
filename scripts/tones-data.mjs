@@ -183,19 +183,19 @@ export function base(token) {
 
 export const TONES = [
   { id: "pink", base: base("primary"), ink: "#ffffff",
-    face: "hue-rotate(110deg) saturate(1.15)", star: "none", root: true },
+    star: "none", root: true },
   { id: "aqua", base: base("tone-aqua"), ink: "#ffffff", exact: true,
     // White ink needs the deeper highlight blue; the lighter #4d83d2 row
     // selection of the original is 3.8:1 and fails AA.
     selection: "#336abd", list: "linear-gradient(180deg, rgb(58, 110, 190) 0%, rgb(51, 102, 185) 50%, rgb(42, 94, 176) 100%)",
-    face: "none", star: "hue-rotate(-111deg) saturate(0.95)" },
+    star: "hue-rotate(-111deg) saturate(0.95)" },
   { id: "lime", base: base("tone-lime"), ink: "#000000",
-    face: "hue-rotate(-130deg) saturate(1.05)", star: "hue-rotate(116deg) saturate(1.1) brightness(1.05)" },
+    star: "hue-rotate(116deg) saturate(1.1) brightness(1.05)" },
   { id: "tangerine", base: base("tone-tangerine"), ink: "#000000",
-    face: "hue-rotate(-170deg) saturate(1.2)", star: "hue-rotate(64deg) saturate(1.05)" },
+    star: "hue-rotate(64deg) saturate(1.05)" },
   // Grape: darkened to #7a3aba so white ink reads on its selection.
   { id: "grape", base: base("tone-grape"), ink: "#ffffff",
-    face: "hue-rotate(55deg) saturate(1.05)", star: "hue-rotate(-59deg) saturate(0.82)" },
+    star: "hue-rotate(-59deg) saturate(0.82)" },
 ]
 
 /** What a tone settles on before anything is drawn: its base as rgb, the

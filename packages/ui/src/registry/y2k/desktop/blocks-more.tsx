@@ -212,7 +212,7 @@ export function Faq({ items }: Of<"faq">) {
               aria-expanded={isOpen}
               aria-controls={`${id}-${i}`}
               onClick={() => toggle(i)}
-              className={`flex w-full cursor-default items-start text-left text-[13px] leading-[1.45] font-bold ${FOCUS}`}
+              className={`flex w-full items-start text-left text-[13px] leading-[1.45] font-bold ${FOCUS}`}
             >
               {/* One line tall, so the triangle sits on the question's first
                   line however far it wraps. */}

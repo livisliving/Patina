@@ -471,7 +471,7 @@ function DesktopShell({ wallpaper, IPod, className }: { wallpaper?: DesktopProps
               onClick={() => selectOnly(key)}
               onDoubleClick={it.onOpen}
               onKeyDown={(e) => e.key === "Enter" && it.onOpen()}
-              className="group flex w-[84px] cursor-default flex-col items-center gap-0.5 outline-none focus-visible:y2k-focus-ring focus-visible:outline-offset-1"
+              className="group flex w-[84px] flex-col items-center gap-0.5 outline-none focus-visible:y2k-focus-ring focus-visible:outline-offset-1"
             >
               <span className="size-14 [&_svg]:size-full [&_svg]:drop-shadow-[0_2px_3px_rgba(0,0,0,0.4)]">{it.icon}</span>
               {/* Two lines at most, then cut from the middle, as in the Finder. */}

@@ -142,7 +142,7 @@ export function DocumentView({ win, doc }: { win: WinEntry; doc: DocumentEntry }
                 title={t.label}
                 aria-current={current === t.id ? "location" : undefined}
                 onClick={() => goTo(t.id)}
-                className="block w-full cursor-default truncate text-left outline-none"
+                className="block w-full truncate text-left outline-none"
               >
                 {t.label}
               </button>

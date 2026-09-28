@@ -29,7 +29,7 @@ const menuContentClass = cn(
 )
 
 const menuItemClass = cn(
-  "relative flex cursor-default items-center justify-between gap-[18px] px-[22px] py-px leading-[17px] outline-none select-none",
+  "relative flex items-center justify-between gap-[18px] px-[22px] py-px leading-[17px] outline-none select-none",
   "data-[highlighted]:bg-(image:--y2k-tone-highlight) data-[highlighted]:text-(--y2k-tone-highlight-text)",
   "data-[disabled]:text-(--y2k-ink-disabled)"
 )
@@ -60,7 +60,7 @@ function PopupButton({
         type="button"
         data-slot="popup-button"
         className={cn(
-          "relative inline-flex h-(--y2k-popup-h) min-w-[60px] cursor-default items-center rounded-[4px] pr-[calc(var(--y2k-popup-gem)+2px)] pl-[10px] text-left",
+          "relative inline-flex h-(--y2k-popup-h) min-w-[60px] items-center rounded-[4px] pr-[calc(var(--y2k-popup-gem)+2px)] pl-[10px] text-left",
           "font-(family-name:--y2k-font-ui) text-[13px] text-black outline-none",
           "bg-(image:--y2k-popup-white) shadow-[inset_1px_0_0_rgba(0,0,0,0.15),0_1px_1px_rgba(0,0,0,0.14)]",
           "focus-visible:y2k-focus-ring data-[state=open]:brightness-95",
