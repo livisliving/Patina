@@ -259,3 +259,5 @@ export function PillIcon(props: IconProps) {
 /** Computer, Home and Info are the pack's own: the same drawings, the same in
  *  every tone. */
 export { IconComputer as ComputerIcon, IconHome as HomeIcon, IconInfo as InfoIcon } from "@patina/ui"
+/** The glass globe, the pack's own too: the code on GitHub, in the Dock. */
+export { IconGlobe as GlobeIcon } from "@patina/ui"
