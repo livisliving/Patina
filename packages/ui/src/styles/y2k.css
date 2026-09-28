@@ -482,34 +482,21 @@
 .y2k-pinstripe { background-image: var(--y2k-pinstripe); }
 .y2k-pinstripe-dark { background-image: var(--y2k-pinstripe-dark); }
 
-/* A control you can click shows the pointing hand: a button, anything that
-   plays one (a menu item, a tab, an option, a check box, a radio button, a
-   switch), a slider, a disclosure, a pop-up, and the label round a check box
-   or radio button. A disabled one keeps the arrow, not the text I-beam. In the base layer, so a
-   cursor the element sets itself still wins (zoom-in on a picture that
-   opens large, the resize arrows on a column's edge, the arrow on a scroll
-   bar). */
+/* The arrow, as the desktop has it, over everything you click: a button,
+   anything that plays one (a menu item, a tab, an option, a check box, a
+   radio button, a switch), a slider, a disclosure, a pop-up, the label round
+   a check box or radio button, and a link that stays on the site (it opens
+   a window). Not the text I-beam over a label, nor the web's pointing hand.
+   The hand is for a link that leaves the site, which opens a browser tab
+   (http, https or mailto, or a new tab). In the base layer, so a cursor the
+   element sets itself still wins (zoom-in on a picture that opens large,
+   the resize arrows on a column's edge). */
 @layer base {
-  :is(
+  :where(
       button,
+      a[href],
       [role="button"],
-      [role="menuitem"],
-      [role="menuitemradio"],
-      [role="menuitemcheckbox"],
-      [role="tab"],
-      [role="option"],
-      [role="checkbox"],
-      [role="radio"],
-      [role="switch"],
-      summary,
-      select,
-      input[type="range"]
-    ):is(:disabled, [aria-disabled="true"], [data-disabled]) {
-    cursor: default;
-  }
-  :is(
-      button,
-      [role="button"],
+      [role="link"],
       [role="menuitem"],
       [role="menuitemradio"],
       [role="menuitemcheckbox"],
@@ -521,8 +508,11 @@
       summary,
       select,
       input[type="range"],
-      label:has(button[role="checkbox"]:not(:disabled), button[role="radio"]:not(:disabled))
-    ):not(:disabled, [aria-disabled="true"], [data-disabled]) {
+      label:has(button[role="checkbox"], button[role="radio"])
+    ) {
+    cursor: default;
+  }
+  a:is([href^="http:" i], [href^="https:" i], [href^="mailto:" i], [target="_blank"]) {
     cursor: pointer;
   }
 }

@@ -93,7 +93,7 @@ function FootButton({ on, className, ...props }: React.ComponentProps<"button"> 
       type="button"
       aria-pressed={on}
       className={cn(
-        "flex h-6 w-8 shrink-0 items-center justify-center rounded-[4px] border border-[#666] outline-none",
+        "flex h-6 w-8 shrink-0 cursor-default items-center justify-center rounded-[4px] border border-[#666] outline-none",
         "bg-[linear-gradient(to_bottom,#f0f0f0_0_1px,#fff_1px_2px,#fdfdfd_2px_3px,#dedede_3px,#bababa_20px,#9f9f9f_20px_21px,#858585_21px)]",
         "shadow-[0_1px_0_rgba(255,255,255,0.75),0_0_0_1px_rgba(0,0,0,0.1)] active:brightness-90",
         "text-[#2b2b2b] [&_svg]:drop-shadow-[0_1px_0_rgba(255,255,255,0.8)]",
@@ -540,7 +540,7 @@ export const IPod = React.memo(function IPod({ onEject, hidden }: { onEject: () 
                 </TableHeader>
                 <TableBody>
                   {[null, ...genres].map((g) => (
-                    <TableRow key={g ?? "all"} selected={genre === g} onClick={() => setGenre(g)}>
+                    <TableRow key={g ?? "all"} selected={genre === g} onClick={() => setGenre(g)} className="cursor-default">
                       <TableCell>{g ?? `All (${genres.length} Genres)`}</TableCell>
                     </TableRow>
                   ))}
@@ -585,7 +585,7 @@ export const IPod = React.memo(function IPod({ onEject, hidden }: { onEject: () 
                           key={col}
                           sorted={sort.col === col ? sort.dir : undefined}
                           onClick={() => sortBy(col)}
-                          className={cn("select-none", col === "time" && "text-right")}
+                          className={cn("cursor-default select-none", col === "time" && "text-right")}
                         >
                           {{ title: "Song", time: "Time", artist: "Artist" }[col]}
                         </TableHead>
@@ -601,6 +601,7 @@ export const IPod = React.memo(function IPod({ onEject, hidden }: { onEject: () 
                       selected={chosen === t.title}
                       onClick={() => setSelected(t.title)}
                       onOpen={() => start(t)}
+                      className="cursor-default"
                     >
                       {radio ? (
                         <>

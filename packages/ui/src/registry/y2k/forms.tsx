@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils"
  */
 
 /* Checkbox and Radio: the label row, and the 1px drop under the control. */
-const choiceLabel = "inline-flex items-center gap-[6px] font-(family-name:--y2k-font-ui) text-[13px] text-(--y2k-ink) select-none"
+const choiceLabel = "inline-flex cursor-default items-center gap-[6px] font-(family-name:--y2k-font-ui) text-[13px] text-(--y2k-ink) select-none"
 const choiceDrop = "drop-shadow-[0_1px_1px_rgba(0,0,0,0.34)]"
 
 /* ── Checkbox ─────────────────────────────────────────────────────── */
@@ -64,7 +64,7 @@ function Checkbox({
           onCheckedChange?.(next)
         }}
         className={cn(
-          "group/check relative my-px mr-[2px] ml-px h-4 w-(--y2k-check-cell-w) shrink-0 outline-none",
+          "group/check relative my-px mr-[2px] ml-px h-4 w-(--y2k-check-cell-w) shrink-0 cursor-default outline-none",
           !disabled && choiceDrop
         )}
       >
@@ -148,7 +148,7 @@ function Radio({ value, label, disabled, className }: { value: string; label?: R
         disabled={disabled}
         onClick={() => group?.select(value)}
         className={cn(
-          "group/radio relative mx-[2px] mt-px mb-[2px] h-(--y2k-radio-cell-h) w-(--y2k-radio-cell-w) shrink-0 outline-none",
+          "group/radio relative mx-[2px] mt-px mb-[2px] h-(--y2k-radio-cell-h) w-(--y2k-radio-cell-w) shrink-0 cursor-default outline-none",
           !disabled && choiceDrop
         )}
       >
@@ -247,7 +247,7 @@ function Slider({
       type="range"
       data-slot="slider"
       className={cn(
-        "h-[22px] w-full appearance-none bg-transparent outline-none",
+        "h-[22px] w-full cursor-default appearance-none bg-transparent outline-none",
         "thumb:appearance-none focus-visible:thumb:shadow-(--y2k-focus-ring)",
         track,
         { round: roundThumb, pointer: pointerThumb, metal: metalThumb }[thumb],
@@ -290,7 +290,7 @@ function Stepper({
   className?: string
 }) {
   const set = (v: number) => onValueChange(Math.min(max, Math.max(min, v)))
-  const half = "flex h-1/2 w-full outline-none"
+  const half = "flex h-1/2 w-full cursor-default outline-none"
   const disabledAll = value >= max && value <= min
   return (
     <div data-slot="stepper" className={cn("inline-flex items-center gap-[6px]", className)}>

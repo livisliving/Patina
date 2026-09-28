@@ -119,7 +119,7 @@ function MenuBarTitle({ className, ...props }: React.ComponentProps<typeof Menu.
     <Menu.Trigger
       data-slot="menu-bar-title"
       className={cn(
-        "flex h-full shrink-0 items-center rounded-[3px] px-2 whitespace-nowrap outline-none select-none",
+        "flex h-full shrink-0 cursor-default items-center rounded-[3px] px-2 whitespace-nowrap outline-none select-none",
         "hover:bg-(image:--y2k-tone-highlight) hover:text-(--y2k-tone-highlight-text)",
         "focus-visible:bg-(image:--y2k-tone-highlight) focus-visible:text-(--y2k-tone-highlight-text)",
         "data-[state=open]:bg-(image:--y2k-tone-highlight) data-[state=open]:text-(--y2k-tone-highlight-text)",

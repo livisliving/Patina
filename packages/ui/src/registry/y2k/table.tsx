@@ -59,7 +59,7 @@ function TableHead({ className, sorted, children, ...props }: React.ComponentPro
       {props.onClick ? (
         <button
           type="button"
-          className="block w-full text-left outline-none focus-visible:y2k-focus-ring"
+          className="block w-full cursor-default text-left outline-none focus-visible:y2k-focus-ring"
         >
           {children}
         </button>
@@ -103,8 +103,6 @@ function TableRow({
         if (e.key === "Enter") onOpen?.()
       }}
       className={cn(
-        // A row that does something on a click shows the hand, as a button does.
-        (props.onClick || onOpen) && "cursor-pointer aria-disabled:cursor-default",
         // Every other row the pale tone; the selected row the tone selection.
         "even:bg-(--y2k-tone-zebra) aria-selected:bg-(--y2k-tone-selection) aria-selected:text-(--y2k-tone-selection-text)",
         // A focusable (tabIndex) row shows the ring inside its edge.
@@ -144,7 +142,7 @@ function TreeItem({ node, depth }: { node: TreeNode; depth: number }) {
             type="button"
             aria-label={open ? "Collapse" : "Expand"}
             onClick={() => setOpen((o) => !o)}
-            className="mr-[5px] flex size-[7px] shrink-0 items-center justify-center outline-none focus-visible:y2k-focus-ring"
+            className="mr-[5px] flex size-[7px] shrink-0 cursor-default items-center justify-center outline-none focus-visible:y2k-focus-ring"
           >
             <svg viewBox="0 0 7 9" className={cn("h-[9px] w-[7px] transition-transform", open && "rotate-90")} aria-hidden>
               <path d="M0 0l7 4.5L0 9z" fill="#1a1a1a" />
