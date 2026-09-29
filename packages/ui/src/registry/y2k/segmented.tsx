@@ -48,7 +48,7 @@ function SegmentedControl({ items, className, ...props }: Omit<React.ComponentPr
             disabled={it.disabled}
             onClick={it.onClick}
             className={cn(
-              "relative flex h-full cursor-default items-center justify-center gap-1 outline-none",
+              "relative flex h-full items-center justify-center gap-1 outline-none",
               it.icon ? "w-(--y2k-segment-w) px-0" : "min-w-(--y2k-segment-w) px-[9px]",
               "font-(family-name:--y2k-font-ui) text-[11px] text-black",
               // The fill; the round ends' rim; the divider down all but the last.

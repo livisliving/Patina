@@ -210,10 +210,8 @@ export function tonePictureCss(cls: string, [pink, aqua, lime, tangerine, grape]
   ].join("\n")
 }
 
-/** One of Olivia's pictures as the icon, once it has loaded. Each is sized
- *  to look as big as the rest when it is inlined (scripts/picture-size.mjs):
- *  the Finder face and the folder had the most room round them. The drawn
- *  icons are drawn to the grid at 81–91% of the box. */
+/** One of Olivia's pictures as the icon, once it has loaded, sized to look
+ *  as big as the rest when it was inlined (scripts/picture-size.mjs). */
 function Picture({ src, ...props }: IconProps & { src?: string }) {
   return <Svg {...props}>{src && <image href={src} width={128} height={128} />}</Svg>
 }

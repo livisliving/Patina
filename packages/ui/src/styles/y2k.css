@@ -488,10 +488,12 @@
    a check box or radio button, and a link that stays on the site (it opens
    a window). Not the text I-beam over a label, nor the web's pointing hand.
    The hand is for a link that leaves the site, which opens a browser tab
-   (http, https or mailto, or a new tab). In the base layer, so a cursor the
-   element sets itself still wins (zoom-in on a picture that opens large,
-   the resize arrows on a column's edge). */
-@layer base {
+   (http, https or mailto, or a new tab). In the components layer: after the
+   site's base layer, so a `button { cursor: pointer }` there doesn't bring
+   the hand back, and before utilities, so a cursor the element sets itself
+   still wins (zoom-in on a picture that opens large, the resize arrows on a
+   column's edge, the pager's hand). No component repeats it. */
+@layer components {
   :where(
       button,
       a[href],

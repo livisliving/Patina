@@ -59,7 +59,7 @@ function TableHead({ className, sorted, children, ...props }: React.ComponentPro
       {props.onClick ? (
         <button
           type="button"
-          className="block w-full cursor-default text-left outline-none focus-visible:y2k-focus-ring"
+          className="block w-full text-left outline-none focus-visible:y2k-focus-ring"
         >
           {children}
         </button>
@@ -145,7 +145,7 @@ function TreeItem({ node, depth }: { node: TreeNode; depth: number }) {
             type="button"
             aria-label={open ? "Collapse" : "Expand"}
             onClick={() => setOpen((o) => !o)}
-            className="mr-[5px] flex size-[7px] shrink-0 cursor-default items-center justify-center outline-none focus-visible:y2k-focus-ring"
+            className="mr-[5px] flex size-[7px] shrink-0 items-center justify-center outline-none focus-visible:y2k-focus-ring"
           >
             <svg viewBox="0 0 7 9" className={cn("h-[9px] w-[7px] transition-transform", open && "rotate-90")} aria-hidden>
               <path d="M0 0l7 4.5L0 9z" fill="#1a1a1a" />

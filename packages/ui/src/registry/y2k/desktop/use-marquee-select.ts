@@ -2,7 +2,7 @@
 
 import * as React from "react"
 
-type Rect = { x: number; y: number; w: number; h: number }
+export type Rect = { x: number; y: number; w: number; h: number }
 
 /** What a marquee may not start on. */
 const NOT_EMPTY = "[data-select-item], button, a, input, th, [role=separator]"

@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils"
 
 import { MiddleTruncate } from "./middle-truncate"
 import { Chevron, useToolbarFit } from "./toolbar-fit"
+import type { Rect } from "./use-marquee-select"
 
 /**
  * A file as the Finder and the desktop draw it: a row in the list view, a row
@@ -26,9 +27,11 @@ import { Chevron, useToolbarFit } from "./toolbar-fit"
 /** What these read of an item: a FinderItem (disk.tsx) or a desktop icon has more. */
 export type FileItem = { label: string; icon: React.ReactNode; disabled?: boolean; onClick?: () => void }
 
-export type Rect = { x: number; y: number; w: number; h: number }
 
 export type FinderView = "icons" | "list" | "columns"
+
+/** A place on the Finder's toolbar, after the separator. */
+export type Place = { label: string; icon: React.ReactNode; onClick: () => void }
 
 /** A file in a list: selects on click, opens on double-click or Enter, dims
  *  when disabled. Its first cell is the icon and the name; pass the rest. */
@@ -94,7 +97,7 @@ export function ColumnRow({
       onDoubleClick={item.onClick}
       onKeyDown={(e) => e.key === "Enter" && item.onClick?.()}
       className={cn(
-        "flex w-full cursor-default items-center gap-1 px-2 text-left text-[12px] outline-none focus-visible:y2k-focus-ring focus-visible:-outline-offset-3",
+        "flex w-full items-center gap-1 px-2 text-left text-[12px] outline-none focus-visible:y2k-focus-ring focus-visible:-outline-offset-3",
         volume ? "h-10 gap-2" : "h-5",
         on && focused && "bg-(--y2k-tone-selection) text-(--y2k-tone-selection-text)",
         on && !focused && "bg-[#dedede]"
@@ -162,7 +165,7 @@ export function ColumnSplit({ width, onResize }: { width: number; onResize: (w: 
       className={cn(
         "relative w-3 shrink-0 cursor-col-resize touch-none bg-[linear-gradient(to_right,#e0e0e0,#ebebeb_35%,#f5f5f5_70%,#fcfcfc)]",
         // The pack's focus halo, same as every other focusable surface.
-        "outline-none focus-visible:shadow-[0_0_0_3px_var(--y2k-tone-focus)]"
+        "outline-none focus-visible:shadow-(--y2k-focus-ring)"
       )}
     >
       <span aria-hidden className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-[2px]">
@@ -194,7 +197,7 @@ export function FileIcon({
       onDoubleClick={onOpen}
       onKeyDown={(e) => e.key === "Enter" && !item.disabled && onOpen()}
       className={cn(
-        "group relative z-[2] flex max-w-full cursor-default flex-col items-center gap-1 justify-self-center outline-none focus-visible:y2k-focus-ring focus-visible:outline-offset-1 disabled:opacity-45",
+        "group relative z-[2] flex max-w-full flex-col items-center gap-1 justify-self-center outline-none focus-visible:y2k-focus-ring focus-visible:outline-offset-1 disabled:opacity-45",
         className
       )}
       {...props}
@@ -234,7 +237,7 @@ export function DesktopIcon({
       onDoubleClick={onOpen}
       onKeyDown={(e) => e.key === "Enter" && onOpen()}
       className={cn(
-        "group flex w-[84px] cursor-default flex-col items-center gap-0.5 outline-none focus-visible:y2k-focus-ring focus-visible:outline-offset-1",
+        "group flex w-[84px] flex-col items-center gap-0.5 outline-none focus-visible:y2k-focus-ring focus-visible:outline-offset-1",
         className
       )}
       {...props}
@@ -331,7 +334,7 @@ export function FinderToolbar({
   onBack: () => void
   view: FinderView
   onView: (view: FinderView) => void
-  places: { label: string; icon: React.ReactNode; onClick: () => void }[]
+  places: Place[]
   searchRef: React.Ref<HTMLInputElement>
   query: string
   onQuery: (query: string) => void

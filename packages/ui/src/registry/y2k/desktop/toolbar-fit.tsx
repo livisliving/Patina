@@ -63,7 +63,7 @@ export function Chevron({ className, ...props }: React.ComponentProps<"button">)
       type="button"
       aria-label="More places"
       className={cn(
-        "mt-[2px] flex h-8 w-4 shrink-0 cursor-default items-center justify-center rounded-[4px] text-[#1e1e1e] outline-none",
+        "mt-[2px] flex h-8 w-4 shrink-0 items-center justify-center rounded-[4px] text-[#1e1e1e] outline-none",
         "focus-visible:shadow-(--y2k-focus-ring) data-[state=open]:bg-black/10",
         className
       )}

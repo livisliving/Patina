@@ -39,7 +39,7 @@ function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPr
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
       className={cn(
-        "relative flex h-(--y2k-tab-h) cursor-default items-center justify-center rounded-t-[7px] px-4 outline-none",
+        "relative flex h-(--y2k-tab-h) items-center justify-center rounded-t-[7px] px-4 outline-none",
         "font-(family-name:--y2k-font-ui) text-[13px] whitespace-nowrap text-(--y2k-ink) select-none",
         "bg-(image:--face) shadow-[inset_0_0_0_1px_var(--rim)] active:bg-[image:var(--y2k-gel-pressed),var(--face)]",
         "[--face:var(--y2k-gel-white)] [--rim:#8a8a8a]",

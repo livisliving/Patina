@@ -10,7 +10,8 @@ import { cn } from "@/lib/utils"
 
 import { ComputerIcon, FolderIcon } from "./icons"
 import type { FinderItem } from "./disk"
-import { Band, COLUMN, ColumnRow, ColumnSplit, FileIcon, FileRow, FinderToolbar, type FinderView, type Rect } from "./files"
+import { Band, COLUMN, ColumnRow, ColumnSplit, FileIcon, FileRow, FinderToolbar, type FinderView, type Place } from "./files"
+import type { Rect } from "./use-marquee-select"
 import { dateValue } from "./names"
 import { DESKTOP, useMediaQuery } from "./use-media-query"
 import { DesktopWindow, type WinEntry } from "./windows"
@@ -195,7 +196,7 @@ type FinderProps = {
   /** Open an item as a double-click does; `at` is the folder it sits in. */
   onOpenItem: (item: FinderItem, at: string[]) => void
   /** The toolbar's places, after the separator. */
-  places: { label: string; icon: React.ReactNode; onClick: () => void }[]
+  places: Place[]
   /** Its size when it first opens (context.tsx's loadLayout). */
   initialSize: () => { w: number; h: number }
 }
@@ -243,7 +244,7 @@ export function Finder({
   const [size] = React.useState(initialSize)
 
   // Column widths by depth, dragged by the strips between them; a column not
-  // yet dragged is 176.
+  // yet dragged is COLUMN wide.
   const [columnWidths, setColumnWidths] = React.useState<number[]>([])
   // A drag fires per pointer move, but `clamp` snaps to the 4px grid, so most
   // moves resolve to the width already set — returning `prev` unchanged lets
@@ -347,7 +348,7 @@ export function Finder({
               // Aqua column view, rebuilt from the 10.2 reference. The FIRST
               // column lists volumes — double-height rows, 32px icons, a
               // disclosure arrow on every one — and each folder on the path
-              // opens the next. Columns are 176px, parted by a 12px shade
+              // opens the next. Columns are COLUMN wide, parted by a 12px shade
               // with a grip at its foot; the strip scrolls sideways once the
               // path runs past the window, as the real Finder does.
               <div className="flex min-h-full w-max min-w-full">

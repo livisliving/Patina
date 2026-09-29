@@ -814,7 +814,7 @@ export function Desktop() {
   // The paths Back returns to, the latest last.
   const [finderHistory, setFinderHistory] = React.useState<string[][]>([])
   // Column widths by depth, dragged by the strips between them; a column not
-  // yet dragged is 176.
+  // yet dragged is COLUMN wide.
   const [columnWidths, setColumnWidths] = React.useState<number[]>([])
   // A drag fires per pointer move, but `clamp` snaps to the 4px grid, so most
   // moves resolve to the width already set — returning `prev` unchanged lets
@@ -1234,7 +1234,7 @@ export function Desktop() {
                 // Aqua column view, rebuilt from the 10.2 reference. The FIRST
                 // column lists volumes — double-height rows, 32px icons, a
                 // disclosure arrow on every one — and each folder on the path
-                // opens the next. Columns are 176px, parted by a 12px shade
+                // opens the next. Columns are COLUMN wide, parted by a 12px shade
                 // with a grip at its foot; the strip scrolls sideways once the
                 // path runs past the window, as the real Finder does.
                 <div className="flex min-h-full w-max min-w-full">
@@ -1755,7 +1755,7 @@ export function Desktop() {
                         aria-checked={tone === t.id}
                         onClick={() => setTone(t.id)}
                         data-tone={t.id}
-                        className="group flex max-w-[60px] min-w-0 flex-1 cursor-default flex-col items-center gap-1 outline-none"
+                        className="group flex max-w-[60px] min-w-0 flex-1 flex-col items-center gap-1 outline-none"
                       >
                         <span
                           className={cn(

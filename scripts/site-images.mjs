@@ -12,8 +12,8 @@
  * picture's square can be smaller than 384 (the Finder face's is 312): it is
  * not scaled up. The biggest an icon is drawn is 128px (the column
  * inspector, the Dock's magnified tile), 384 pixels on a 3× phone; the About
- * box's logo is drawn about 154px wide (461 pixels); the star 36px at most
- * (the iPod's mask).
+ * box's logo is drawn about 154px wide (461 pixels); the star is the menu
+ * bar's 16px mark.
  *
  * Phone wallpapers → wallpapers/<tone>-mobile-small.avif, 860 pixels wide:
  * all a phone up to 430px wide at 2× needs, where the full one is made for
@@ -47,8 +47,7 @@ const made = await Promise.all([
   ...ICONS.map(async (file) => {
     const side = SIDE[file] ?? 384
     const from = path.join(pub, "icons", file)
-    const { input, scale } = file === "logo.png" ? { input: from, scale: 1 } : await evenSize(from)
-    if (scale !== 1) console.log(`site-images: ${file} drawn ${scale.toFixed(2)}× in its square`)
+    const input = file === "logo.png" ? from : await evenSize(from, "site-images")
     return [from, sharp(input)
       .resize(side, side, { fit: "inside", withoutEnlargement: true })
       .webp({ nearLossless: true, quality: 80, effort: 6 })

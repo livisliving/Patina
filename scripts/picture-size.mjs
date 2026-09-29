@@ -21,15 +21,17 @@
  * more stops the script.
  */
 
+import fs from "node:fs"
 import sharp from "sharp"
 
 const SEEN = 24
 const SIZE = 0.86
 const CLOSE = 0.033
 
-/** The picture at `file` sized as the rest: a PNG of the new square and how
- *  much bigger the picture is drawn in it, or the file itself and 1. */
-export async function evenSize(file) {
+/** The picture at `file` sized as the rest: a PNG of the new square, or the
+ *  file's own bytes when it is close enough. `by` names the script in the
+ *  line it logs for a picture it resizes. */
+export async function evenSize(file, by) {
   const { data, info } = await sharp(file).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
   const { width: w, height: h } = info
   let [x0, y0, x1, y1] = [w, h, 0, 0]
@@ -39,7 +41,7 @@ export async function evenSize(file) {
   const [bw, bh] = [x1 - x0, y1 - y0]
   const square = Math.max(w, h)
   const size = (Math.max(bw, bh) + Math.sqrt(bw * bh)) / 2 / square
-  if (Math.abs(size / SIZE - 1) <= CLOSE) return { input: file, scale: 1 }
+  if (Math.abs(size / SIZE - 1) <= CLOSE) return fs.readFileSync(file)
 
   // The new square's side is odd or even as the picture's width is, so the
   // picture stays centred on whole pixels.
@@ -55,5 +57,6 @@ export async function evenSize(file) {
       else cut = Math.max(cut, data[i + 3])
     }
   if (cut > SEEN) throw new Error(`${file}: its new square would cut off pixels at alpha ${cut}`)
-  return { input: await sharp(out, { raw: { width: side, height: side, channels: 4 } }).png().toBuffer(), scale: square / side }
+  console.log(`${by}: ${file.split("/").pop()} drawn ${(square / side).toFixed(2)}× in its square`)
+  return sharp(out, { raw: { width: side, height: side, channels: 4 } }).png().toBuffer()
 }

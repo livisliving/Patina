@@ -78,13 +78,12 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "desktop-icons-"))
 /** A picture as a near-lossless WebP data URI, sized as the rest, 128px on
  *  its longer side. */
 async function dataUri(file) {
-  const { input, scale } = await evenSize(path.join(src, file))
-  if (scale !== 1) console.log(`desktop-icons: ${file} drawn ${scale.toFixed(2)}× in its square`)
+  const input = await evenSize(path.join(src, file), "desktop-icons")
   let img = sharp(input).resize(SIZE, SIZE, { fit: "inside", withoutEnlargement: true })
   if (file.endsWith(".png")) {
     const to = path.join(tmp, file)
-    if (typeof input !== "string") fs.writeFileSync(to, input)
-    execFileSync("sips", ["-Z", String(SIZE), typeof input === "string" ? input : to, "--out", to], { stdio: "ignore" })
+    fs.writeFileSync(to, input)
+    execFileSync("sips", ["-Z", String(SIZE), to, "--out", to], { stdio: "ignore" })
     img = sharp(to)
   }
   return `data:image/webp;base64,${(await img.webp({ nearLossless: true, quality: 80, effort: 6 }).toBuffer()).toString("base64")}`
