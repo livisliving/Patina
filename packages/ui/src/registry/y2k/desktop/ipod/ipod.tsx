@@ -540,7 +540,7 @@ export const IPod = React.memo(function IPod({ onEject, hidden }: { onEject: () 
                 </TableHeader>
                 <TableBody>
                   {[null, ...genres].map((g) => (
-                    <TableRow key={g ?? "all"} selected={genre === g} onClick={() => setGenre(g)} className="cursor-default">
+                    <TableRow key={g ?? "all"} selected={genre === g} onClick={() => setGenre(g)}>
                       <TableCell>{g ?? `All (${genres.length} Genres)`}</TableCell>
                     </TableRow>
                   ))}
@@ -585,7 +585,7 @@ export const IPod = React.memo(function IPod({ onEject, hidden }: { onEject: () 
                           key={col}
                           sorted={sort.col === col ? sort.dir : undefined}
                           onClick={() => sortBy(col)}
-                          className={cn("cursor-default select-none", col === "time" && "text-right")}
+                          className={cn("select-none", col === "time" && "text-right")}
                         >
                           {{ title: "Song", time: "Time", artist: "Artist" }[col]}
                         </TableHead>
@@ -601,7 +601,6 @@ export const IPod = React.memo(function IPod({ onEject, hidden }: { onEject: () 
                       selected={chosen === t.title}
                       onClick={() => setSelected(t.title)}
                       onOpen={() => start(t)}
-                      className="cursor-default"
                     >
                       {radio ? (
                         <>

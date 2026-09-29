@@ -416,7 +416,7 @@ function FileRow({
       aria-disabled={item.disabled || undefined}
       onClick={() => !item.disabled && onSelect()}
       onOpen={item.disabled ? undefined : onOpen}
-      className={cn("cursor-default aria-disabled:opacity-45", className)}
+      className={cn("aria-disabled:opacity-45", className)}
       {...props}
     >
       {/* The name takes the width the other columns leave (max-w-0 keeps

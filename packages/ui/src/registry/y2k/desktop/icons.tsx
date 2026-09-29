@@ -38,11 +38,11 @@ const WRAP = "flex h-full w-full items-center justify-center"
 /** An icon is drawn beside its name everywhere it appears (a label, a row,
  *  a Dock tile's aria-label, a title), so the picture itself says nothing:
  *  an empty alt, or a screen reader reads "Finder Finder". */
-function Png({ src, scale = 1, className, style }: IconProps & { src: string; scale?: number }) {
+function Png({ src, scale, className, style }: IconProps & { src: string; scale?: number }) {
   return (
     <span className={cn(WRAP, className)} style={style}>
       {/* eslint-disable-next-line @next/next/no-img-element -- a data URI, nothing for next/image to optimise */}
-      <img src={src} alt="" draggable={false} className="block size-full object-contain" style={scale === 1 ? undefined : { scale }} />
+      <img src={src} alt="" draggable={false} className="block size-full object-contain" style={{ scale }} />
     </span>
   )
 }

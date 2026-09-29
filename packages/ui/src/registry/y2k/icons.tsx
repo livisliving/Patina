@@ -214,15 +214,14 @@ export const PICTURE_SCALE = { finder: 1.23, folder: 1.2, preview: 1.14, heart: 
  *  same scale: the one <style> is shared by its href. */
 export function tonePictureCss(cls: string, [pink, aqua, lime, tangerine, grape]: readonly string[], scale = 1) {
   const by = { aqua, lime, tangerine, grape }
-  const size = scale === 1 ? "contain" : `${Math.round(scale * 100)}%`
   return [
-    `.${cls}{background:url(${pink}) center/${size} no-repeat}`,
+    `.${cls}{background:url(${pink}) center/${Math.round(scale * 100)}% no-repeat}`,
     ...Object.entries(by).map(([t, src]) => `html[data-tone="${t}"] .${cls}{background-image:url(${src})}`),
   ].join("\n")
 }
 
 /** One of Olivia's pictures as the icon, once it has loaded, at its scale
- *  about the box's centre. */
+ *  about the box's centre: `zoom`, as an svg already takes a `scale`. */
 function Picture({ src, zoom = 1, ...props }: IconProps & { src?: string; zoom?: number }) {
   const transform = zoom === 1 ? undefined : `translate(64 64) scale(${zoom}) translate(-64 -64)`
   return <Svg {...props}>{src && <image href={src} width={128} height={128} transform={transform} />}</Svg>

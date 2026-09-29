@@ -33,9 +33,9 @@
 
 import * as React from "react"
 import { useId } from "react"
-import { cn, PICTURE_SCALE } from "@patina/ui"
+import { cn, PICTURE_SCALE, tonePictureCss } from "@patina/ui"
 
-import type { Tone } from "@/components/ui/desktop/tones"
+import { TONES, type Tone } from "@/components/ui/desktop/tones"
 import { asset } from "@/components/ui/desktop/asset"
 
 type IconProps = React.ComponentProps<"svg">
@@ -61,7 +61,7 @@ const WRAP = "flex h-full w-full items-center justify-center"
 /** Lazy: a phone hides the desktop's icons and scrolls the Dock's end out of
     sight, and an image that isn't shown isn't fetched until it is. One on
     screen loads at once. */
-function PngIcon({ src, alt = "", scale = 1, className, style, ...props }: ImgProps & { src: string; alt?: string; scale?: number }) {
+function PngIcon({ src, alt = "", className, style, ...props }: ImgProps & { src: string; alt?: string }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
@@ -70,7 +70,7 @@ function PngIcon({ src, alt = "", scale = 1, className, style, ...props }: ImgPr
       loading="lazy"
       draggable={false}
       className={className}
-      style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", ...(scale === 1 ? {} : { scale }), ...style }}
+      style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", ...style }}
       {...props}
     />
   )
@@ -81,7 +81,7 @@ function makePngIcon(src: string, name: string, scale?: number) {
   function PngIconComponent({ className, style }: IconProps) {
     return (
       <span className={cn(WRAP, className)} style={style}>
-        <PngIcon src={src} scale={scale} />
+        <PngIcon src={src} style={{ scale }} />
       </span>
     )
   }
@@ -106,17 +106,14 @@ const HEART_BY_TONE: Record<Tone, string> = {
   grape: "/icons/webp/heart-red.webp",
 }
 
-/** Each tone's picture as CSS, keyed to the tone on <html> (pink when
- *  unset): the server's HTML paints the right one — it cannot know the
- *  tone; the stylesheet can — a tone change needs no render, and only the
- *  file in use is fetched. React hoists each <style> into the head once. */
-const tonedCss = (cls: string, byTone: Record<Tone, string>, scale: number) =>
-  [
-    `.${cls}{background:url(${asset(byTone.pink)}) center/${Math.round(scale * 100)}% no-repeat}`,
-    ...(["aqua", "lime", "tangerine", "grape"] as const).map((t) => `html[data-tone="${t}"] .${cls}{background-image:url(${asset(byTone[t])})}`),
-  ].join("\n")
-const FOLDER_CSS = tonedCss("y2k-folder", FOLDER_BY_TONE, PICTURE_SCALE.folder)
-const HEART_CSS = tonedCss("y2k-heart", HEART_BY_TONE, PICTURE_SCALE.heart)
+/** Each tone's picture as CSS (the pack's tonePictureCss), keyed to the
+ *  tone on <html> (pink when unset): the server's HTML paints the right one
+ *  — it cannot know the tone; the stylesheet can — a tone change needs no
+ *  render, and only the file in use is fetched. React hoists each <style>
+ *  into the head once. */
+const inToneOrder = (byTone: Record<Tone, string>) => TONES.map((t) => asset(byTone[t.id]))
+const FOLDER_CSS = tonePictureCss("y2k-folder", inToneOrder(FOLDER_BY_TONE), PICTURE_SCALE.folder)
+const HEART_CSS = tonePictureCss("y2k-heart", inToneOrder(HEART_BY_TONE), PICTURE_SCALE.heart)
 
 /** Aqua folder — tone-matched to the active data-tone. */
 export function FolderIcon({ className, style }: IconProps) {
@@ -158,7 +155,7 @@ export function StarIcon({ className, style }: IconProps) {
 export function FaceIcon({ className, style }: IconProps) {
   return (
     <span className={cn(WRAP, className)} style={style}>
-      <PngIcon src="/icons/webp/finder.webp" scale={PICTURE_SCALE.finder} />
+      <PngIcon src="/icons/webp/finder.webp" style={{ scale: PICTURE_SCALE.finder }} />
     </span>
   )
 }

@@ -103,6 +103,9 @@ function TableRow({
         if (e.key === "Enter") onOpen?.()
       }}
       className={cn(
+        // A row that does something on a click keeps the arrow, as a button
+        // does (y2k.css gives it to controls; a row is not one).
+        (props.onClick || onOpen) && "cursor-default",
         // Every other row the pale tone; the selected row the tone selection.
         "even:bg-(--y2k-tone-zebra) aria-selected:bg-(--y2k-tone-selection) aria-selected:text-(--y2k-tone-selection-text)",
         // A focusable (tabIndex) row shows the ring inside its edge.
