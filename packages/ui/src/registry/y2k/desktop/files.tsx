@@ -1,25 +1,34 @@
 "use client"
 
 import * as React from "react"
+import { DropdownMenu as Menu } from "radix-ui"
 
+import { Button } from "@/components/ui/button"
+import { SearchField } from "@/components/ui/forms"
+import { menuContentClass, menuItemClass } from "@/components/ui/popup"
+import { SegmentedControl } from "@/components/ui/segmented"
 import { TableCell, TableRow } from "@/components/ui/table"
+import { WindowToolbar, WindowToolbarControl, WindowToolbarItem, WindowToolbarSeparator } from "@/components/ui/window"
 import { cn } from "@/lib/utils"
 
 import { MiddleTruncate } from "./middle-truncate"
+import { Chevron, useToolbarFit } from "./toolbar-fit"
 
 /**
  * A file as the Finder and the desktop draw it: a row in the list view, a row
  * in a column, an icon in the icon view, an icon on the desktop — and the
  * rubber band a drag draws over them, the strip that sizes a column, and the
- * glyphs on the Finder's Back button and view control. Here, apart from the
- * Finder, so a desktop of your own draws its files the same way without
- * taking the whole Finder with it.
+ * Finder's toolbar with its glyphs. Here, apart from the Finder, so a desktop
+ * of your own draws its files the same way without taking the whole Finder
+ * with it.
  */
 
 /** What these read of an item: a FinderItem (disk.tsx) or a desktop icon has more. */
 export type FileItem = { label: string; icon: React.ReactNode; disabled?: boolean; onClick?: () => void }
 
 export type Rect = { x: number; y: number; w: number; h: number }
+
+export type FinderView = "icons" | "list" | "columns"
 
 /** A file in a list: selects on click, opens on double-click or Enter, dims
  *  when disabled. Its first cell is the icon and the name; pass the rest. */
@@ -299,5 +308,90 @@ export const ColGlyph = () => (
     </g>
   </svg>
 )
+
+/**
+ * The Finder's toolbar: Back, the view control, the places, Search. Sized to
+ * its window, as the 10.1 Finder's is: the search field gives up its width
+ * (160px down to 96px), then goes; then the places go from the right into
+ * the » menu at the end. Never a second row. Measured, not set at a
+ * breakpoint: each place at its own width, with its label or (on a phone)
+ * without, by useToolbarFit.
+ */
+export function FinderToolbar({
+  canGoBack,
+  onBack,
+  view,
+  onView,
+  places,
+  searchRef,
+  query,
+  onQuery,
+}: {
+  canGoBack: boolean
+  onBack: () => void
+  view: FinderView
+  onView: (view: FinderView) => void
+  places: { label: string; icon: React.ReactNode; onClick: () => void }[]
+  searchRef: React.Ref<HTMLInputElement>
+  query: string
+  onQuery: (query: string) => void
+}) {
+  const { fit, barRef, rulerRef } = useToolbarFit()
+  const shown = Math.min(fit.places, places.length)
+  return (
+    <WindowToolbar ref={barRef} className="relative overflow-hidden">
+      <WindowToolbarControl data-fixed label="Back" className="shrink-0">
+        <Button size="icon" aria-label="Back" disabled={!canGoBack} onClick={onBack} className="[&_svg]:h-2 [&_svg]:w-[13px]">
+          <BackGlyph />
+        </Button>
+      </WindowToolbarControl>
+      <WindowToolbarControl data-fixed label="View" className="shrink-0">
+        <SegmentedControl
+          items={[
+            { label: "Icons", icon: <GridGlyph />, active: view === "icons", onClick: () => onView("icons") },
+            { label: "List", icon: <ListGlyph />, active: view === "list", onClick: () => onView("list") },
+            { label: "Columns", icon: <ColGlyph />, active: view === "columns", onClick: () => onView("columns") },
+          ]}
+        />
+      </WindowToolbarControl>
+      <WindowToolbarSeparator data-fixed />
+      {places.slice(0, shown).map((place) => (
+        <WindowToolbarItem key={place.label} icon={place.icon} onClick={place.onClick} className="shrink-0">
+          {place.label}
+        </WindowToolbarItem>
+      ))}
+      <WindowToolbarControl label="Search" className={cn("ml-auto w-40 min-w-24", !fit.search && "hidden")}>
+        <SearchField ref={searchRef} value={query} onChange={onQuery} placeholder="" className="w-full" />
+      </WindowToolbarControl>
+      {shown < places.length && (
+        <Menu.Root modal={false}>
+          <Menu.Trigger asChild>
+            <Chevron className="ml-auto" />
+          </Menu.Trigger>
+          <Menu.Portal>
+            <Menu.Content align="end" sideOffset={2} className={menuContentClass}>
+              {places.slice(shown).map((place) => (
+                <Menu.Item key={place.label} className={cn(menuItemClass, "justify-start gap-2 pl-2")} onSelect={place.onClick}>
+                  <span className="size-4 shrink-0 [&_svg]:size-full">{place.icon}</span>
+                  {place.label}
+                </Menu.Item>
+              ))}
+            </Menu.Content>
+          </Menu.Portal>
+        </Menu.Root>
+      )}
+      {/* The ruler: the chevron and every place at its own width, out of
+          sight, for useToolbarFit to measure. */}
+      <div ref={rulerRef} aria-hidden inert className="pointer-events-none invisible absolute top-0 left-0 flex w-max">
+        <Chevron tabIndex={-1} />
+        {places.map((place) => (
+          <WindowToolbarItem key={place.label} icon={place.icon} tabIndex={-1} className="shrink-0">
+            {place.label}
+          </WindowToolbarItem>
+        ))}
+      </div>
+    </WindowToolbar>
+  )
+}
 
 /* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */

@@ -1,22 +1,17 @@
 "use client"
 
 import * as React from "react"
-import { DropdownMenu as Menu } from "radix-ui"
 
-import { Button } from "@/components/ui/button"
-import { SearchField } from "@/components/ui/forms"
-import { PopupButton, menuContentClass, menuItemClass } from "@/components/ui/popup"
-import { SegmentedControl } from "@/components/ui/segmented"
+import { PopupButton } from "@/components/ui/popup"
 import { Table, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table"
-import { WindowScrollArea, WindowToolbar, WindowToolbarControl, WindowToolbarItem, WindowToolbarSeparator } from "@/components/ui/window"
+import { WindowScrollArea } from "@/components/ui/window"
 import { WindowSidebar, WindowSidebarGroup, WindowSidebarItem } from "@/components/ui/window-sidebar"
 import { cn } from "@/lib/utils"
 
 import { ComputerIcon, FolderIcon } from "./icons"
 import type { FinderItem } from "./disk"
-import { BackGlyph, Band, COLUMN, ColGlyph, ColumnRow, ColumnSplit, FileIcon, FileRow, GridGlyph, ListGlyph, type Rect } from "./files"
+import { Band, COLUMN, ColumnRow, ColumnSplit, FileIcon, FileRow, FinderToolbar, type FinderView, type Rect } from "./files"
 import { dateValue } from "./names"
-import { Chevron, useToolbarFit } from "./toolbar-fit"
 import { DESKTOP, useMediaQuery } from "./use-media-query"
 import { DesktopWindow, type WinEntry } from "./windows"
 
@@ -30,7 +25,6 @@ import { DesktopWindow, type WinEntry } from "./windows"
  * need them); its column widths and the strip's scrolling are its own.
  */
 
-export type FinderView = "icons" | "list" | "columns"
 export type SortCol = "label" | "created" | "size" | "kind"
 export type Sort = { col: SortCol; dir: "ascending" | "descending" } | null
 
@@ -234,10 +228,6 @@ export function Finder({
   initialSize,
 }: FinderProps) {
   const { chain, placePath, here, hereItems, visible, narrowed } = at
-  // Measured again when the places change, and when the toolbar comes back
-  // from the title bar's pill button: that is a new element to watch.
-  const { fit, barRef: toolbarRef, rulerRef } = useToolbarFit()
-  const shown = Math.min(fit.places, places.length)
   // A phone, or any screen without a pointer that hovers (a touch screen):
   // a tap opens a file, as a double-click does with a mouse — there is no
   // double-tap to find out about.
@@ -328,61 +318,16 @@ export function Finder({
       status={narrowed ? `${visible.length} of ${hereItems.length} items` : `${hereItems.length} ${hereItems.length === 1 ? "item" : "items"}`}
       toolbar={
         toolbar && (
-          // Sized to the window, as the 10.1 Finder is: the search field gives
-          // up its width (160px down to 96px), then goes; then the places go
-          // from the right into the » menu at the end. Never a second row.
-          <WindowToolbar ref={toolbarRef} className="relative overflow-hidden">
-            <WindowToolbarControl data-fixed label="Back" className="shrink-0">
-              <Button size="icon" aria-label="Back" disabled={!canGoBack} onClick={onBack} className="[&_svg]:h-2 [&_svg]:w-[13px]">
-                <BackGlyph />
-              </Button>
-            </WindowToolbarControl>
-            <WindowToolbarControl data-fixed label="View" className="shrink-0">
-              <SegmentedControl
-                items={[
-                  { label: "Icons", icon: <GridGlyph />, active: view === "icons", onClick: () => onView("icons") },
-                  { label: "List", icon: <ListGlyph />, active: view === "list", onClick: () => onView("list") },
-                  { label: "Columns", icon: <ColGlyph />, active: view === "columns", onClick: () => onView("columns") },
-                ]}
-              />
-            </WindowToolbarControl>
-            <WindowToolbarSeparator data-fixed />
-            {places.slice(0, shown).map((place) => (
-              <WindowToolbarItem key={place.label} icon={place.icon} onClick={place.onClick} className="shrink-0">
-                {place.label}
-              </WindowToolbarItem>
-            ))}
-            <WindowToolbarControl label="Search" className={cn("ml-auto w-40 min-w-24", !fit.search && "hidden")}>
-              <SearchField ref={searchRef} value={query} onChange={onQuery} placeholder="" className="w-full" />
-            </WindowToolbarControl>
-            {shown < places.length && (
-              <Menu.Root modal={false}>
-                <Menu.Trigger asChild>
-                  <Chevron className="ml-auto" />
-                </Menu.Trigger>
-                <Menu.Portal>
-                  <Menu.Content align="end" sideOffset={2} className={menuContentClass}>
-                    {places.slice(shown).map((place) => (
-                      <Menu.Item key={place.label} className={cn(menuItemClass, "justify-start gap-2 pl-2")} onSelect={place.onClick}>
-                        <span className="size-4 shrink-0 [&_svg]:size-full">{place.icon}</span>
-                        {place.label}
-                      </Menu.Item>
-                    ))}
-                  </Menu.Content>
-                </Menu.Portal>
-              </Menu.Root>
-            )}
-            {/* The ruler: the chevron and every place at its own width, out of
-                sight, for useToolbarFit to measure. */}
-            <div ref={rulerRef} aria-hidden inert className="pointer-events-none invisible absolute top-0 left-0 flex w-max">
-              <Chevron tabIndex={-1} />
-              {places.map((place) => (
-                <WindowToolbarItem key={place.label} icon={place.icon} tabIndex={-1} className="shrink-0">
-                  {place.label}
-                </WindowToolbarItem>
-              ))}
-            </div>
-          </WindowToolbar>
+          <FinderToolbar
+            canGoBack={canGoBack}
+            onBack={onBack}
+            view={view}
+            onView={onView}
+            places={places}
+            searchRef={searchRef}
+            query={query}
+            onQuery={onQuery}
+          />
         )
       }
     >
