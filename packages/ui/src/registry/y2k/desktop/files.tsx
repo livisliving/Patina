@@ -10,9 +10,10 @@ import { MiddleTruncate } from "./middle-truncate"
 /**
  * A file as the Finder and the desktop draw it: a row in the list view, a row
  * in a column, an icon in the icon view, an icon on the desktop — and the
- * rubber band a drag draws over them. Here, apart from the Finder, so a
- * desktop of your own draws its files the same way without taking the whole
- * Finder with it.
+ * rubber band a drag draws over them, the strip that sizes a column, and the
+ * glyphs on the Finder's Back button and view control. Here, apart from the
+ * Finder, so a desktop of your own draws its files the same way without
+ * taking the whole Finder with it.
  */
 
 /** What these read of an item: a FinderItem (disk.tsx) or a desktop icon has more. */
@@ -56,8 +57,8 @@ export function FileRow({
  *  disclosure triangle when it opens a further column. Aqua tints the
  *  selection only in the focused column and greys it everywhere else.
  *
- *  It lives at module scope on purpose, as the Finder's ColumnInspector and
- *  ColumnSplit do: defined inside the Finder's render it became a new
+ *  It lives at module scope on purpose, as ColumnSplit and the Finder's
+ *  ColumnInspector do: defined inside the Finder's render it became a new
  *  component type on every state change, React remounted the row between
  *  pointerdown and mouseup, and the click was lost. */
 export function ColumnRow({
@@ -103,6 +104,65 @@ const DisclosureGlyph = () => (
     <path d="M1 0.5L5 4 1 7.5z" fill="currentColor" />
   </svg>
 )
+
+/** Column widths are dragged, so they get their own bounds — both on the 4px
+ *  grid, like every other layout value in the pack. */
+const COLUMN_MIN = 96
+const COLUMN_MAX = 320
+/** A column's width until it is dragged. */
+export const COLUMN = 176
+
+/** The strip between two columns: a soft 12px shade, lightest where the next
+ *  column starts, with the Aqua column-resize grip at its foot — and, as in
+ *  the real Finder, the drag handle that sizes the column to its LEFT. Arrow
+ *  keys nudge it by one grid step. */
+export function ColumnSplit({ width, onResize }: { width: number; onResize: (w: number) => void }) {
+  const from = React.useRef<{ x: number; w: number } | null>(null)
+  const clamp = (w: number) => Math.min(COLUMN_MAX, Math.max(COLUMN_MIN, Math.round(w / 4) * 4))
+
+  return (
+    <div
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="Resize column"
+      aria-valuenow={width}
+      aria-valuemin={COLUMN_MIN}
+      aria-valuemax={COLUMN_MAX}
+      tabIndex={0}
+      onPointerDown={(e) => {
+        from.current = { x: e.clientX, w: width }
+        e.currentTarget.setPointerCapture(e.pointerId)
+        e.preventDefault()
+      }}
+      onPointerMove={(e) => {
+        if (!from.current) return
+        onResize(clamp(from.current.w + (e.clientX - from.current.x)))
+      }}
+      onPointerUp={(e) => {
+        from.current = null
+        e.currentTarget.releasePointerCapture(e.pointerId)
+      }}
+      onPointerCancel={() => {
+        from.current = null
+      }}
+      onKeyDown={(e) => {
+        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return
+        e.preventDefault()
+        onResize(clamp(width + (e.key === "ArrowRight" ? 8 : -8)))
+      }}
+      className={cn(
+        "relative w-3 shrink-0 cursor-col-resize touch-none bg-[linear-gradient(to_right,#e0e0e0,#ebebeb_35%,#f5f5f5_70%,#fcfcfc)]",
+        // The pack's focus halo, same as every other focusable surface.
+        "outline-none focus-visible:shadow-[0_0_0_3px_var(--y2k-tone-focus)]"
+      )}
+    >
+      <span aria-hidden className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-[2px]">
+        <span className="block h-2 w-px bg-black/35" />
+        <span className="block h-2 w-px bg-black/35" />
+      </span>
+    </div>
+  )
+}
 
 /** A file in the icon view: its 48px icon over its name. Selects on click,
  *  opens on double-click or Enter, dims when disabled. Only the icon and the
@@ -200,5 +260,44 @@ export function Band({ rect, z }: { rect: Rect | null; z?: boolean }) {
     />
   )
 }
+
+/** Triple-dot / left-chevron back glyph, as on the Aqua Finder Back button:
+ *  a left chevron followed by two dots ( ‹•• ). */
+export const BackGlyph = () => (
+  <svg viewBox="0 0 18 10" aria-hidden>
+    <path d="M6 1L2 5l4 4" stroke="currentColor" strokeWidth="1.7" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="10.5" cy="5" r="1.15" fill="currentColor" />
+    <circle cx="14.5" cy="5" r="1.15" fill="currentColor" />
+  </svg>
+)
+
+/* The three Finder view glyphs, traced off the 10.2 reference at 1× (its 2×
+   pixels halved). They are OUTLINES, not solid shapes: icons = four 4px
+   squares stroked 1px, 3px apart across and 2px down; list = four 1px bars,
+   11 wide, on a 3px pitch; columns = a stroked 13 × 10 box split by two
+   dividers at x4 and x8. All are 10px tall and black in both states. */
+export const GridGlyph = () => (
+  <svg viewBox="0 0 11 10" width="11" height="10" shapeRendering="crispEdges" aria-hidden>
+    <g fill="none" stroke="currentColor" strokeWidth="1">
+      <rect x="0.5" y="0.5" width="3" height="3" />
+      <rect x="7.5" y="0.5" width="3" height="3" />
+      <rect x="0.5" y="6.5" width="3" height="3" />
+      <rect x="7.5" y="6.5" width="3" height="3" />
+    </g>
+  </svg>
+)
+export const ListGlyph = () => (
+  <svg viewBox="0 0 11 10" width="11" height="10" shapeRendering="crispEdges" aria-hidden>
+    <path d="M0 0h11v1H0zM0 3h11v1H0zM0 6h11v1H0zM0 9h11v1H0z" fill="currentColor" />
+  </svg>
+)
+export const ColGlyph = () => (
+  <svg viewBox="0 0 13 10" width="13" height="10" shapeRendering="crispEdges" aria-hidden>
+    <g fill="none" stroke="currentColor" strokeWidth="1">
+      <rect x="0.5" y="0.5" width="12" height="9" />
+      <path d="M4.5 0.5v9M8.5 0.5v9" />
+    </g>
+  </svg>
+)
 
 /* Patina OS · © 2026 Olivia Forster · MIT licence (DESIGN.md › Licence) · https://github.com/livisliving/Patina */

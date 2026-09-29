@@ -37,7 +37,7 @@ import {
 } from "@patina/ui"
 // The pack's desktop parts this one shares, from the pack's own files.
 import { asset } from "@/components/ui/desktop/asset"
-import { Band, ColumnRow, DesktopIcon, FileIcon, FileRow } from "@/components/ui/desktop/files"
+import { BackGlyph, Band, COLUMN, ColGlyph, ColumnRow, ColumnSplit, DesktopIcon, FileIcon, FileRow, GridGlyph, ListGlyph } from "@/components/ui/desktop/files"
 import { IPod } from "@/components/ui/desktop/ipod/ipod"
 import { PATINA } from "@/components/ui/desktop/patina"
 import { Chevron, useToolbarFit } from "@/components/ui/desktop/toolbar-fit"
@@ -400,16 +400,6 @@ function DesktopWindow({ id, title, initial, z, zoomed, minimized, opened, activ
 
 /* ── Aqua controls used by the demo ───────────────────────────────── */
 
-/** Triple-dot / left-chevron back glyph, as on the Aqua Finder Back button:
- *  a left chevron followed by two dots ( ‹•• ). */
-const BackGlyph = () => (
-  <svg viewBox="0 0 18 10" aria-hidden>
-    <path d="M6 1L2 5l4 4" stroke="currentColor" strokeWidth="1.7" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-    <circle cx="10.5" cy="5" r="1.15" fill="currentColor" />
-    <circle cx="14.5" cy="5" r="1.15" fill="currentColor" />
-  </svg>
-)
-
 /** One row of the Finder: what the list and column views render, and what the
  *  column inspector describes. */
 type FinderItem = {
@@ -473,92 +463,6 @@ function ColumnInspector({ item }: { item: FinderItem }) {
     </div>
   )
 }
-
-/** Column widths are dragged, so they get their own bounds — both on the 4px
- *  grid, like every other layout value in the pack. */
-const COLUMN_MIN = 96
-const COLUMN_MAX = 320
-
-/** The strip between two columns: a soft 12px shade, lightest where the next
- *  column starts, with the Aqua column-resize grip at its foot — and, as in
- *  the real Finder, the drag handle that sizes the column to its LEFT. Arrow
- *  keys nudge it by one grid step. */
-function ColumnSplit({ width, onResize }: { width: number; onResize: (w: number) => void }) {
-  const from = React.useRef<{ x: number; w: number } | null>(null)
-  const clamp = (w: number) => Math.min(COLUMN_MAX, Math.max(COLUMN_MIN, Math.round(w / 4) * 4))
-
-  return (
-    <div
-      role="separator"
-      aria-orientation="vertical"
-      aria-label="Resize column"
-      aria-valuenow={width}
-      aria-valuemin={COLUMN_MIN}
-      aria-valuemax={COLUMN_MAX}
-      tabIndex={0}
-      onPointerDown={(e) => {
-        from.current = { x: e.clientX, w: width }
-        e.currentTarget.setPointerCapture(e.pointerId)
-        e.preventDefault()
-      }}
-      onPointerMove={(e) => {
-        if (!from.current) return
-        onResize(clamp(from.current.w + (e.clientX - from.current.x)))
-      }}
-      onPointerUp={(e) => {
-        from.current = null
-        e.currentTarget.releasePointerCapture(e.pointerId)
-      }}
-      onPointerCancel={() => {
-        from.current = null
-      }}
-      onKeyDown={(e) => {
-        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return
-        e.preventDefault()
-        onResize(clamp(width + (e.key === "ArrowRight" ? 8 : -8)))
-      }}
-      className={cn(
-        "relative w-3 shrink-0 cursor-col-resize touch-none bg-[linear-gradient(to_right,#e0e0e0,#ebebeb_35%,#f5f5f5_70%,#fcfcfc)]",
-        // The pack's focus halo, same as every other focusable surface.
-        "outline-none focus-visible:shadow-[0_0_0_3px_var(--y2k-tone-focus)]"
-      )}
-    >
-      <span aria-hidden className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-[2px]">
-        <span className="block h-2 w-px bg-black/35" />
-        <span className="block h-2 w-px bg-black/35" />
-      </span>
-    </div>
-  )
-}
-
-/* The three Finder view glyphs, traced off the 10.2 reference at 1× (its 2×
-   pixels halved). They are OUTLINES, not solid shapes: icons = four 4px
-   squares stroked 1px, 3px apart across and 2px down; list = four 1px bars,
-   11 wide, on a 3px pitch; columns = a stroked 13 × 10 box split by two
-   dividers at x4 and x8. All are 10px tall and black in both states. */
-const GridGlyph = () => (
-  <svg viewBox="0 0 11 10" width="11" height="10" shapeRendering="crispEdges" aria-hidden>
-    <g fill="none" stroke="currentColor" strokeWidth="1">
-      <rect x="0.5" y="0.5" width="3" height="3" />
-      <rect x="7.5" y="0.5" width="3" height="3" />
-      <rect x="0.5" y="6.5" width="3" height="3" />
-      <rect x="7.5" y="6.5" width="3" height="3" />
-    </g>
-  </svg>
-)
-const ListGlyph = () => (
-  <svg viewBox="0 0 11 10" width="11" height="10" shapeRendering="crispEdges" aria-hidden>
-    <path d="M0 0h11v1H0zM0 3h11v1H0zM0 6h11v1H0zM0 9h11v1H0z" fill="currentColor" />
-  </svg>
-)
-const ColGlyph = () => (
-  <svg viewBox="0 0 13 10" width="13" height="10" shapeRendering="crispEdges" aria-hidden>
-    <g fill="none" stroke="currentColor" strokeWidth="1">
-      <rect x="0.5" y="0.5" width="12" height="9" />
-      <path d="M4.5 0.5v9M8.5 0.5v9" />
-    </g>
-  </svg>
-)
 
 /**
  * The Finder's toolbar: Back, the view control, the places, Search. Sized to
@@ -1428,7 +1332,7 @@ export function Desktop() {
                 <div className="flex min-h-full w-max min-w-full">
                   {columns.map((col, depth) => (
                     <React.Fragment key={depth}>
-                      <div data-finder-column className="shrink-0 overflow-y-auto py-1" style={{ width: columnWidths[depth] ?? 176 }}>
+                      <div data-finder-column className="shrink-0 overflow-y-auto py-1" style={{ width: columnWidths[depth] ?? COLUMN }}>
                         {col.items.map((it) => (
                           <ColumnRow
                             key={it.label}
@@ -1441,7 +1345,7 @@ export function Desktop() {
                           />
                         ))}
                       </div>
-                      <ColumnSplit width={columnWidths[depth] ?? 176} onResize={(w) => setColumnWidth(depth, w)} />
+                      <ColumnSplit width={columnWidths[depth] ?? COLUMN} onResize={(w) => setColumnWidth(depth, w)} />
                     </React.Fragment>
                   ))}
                   {columnShown && <ColumnInspector item={columnShown} />}
