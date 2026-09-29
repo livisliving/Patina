@@ -25,7 +25,6 @@ import {
   TableHead,
   TableBody,
   TableHeader,
-  TableRow,
   TableCell,
   PopupButton,
   SegmentedControl,
@@ -38,7 +37,8 @@ import {
 } from "@patina/ui"
 // The pack's desktop parts this one shares, from the pack's own files.
 import { asset } from "@/components/ui/desktop/asset"
-import { MiddleTruncate } from "@/components/ui/desktop/middle-truncate"
+import { Band, ColumnRow, DesktopIcon, FileIcon, FileRow } from "@/components/ui/desktop/files"
+import { IPod } from "@/components/ui/desktop/ipod/ipod"
 import { PATINA } from "@/components/ui/desktop/patina"
 import { Chevron, useToolbarFit } from "@/components/ui/desktop/toolbar-fit"
 import { TONES, type Tone } from "@/components/ui/desktop/tones"
@@ -48,7 +48,6 @@ import { DESKTOP, prefersReducedMotion, useMediaQuery } from "@/components/ui/de
 import { useResize } from "@/components/ui/desktop/use-resize"
 
 import { ComputerIcon, DiskIcon, DocIcon, FaceIcon, FolderIcon, GlobeIcon, HeartIcon, HomeIcon, InfoIcon, IPodIcon, LogoIcon, NoteIcon, PillIcon, PrefsIcon, TerminalIcon, TrashIcon } from "./aqua-icons"
-import { IPod } from "./ipod"
 import { MenuBar, type MenuRow, type MenuSpec } from "./menubar"
 import { Stars } from "./stars"
 import { INIT } from "./install"
@@ -401,38 +400,6 @@ function DesktopWindow({ id, title, initial, z, zoomed, minimized, opened, activ
 
 /* ── Aqua controls used by the demo ───────────────────────────────── */
 
-/** A file in a list: selects on click, opens on double-click or Enter, dims
- *  when disabled. Its first cell is the icon and the name; pass the rest. */
-function FileRow({
-  item,
-  onSelect,
-  onOpen,
-  className,
-  children,
-  ...props
-}: React.ComponentProps<typeof TableRow> & { item: FinderItem; onSelect: () => void; onOpen: () => void }) {
-  return (
-    <TableRow
-      aria-disabled={item.disabled || undefined}
-      onClick={() => !item.disabled && onSelect()}
-      onOpen={item.disabled ? undefined : onOpen}
-      className={cn("aria-disabled:opacity-45", className)}
-      {...props}
-    >
-      {/* The name takes the width the other columns leave (max-w-0 keeps
-          it from widening the table), 96px at least, and is cut from the
-          middle to fit; narrower still, the list scrolls sideways. */}
-      <TableCell className="w-full max-w-0 min-w-24">
-        <span className="flex items-center gap-2">
-          <span className="size-4 shrink-0 [&_svg]:size-full">{item.icon}</span>
-          <MiddleTruncate text={item.label} lines={1} className="flex-1" />
-        </span>
-      </TableCell>
-      {children}
-    </TableRow>
-  )
-}
-
 /** Triple-dot / left-chevron back glyph, as on the Aqua Finder Back button:
  *  a left chevron followed by two dots ( ‹•• ). */
 const BackGlyph = () => (
@@ -488,50 +455,6 @@ const FAVOURITE_LABELS = ["Read Me", "Design System", "Tone", "DESIGN.md"]
 /** Finder locations, as paths from Computer: the toolbar's Home and Favourites. */
 const HOME = ["Macintosh HD", "Users", "olivia"]
 const FAVOURITES = ["Patina HD", "Favourites"]
-
-/** A row in a Finder column: 20px tall, 16px icon, 12px label, and a
- *  disclosure triangle when it opens a further column. Aqua tints the
- *  selection only in the focused column and greys it everywhere else.
- *
- *  These three live at module scope on purpose: defined inside the Finder's
- *  render they became a new component type on every state change, React
- *  remounted the row between pointerdown and mouseup, and the click was lost. */
-function ColumnRow({
-  item,
-  on,
-  focused,
-  chevron,
-  volume,
-  onSelect,
-}: {
-  item: FinderItem
-  on: boolean
-  focused: boolean
-  chevron?: boolean
-  /** Volume rows (the first column) are twice the height with twice the icon,
-   *  as the reference draws them. */
-  volume?: boolean
-  onSelect: () => void
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      onDoubleClick={item.onClick}
-      onKeyDown={(e) => e.key === "Enter" && item.onClick?.()}
-      className={cn(
-        "flex w-full cursor-default items-center gap-1 px-2 text-left text-[12px] outline-none focus-visible:y2k-focus-ring focus-visible:-outline-offset-3",
-        volume ? "h-10 gap-2" : "h-5",
-        on && focused && "bg-(--y2k-tone-selection) text-(--y2k-tone-selection-text)",
-        on && !focused && "bg-[#dedede]"
-      )}
-    >
-      <span className={cn("shrink-0 [&_svg]:size-full", volume ? "size-8" : "size-4")}>{item.icon}</span>
-      <MiddleTruncate text={item.label} lines={1} className="flex-1" />
-      {chevron && <DisclosureGlyph />}
-    </button>
-  )
-}
 
 /** The last column: a 128px icon over plain "Label: value" lines, left-aligned
  *  — the reference prints them as running text, not as a label grid. */
@@ -608,12 +531,6 @@ function ColumnSplit({ width, onResize }: { width: number; onResize: (w: number)
   )
 }
 
-/** The column view's disclosure triangle: a row that drills further right. */
-const DisclosureGlyph = () => (
-  <svg viewBox="0 0 6 8" width="6" height="8" className="shrink-0" aria-hidden>
-    <path d="M1 0.5L5 4 1 7.5z" fill="currentColor" />
-  </svg>
-)
 /* The three Finder view glyphs, traced off the 10.2 reference at 1× (its 2×
    pixels halved). They are OUTLINES, not solid shapes: icons = four 4px
    squares stroked 1px, 3px apart across and 2px down; list = four 1px bars,
@@ -1020,22 +937,6 @@ const FONT_STACK: Record<string, string> = {
   Geneva: 'Geneva, Verdana, "Segoe UI", sans-serif',
   Monaco: 'Monaco, "Courier New", ui-monospace, monospace',
   Charcoal: '"Charcoal", Georgia, "Times New Roman", serif',
-}
-
-/** The rubber-band selection rectangle drawn over a marquee surface. `z` lifts
- *  it above in-flow content (the Finder file grids); the desktop surface omits
- *  it. Renders nothing until a drag is in progress. */
-function Band({ rect, z }: { rect: { x: number; y: number; w: number; h: number } | null; z?: boolean }) {
-  if (!rect) return null
-  return (
-    <div
-      className={cn(
-        "pointer-events-none absolute border border-(--y2k-tone-selection) bg-(--y2k-tone-selection)/20",
-        z && "z-[1]"
-      )}
-      style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
-    />
-  )
 }
 
 export function Desktop() {
@@ -1448,28 +1349,14 @@ export function Desktop() {
         {desktopIcons.map((it) => {
           const key = `desktop:${it.id}`
           return (
-            <button
+            <DesktopIcon
               key={it.id}
-              type="button"
+              item={it}
               data-select-item={key}
-              aria-pressed={selected.has(key)}
-              onClick={() => selectOnly(key)}
-              onDoubleClick={it.onOpen}
-              onKeyDown={(e) => e.key === "Enter" && it.onOpen()}
-              className="group flex w-[84px] cursor-default flex-col items-center gap-0.5 outline-none focus-visible:y2k-focus-ring focus-visible:outline-offset-1"
-            >
-              <span className="size-14 [&_svg]:size-full [&_svg]:drop-shadow-[0_2px_3px_rgba(0,0,0,0.4)]">{it.icon}</span>
-              {/* Two lines at most, then cut from the middle, as in the Finder. */}
-              <MiddleTruncate
-                text={it.label}
-                lines={2}
-                className="w-full text-center"
-                labelClassName={cn(
-                  "inline-block max-w-full rounded-[3px] px-1.5 py-[1px] text-[12px] text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]",
-                  selected.has(key) && "bg-(--y2k-tone-selection)"
-                )}
-              />
-            </button>
+              selected={selected.has(key)}
+              onSelect={() => selectOnly(key)}
+              onOpen={it.onOpen}
+            />
           )
         })}
       </nav>
@@ -1609,30 +1496,14 @@ export function Desktop() {
                   {visibleFinderItems.map((it) => {
                     const key = `finder:${it.label}`
                     return (
-                      <button
+                      <FileIcon
                         key={it.label}
-                        type="button"
+                        item={it}
                         data-select-item={key}
-                        disabled={it.disabled}
-                        aria-pressed={selected.has(key)}
-                        onClick={() => !it.disabled && choose(key, it)}
-                        onDoubleClick={() => openItem(it, placePath)}
-                        onKeyDown={(e) => e.key === "Enter" && !it.disabled && openItem(it, placePath)}
-                        className="group relative z-[2] flex max-w-full cursor-default flex-col items-center gap-1 justify-self-center outline-none focus-visible:y2k-focus-ring focus-visible:outline-offset-1 disabled:opacity-45"
-                      >
-                        <span className="size-12 [&_svg]:size-full">{it.icon}</span>
-                        {/* Two lines at most, then cut from the middle. */}
-                        <MiddleTruncate
-                          text={it.label}
-                          lines={2}
-                          className="w-full text-center"
-                          labelClassName={cn(
-                            "inline-block max-w-full rounded-[3px] px-1.5 py-[1px] text-[12px]",
-                            // The light tone under black ink, the same in every tone.
-                            selected.has(key) && "bg-(--y2k-tone-focus) text-(--y2k-ink)"
-                          )}
-                        />
-                      </button>
+                        selected={selected.has(key)}
+                        onSelect={() => choose(key, it)}
+                        onOpen={() => openItem(it, placePath)}
+                      />
                     )
                   })}
                 </div>

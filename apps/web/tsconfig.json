@@ -26,6 +26,12 @@
       "@/lib/utils": [
         "../../packages/ui/src/lib/utils.ts"
       ],
+      "@/lib/color": [
+        "../../packages/ui/src/lib/color.ts"
+      ],
+      "@/components/ui/window-sidebar": [
+        "../../packages/ui/src/registry/y2k/sidebar.tsx"
+      ],
       "@/components/ui/*": [
         "../../packages/ui/src/registry/y2k/*"
       ],

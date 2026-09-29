@@ -14,10 +14,10 @@ import { asset } from "./asset"
 import { APP_ICONS, DesktopProvider, TRANSIENT_APPS, loadLayout, samePath, useDesktop, type DocumentPayload } from "./context"
 import { buildDisk, everyNode, findNode, findOpen, iconOf, type FinderItem, type Node } from "./disk"
 import { DocumentView } from "./document"
-import { Band, Finder, finderKey, kindsOf, resolveFinder, type FinderView, type Sort, type SortCol } from "./finder"
+import { Band, DesktopIcon } from "./files"
+import { Finder, finderKey, kindsOf, resolveFinder, type FinderView, type Sort, type SortCol } from "./finder"
 import { DiskIcon, DocIcon, FaceIcon, FolderIcon, IPodIcon, StarIcon, TrashIcon } from "./icons"
 import { MenuBar, type MenuRow, type MenuSpec } from "./menubar"
-import { MiddleTruncate } from "./middle-truncate"
 import { PATINA } from "./patina"
 import { readOpen, withOpen } from "./redirects"
 import { TONES, type Tone } from "./tones"
@@ -463,28 +463,14 @@ function DesktopShell({ wallpaper, IPod, className }: { wallpaper?: DesktopProps
         {desktopIcons.map((it) => {
           const key = `desktop:${it.id}`
           return (
-            <button
+            <DesktopIcon
               key={it.id}
-              type="button"
+              item={it}
               data-select-item={key}
-              aria-pressed={selected.has(key)}
-              onClick={() => selectOnly(key)}
-              onDoubleClick={it.onOpen}
-              onKeyDown={(e) => e.key === "Enter" && it.onOpen()}
-              className="group flex w-[84px] cursor-default flex-col items-center gap-0.5 outline-none focus-visible:y2k-focus-ring focus-visible:outline-offset-1"
-            >
-              <span className="size-14 [&_svg]:size-full [&_svg]:drop-shadow-[0_2px_3px_rgba(0,0,0,0.4)]">{it.icon}</span>
-              {/* Two lines at most, then cut from the middle, as in the Finder. */}
-              <MiddleTruncate
-                text={it.label}
-                lines={2}
-                className="w-full text-center"
-                labelClassName={cn(
-                  "inline-block max-w-full rounded-[3px] px-1.5 py-[1px] text-[12px] text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]",
-                  selected.has(key) && "bg-(--y2k-tone-selection)"
-                )}
-              />
-            </button>
+              selected={selected.has(key)}
+              onSelect={() => selectOnly(key)}
+              onOpen={it.onOpen}
+            />
           )
         })}
       </nav>
