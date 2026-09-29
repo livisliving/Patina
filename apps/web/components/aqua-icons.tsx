@@ -4,7 +4,8 @@
  * The photographic Aqua icons render Olivia's own PNG artwork from
  * /public/icons/*.png — NOT redrawn SVG — as the WebP copies in
  * /public/icons/webp/, scaled to the most the page draws them
- * (scripts/site-images.mjs; run it again after changing the artwork).
+ * (scripts/site-images.mjs; run it again after changing the artwork), each
+ * sized there to look as big as the rest.
  *
  * An icon sits beside its name (a label, a row, a Dock button's
  * aria-label), so its picture is decorative: alt="", or a screen reader says
@@ -25,15 +26,12 @@
  *
  * Icons with no PNG yet (PillIcon/Components, PrefsIcon, ComputerIcon,
  * HomeIcon) keep their SVG.
- *
- * Each picture is drawn at the pack's PICTURE_SCALE, so they look one size
- * side by side; the Terminal, the demo's own, at TERMINAL_SCALE.
  */
 "use client"
 
 import * as React from "react"
 import { useId } from "react"
-import { cn, PICTURE_SCALE, tonePictureCss } from "@patina/ui"
+import { cn, tonePictureCss } from "@patina/ui"
 
 import { TONES, type Tone } from "@/components/ui/desktop/tones"
 import { asset } from "@/components/ui/desktop/asset"
@@ -77,11 +75,11 @@ function PngIcon({ src, alt = "", className, style, ...props }: ImgProps & { src
 }
 
 /** Factory for a neutral (non-tone) PNG icon. */
-function makePngIcon(src: string, name: string, scale?: number) {
+function makePngIcon(src: string, name: string) {
   function PngIconComponent({ className, style }: IconProps) {
     return (
       <span className={cn(WRAP, className)} style={style}>
-        <PngIcon src={src} style={{ scale }} />
+        <PngIcon src={src} />
       </span>
     )
   }
@@ -112,8 +110,8 @@ const HEART_BY_TONE: Record<Tone, string> = {
  *  render, and only the file in use is fetched. React hoists each <style>
  *  into the head once. */
 const inToneOrder = (byTone: Record<Tone, string>) => TONES.map((t) => asset(byTone[t.id]))
-const FOLDER_CSS = tonePictureCss("y2k-folder", inToneOrder(FOLDER_BY_TONE), PICTURE_SCALE.folder)
-const HEART_CSS = tonePictureCss("y2k-heart", inToneOrder(HEART_BY_TONE), PICTURE_SCALE.heart)
+const FOLDER_CSS = tonePictureCss("y2k-folder", inToneOrder(FOLDER_BY_TONE))
+const HEART_CSS = tonePictureCss("y2k-heart", inToneOrder(HEART_BY_TONE))
 
 /** Aqua folder — tone-matched to the active data-tone. */
 export function FolderIcon({ className, style }: IconProps) {
@@ -155,28 +153,25 @@ export function StarIcon({ className, style }: IconProps) {
 export function FaceIcon({ className, style }: IconProps) {
   return (
     <span className={cn(WRAP, className)} style={style}>
-      <PngIcon src="/icons/webp/finder.webp" style={{ scale: PICTURE_SCALE.finder }} />
+      <PngIcon src="/icons/webp/finder.webp" />
     </span>
   )
 }
 
 /* ── Neutral PNG icons (same across tones) ─────────────────────────── */
 
-/** The Terminal fills 90% of its box, measured as PICTURE_SCALE's are. */
-const TERMINAL_SCALE = 0.96
-
 /** Hard disk (Patina HD). */
 export const DiskIcon = makePngIcon("/icons/webp/disk.webp", "Disk")
 /** Document — the SIMPLE clean-paper doc. Use inside windows / file lists. */
 export const DocIcon = makePngIcon("/icons/webp/doc.webp", "Document")
 /** Note — the DETAILED letter+pen scene (TextEdit). Use in the Dock. */
-export const NoteIcon = makePngIcon("/icons/webp/note.webp", "TextEdit", PICTURE_SCALE.note)
+export const NoteIcon = makePngIcon("/icons/webp/note.webp", "TextEdit")
 /** The Bin — wire mesh. */
-export const TrashIcon = makePngIcon("/icons/webp/bin.webp", "Bin", PICTURE_SCALE.bin)
+export const TrashIcon = makePngIcon("/icons/webp/bin.webp", "Bin")
 /** Terminal — the Install step. */
-export const TerminalIcon = makePngIcon("/icons/webp/terminal.webp", "Terminal", TERMINAL_SCALE)
+export const TerminalIcon = makePngIcon("/icons/webp/terminal.webp", "Terminal")
 /** iPod — the music player (Finder toolbar, Dock). */
-export const IPodIcon = makePngIcon("/icons/webp/ipod-icon.webp", "iPod", PICTURE_SCALE.ipod)
+export const IPodIcon = makePngIcon("/icons/webp/ipod-icon.webp", "iPod")
 
 /** Patina logo — the chrome wordmark and its stars: About Patina's icon, in
     the Dock and the About box. Drawn at 120% so the art, not the file's

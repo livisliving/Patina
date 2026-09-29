@@ -198,43 +198,34 @@ const loadMusic = () => import("./icon-music").then((m) => m.MUSIC)
 const loadPreview = () => import("./icon-preview").then((m) => m.PREVIEW_PNG)
 const loadQuickTime = () => import("./icon-quicktime").then((m) => m.QUICKTIME_PNG)
 
-/** Each picture's scale in its box, so the icons look one size side by side
- *  (Olivia's note: the Finder face and the folder read small). Measured: the
- *  picture's bounding box in its square, sized by the mean of its long side
- *  and the square root of its area (a tall iPod looks as big as a square face
- *  with less area), and scaled to 86% of the box, the median of the
- *  desktop's icons; within 3% of it is left alone. The desktop's own
- *  pictures are here too, so both sets keep one table. The drawn icons are
- *  drawn to the grid at 81–91% and keep their size. */
-export const PICTURE_SCALE = { finder: 1.23, folder: 1.2, preview: 1.14, heart: 1.13, ipod: 1.05, music: 0.97, note: 0.95, bin: 0.91 } as const
-
 /** Each tone's picture as the background of `.cls`, keyed to the tone on
  *  <html> (pink when unset), so the server's HTML paints the right one and a
- *  tone change needs no render. The desktop's folder uses it too, with the
- *  same scale: the one <style> is shared by its href. */
-export function tonePictureCss(cls: string, [pink, aqua, lime, tangerine, grape]: readonly string[], scale = 1) {
+ *  tone change needs no render. The desktop's folder uses it too: the one
+ *  <style> is shared by its href. */
+export function tonePictureCss(cls: string, [pink, aqua, lime, tangerine, grape]: readonly string[]) {
   const by = { aqua, lime, tangerine, grape }
   return [
-    `.${cls}{background:url(${pink}) center/${Math.round(scale * 100)}% no-repeat}`,
+    `.${cls}{background:url(${pink}) center/contain no-repeat}`,
     ...Object.entries(by).map(([t, src]) => `html[data-tone="${t}"] .${cls}{background-image:url(${src})}`),
   ].join("\n")
 }
 
-/** One of Olivia's pictures as the icon, once it has loaded, at its scale
- *  about the box's centre: `zoom`, as an svg already takes a `scale`. */
-function Picture({ src, zoom = 1, ...props }: IconProps & { src?: string; zoom?: number }) {
-  const transform = zoom === 1 ? undefined : `translate(64 64) scale(${zoom}) translate(-64 -64)`
-  return <Svg {...props}>{src && <image href={src} width={128} height={128} transform={transform} />}</Svg>
+/** One of Olivia's pictures as the icon, once it has loaded. Each is sized
+ *  to look as big as the rest when it is inlined (scripts/picture-size.mjs):
+ *  the Finder face and the folder had the most room round them. The drawn
+ *  icons are drawn to the grid at 81–91% of the box. */
+function Picture({ src, ...props }: IconProps & { src?: string }) {
+  return <Svg {...props}>{src && <image href={src} width={128} height={128} />}</Svg>
 }
 
 /** A picture in the tone's own colour: each tone's is the background of the
  *  svg, swapped by the stylesheet. */
-function TonePicture({ cls, pictures, zoom, className, ...props }: IconProps & { cls: string; pictures?: readonly string[]; zoom?: number }) {
+function TonePicture({ cls, pictures, className, ...props }: IconProps & { cls: string; pictures?: readonly string[] }) {
   return (
     <>
       {pictures && (
         <style href={cls} precedence="default">
-          {tonePictureCss(cls, pictures, zoom)}
+          {tonePictureCss(cls, pictures)}
         </style>
       )}
       <Svg {...props} className={cn(cls, className)} />
@@ -300,7 +291,7 @@ export function IconHome(props: IconProps) {
 /** Folder — Olivia's Aqua folder in the tone's own colour. */
 export function IconFolder(props: IconProps) {
   const p = useLate(loadPictures)
-  return <TonePicture {...props} cls="y2k-folder" zoom={PICTURE_SCALE.folder} pictures={p && [p.FOLDER_PINK, p.FOLDER_AQUA, p.FOLDER_LIME, p.FOLDER_TANGERINE, p.FOLDER_GRAPE]} />
+  return <TonePicture {...props} cls="y2k-folder" pictures={p && [p.FOLDER_PINK, p.FOLDER_AQUA, p.FOLDER_LIME, p.FOLDER_TANGERINE, p.FOLDER_GRAPE]} />
 }
 
 /** Document — Olivia's clean sheet with a folded corner. */
@@ -310,7 +301,7 @@ export function IconDocument(props: IconProps) {
 
 /** Trash — Olivia's wire-mesh Bin. */
 export function IconTrash(props: IconProps) {
-  return <Picture {...props} zoom={PICTURE_SCALE.bin} src={useLate(loadPictures)?.BIN} />
+  return <Picture {...props} src={useLate(loadPictures)?.BIN} />
 }
 
 /** Search — a glass lens in a bright ring, on a gel handle in the tone. */
@@ -517,7 +508,7 @@ export function IconPeople(props: IconProps) {
 /** Heart — Olivia's gel heart in the tone's own colour. */
 export function IconHeart(props: IconProps) {
   const h = useLate(loadHearts)
-  return <TonePicture {...props} cls="y2k-heart" zoom={PICTURE_SCALE.heart} pictures={h && [h.HEART_PINK, h.HEART_AQUA, h.HEART_LIME, h.HEART_TANGERINE, h.HEART_GRAPE]} />
+  return <TonePicture {...props} cls="y2k-heart" pictures={h && [h.HEART_PINK, h.HEART_AQUA, h.HEART_LIME, h.HEART_TANGERINE, h.HEART_GRAPE]} />
 }
 
 /** Star — Olivia's gel star, turned to the tone by --y2k-star-filter. */
@@ -622,13 +613,13 @@ export function IconChart(props: IconProps) {
 /** Music — Olivia's CD under a blue note: a picture, loaded when first
     drawn. */
 export function IconMusic(props: IconProps) {
-  return <Picture {...props} zoom={PICTURE_SCALE.music} src={useLate(loadMusic)} />
+  return <Picture {...props} src={useLate(loadMusic)} />
 }
 
 /** Preview — two prints and a loupe: Olivia's own artwork, a PNG (one of
     the two icons not drawn here), its shadow in the picture. */
 export function IconPreview(props: IconProps) {
-  return <Picture {...props} zoom={PICTURE_SCALE.preview} src={useLate(loadPreview)} />
+  return <Picture {...props} src={useLate(loadPreview)} />
 }
 
 /** QuickTime Player — the Q on a metal player: Olivia's own artwork, a PNG
