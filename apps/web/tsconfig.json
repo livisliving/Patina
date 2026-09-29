@@ -29,6 +29,9 @@
       "@/lib/color": [
         "../../packages/ui/src/lib/color.ts"
       ],
+      "@/lib/content": [
+        "../../packages/ui/src/lib/content.ts"
+      ],
       "@/components/ui/window-sidebar": [
         "../../packages/ui/src/registry/y2k/sidebar.tsx"
       ],

@@ -16,6 +16,7 @@ import { buildDisk, everyNode, findNode, findOpen, iconOf, type FinderItem, type
 import { DocumentView } from "./document"
 import { Band, DesktopIcon, type FinderView } from "./files"
 import { Finder, finderKey, kindsOf, resolveFinder, type Sort, type SortCol } from "./finder"
+import { toggleSort } from "./finder-body"
 import { DiskIcon, DocIcon, FaceIcon, FolderIcon, IPodIcon, StarIcon, TrashIcon } from "./icons"
 import { MenuBar, type MenuRow, type MenuSpec } from "./menubar"
 import { PATINA } from "./patina"
@@ -136,7 +137,7 @@ function DesktopShell({ wallpaper, IPod, className }: { wallpaper?: DesktopProps
   const selectOnly = React.useCallback((key: string) => setSelected(new Set([key])), [])
   const [finderView, setFinderView] = React.useState<FinderView>("icons")
   const [sort, setSort] = React.useState<Sort>(null)
-  const sortBy = (col: SortCol) => setSort((s) => (s?.col === col ? { col, dir: s.dir === "ascending" ? "descending" : "ascending" } : { col, dir: "ascending" }))
+  const sortBy = (col: SortCol) => setSort((s) => toggleSort(s, col))
   // Finder's toolbar, shown or hidden by the title bar's white oval.
   const [finderToolbar, setFinderToolbar] = React.useState(true)
   // File › Find… opens the Finder and puts the caret in its search field.

@@ -17,11 +17,6 @@ import {
   Checkbox,
   TextField,
   SearchField,
-  Table,
-  TableHead,
-  TableBody,
-  TableHeader,
-  TableCell,
   PopupButton,
   SegmentedControl,
   cn,
@@ -31,7 +26,9 @@ import {
 } from "@patina/ui"
 // The pack's desktop parts this one shares, from the pack's own files.
 import { asset } from "@/components/ui/desktop/asset"
-import { Band, COLUMN, ColumnRow, ColumnSplit, DesktopIcon, FileIcon, FileRow, FinderToolbar, type FinderView } from "@/components/ui/desktop/files"
+import type { FinderItem } from "@/components/ui/desktop/disk"
+import { Band, DesktopIcon, FinderToolbar, type FinderView } from "@/components/ui/desktop/files"
+import { FinderBody, finderKey, resolveFinder, samePath, toggleSort, type Sort } from "@/components/ui/desktop/finder-body"
 import { IPod } from "@/components/ui/desktop/ipod/ipod"
 import { PATINA } from "@/components/ui/desktop/patina"
 import { TONES, type Tone } from "@/components/ui/desktop/tones"
@@ -393,22 +390,9 @@ function DesktopWindow({ id, title, initial, z, zoomed, minimized, opened, activ
 
 /* ── Aqua controls used by the demo ───────────────────────────────── */
 
-/** One row of the Finder: what the list and column views render, and what the
- *  column inspector describes. */
-type FinderItem = {
-  label: string
-  icon: React.ReactNode
-  onClick?: () => void
-  disabled?: boolean
-  kind: string
-  size: string
-  created: string
-  modified: string
-  version?: string
-  /** A folder's contents: opening it shows them (a further column, in the
-   *  column view). An empty array is still a folder — it just opens empty. */
-  contents?: FinderItem[]
-}
+/** A Finder item's own lines in the column view's last column, after its
+ *  name, Kind, size and Created: when it last changed, and an app's version. */
+const infoOf = (modified: string, version?: string) => [{ label: "Modified", value: modified }, ...(version ? [{ label: "Version", value: version }] : [])]
 
 /** An empty system folder, as 10.1 installs them. */
 const folder = (label: string, contents: FinderItem[] = [], icon: React.ReactNode = <FolderIcon />): FinderItem => ({
@@ -417,7 +401,7 @@ const folder = (label: string, contents: FinderItem[] = [], icon: React.ReactNod
   kind: "Folder",
   size: "—",
   created: "24/03/01",
-  modified: "24/03/01",
+  info: infoOf("24/03/01"),
   contents,
 })
 
@@ -438,24 +422,6 @@ const FAVOURITE_LABELS = ["Read Me", "Design System", "Tone", "DESIGN.md"]
 /** Finder locations, as paths from Computer: the toolbar's Home and Favourites. */
 const HOME = ["Macintosh HD", "Users", "olivia"]
 const FAVOURITES = ["Patina HD", "Favourites"]
-
-/** The last column: a 128px icon over plain "Label: value" lines, left-aligned
- *  — the reference prints them as running text, not as a label grid. */
-function ColumnInspector({ item }: { item: FinderItem }) {
-  return (
-    <div data-finder-column className="flex w-44 shrink-0 flex-col items-center overflow-y-auto px-3 pt-6 pb-3">
-      <span className="size-32 shrink-0 [&_svg]:size-full">{item.icon}</span>
-      <div className="mt-4 w-full space-y-1 text-[12px] leading-[1.35]">
-        <p className="break-words">Name: {item.label}</p>
-        <p>Kind: {item.kind}</p>
-        <p>Size: {item.size}</p>
-        <p>Created: {item.created}</p>
-        <p>Modified: {item.modified}</p>
-        {item.version && <p>Version: {item.version}</p>}
-      </div>
-    </div>
-  )
-}
 
 /* ── A long document's sections, on a phone ───────────────────────── */
 
@@ -813,33 +779,8 @@ export function Desktop() {
   const [finderPath, setFinderPath] = React.useState<string[]>(["Patina HD"])
   // The paths Back returns to, the latest last.
   const [finderHistory, setFinderHistory] = React.useState<string[][]>([])
-  // Column widths by depth, dragged by the strips between them; a column not
-  // yet dragged is COLUMN wide.
-  const [columnWidths, setColumnWidths] = React.useState<number[]>([])
-  // A drag fires per pointer move, but `clamp` snaps to the 4px grid, so most
-  // moves resolve to the width already set — returning `prev` unchanged lets
-  // React skip the re-render of the whole desktop.
-  const setColumnWidth = React.useCallback(
-    (i: number, w: number) =>
-      setColumnWidths((prev) => {
-        if (prev[i] === w) return prev
-        const next = [...prev]
-        next[i] = w
-        return next
-      }),
-    []
-  )
-  // Opening a folder pushes a column past the window's width; the Finder
-  // scrolls the strip so the newest one shows whole, at the right. Not to the
-  // very end: the empty column after it would push the first one off a phone.
-  const finderViewportRef = React.useRef<HTMLDivElement>(null)
-  React.useEffect(() => {
-    const el = finderViewportRef.current
-    const newest = el?.querySelectorAll("[data-finder-column]")
-    const last = newest?.[newest.length - 1]
-    if (!el || finderView !== "columns" || !last) return
-    el.scrollLeft = Math.max(0, last.getBoundingClientRect().right - el.getBoundingClientRect().left + el.scrollLeft - el.clientWidth)
-  }, [finderView, finderPath])
+  // The list's order: by name, until a header is clicked.
+  const [finderSort, setFinderSort] = React.useState<Sort>({ col: "label", dir: "ascending" })
   // Finder's toolbar, shown or hidden by the title bar's white oval.
   const [finderToolbar, setFinderToolbar] = React.useState(true)
   // File › Find… opens the Finder and puts the caret in its search field.
@@ -860,50 +801,38 @@ export function Desktop() {
   // The Bin is empty — clicking it in the Dock says so.
   const [trashOpen, setTrashOpen] = React.useState(false)
 
-  // `kind` / `size` / `modified` feed the column view's inspector pane, the way
-  // the 10.2 Finder's third column describes the selected file.
+  // `kind` / `size` / `created` and the `info` lines feed the column view's
+  // inspector pane, the way the 10.2 Finder's third column describes the
+  // selected file.
   const patinaFiles: FinderItem[] = [
-    { label: "Read Me", icon: <DocIcon />, onClick: openWin("readme"), kind: "TextEdit document", size: "12 KB", created: "18/09/26", modified: "20/09/26" },
-    { label: "Design System", icon: <PillIcon />, onClick: openWin("buttons"), kind: "Application", size: "1.8 MB", created: "14/09/26", modified: "20/09/26", version: VERSION },
-    { label: "Tone", icon: <PrefsIcon />, onClick: openWin("tone"), kind: "Preference pane", size: "248 KB", created: "14/09/26", modified: "19/09/26", version: VERSION },
-    { label: "DESIGN.md", icon: <DocIcon />, onClick: openWin("design"), kind: "Markdown document", size: "36 KB", created: "12/09/26", modified: "20/09/26" },
-    { label: "Changelog", icon: <DocIcon />, onClick: openWin("changelog"), kind: "Markdown document", size: "4 KB", created: "18/09/26", modified: "28/09/26" },
-    { label: "Terminal", icon: <TerminalIcon />, onClick: openWin("terminal"), kind: "Application", size: "912 KB", created: "14/09/26", modified: "18/09/26", version: VERSION },
+    { label: "Read Me", icon: <DocIcon />, onClick: openWin("readme"), kind: "TextEdit document", size: "12 KB", created: "18/09/26", info: infoOf("20/09/26") },
+    { label: "Design System", icon: <PillIcon />, onClick: openWin("buttons"), kind: "Application", size: "1.8 MB", created: "14/09/26", info: infoOf("20/09/26", VERSION) },
+    { label: "Tone", icon: <PrefsIcon />, onClick: openWin("tone"), kind: "Preference pane", size: "248 KB", created: "14/09/26", info: infoOf("19/09/26", VERSION) },
+    { label: "DESIGN.md", icon: <DocIcon />, onClick: openWin("design"), kind: "Markdown document", size: "36 KB", created: "12/09/26", info: infoOf("20/09/26") },
+    { label: "Changelog", icon: <DocIcon />, onClick: openWin("changelog"), kind: "Markdown document", size: "4 KB", created: "18/09/26", info: infoOf("28/09/26") },
+    { label: "Terminal", icon: <TerminalIcon />, onClick: openWin("terminal"), kind: "Application", size: "912 KB", created: "14/09/26", info: infoOf("18/09/26", VERSION) },
   ]
   // The Favourites folder collects a few of them, so it lists the same rows.
   const finderItems: FinderItem[] = [
     ...patinaFiles,
-    { label: "Favourites", icon: <HeartIcon />, kind: "Folder", size: "—", created: "14/09/26", modified: "18/09/26", contents: patinaFiles.filter((it) => FAVOURITE_LABELS.includes(it.label)) },
+    { label: "Favourites", icon: <HeartIcon />, kind: "Folder", size: "—", created: "14/09/26", info: infoOf("18/09/26"), contents: patinaFiles.filter((it) => FAVOURITE_LABELS.includes(it.label)) },
   ]
 
   const volumes: FinderItem[] = [
-    { label: "Patina HD", icon: <DiskIcon />, kind: "Volume", size: "56k available", created: "14/09/26", modified: "20/09/26", contents: finderItems },
-    { label: "Macintosh HD", icon: <DiskIcon />, kind: "Volume", size: "18.2 GB available", created: "24/03/01", modified: "20/09/26", contents: macFolders },
+    { label: "Patina HD", icon: <DiskIcon />, kind: "Volume", size: "56k available", created: "14/09/26", info: infoOf("20/09/26"), contents: finderItems },
+    { label: "Macintosh HD", icon: <DiskIcon />, kind: "Volume", size: "18.2 GB available", created: "24/03/01", info: infoOf("20/09/26"), contents: macFolders },
   ]
 
-  // The path, walked down from Computer; a label no longer there ends it.
-  const chain: FinderItem[] = []
-  let level: FinderItem[] | undefined = volumes
-  for (const label of finderPath) {
-    const it: FinderItem | undefined = level?.find((c) => c.label === label)
-    if (!it) break
-    chain.push(it)
-    level = it.contents
-  }
-  // The folder the icon and list views show: the path, less a file it ends on.
-  const place = chain.at(-1)?.contents ? chain : chain.slice(0, -1)
-  const placePath = place.map((it) => it.label)
-  const here = place.at(-1)
-  const hereItems = here?.contents ?? volumes
-  const q = finderQuery.trim().toLowerCase()
-  const matching = (items: FinderItem[]) => (q ? items.filter((it) => it.label.toLowerCase().includes(q)) : items)
-  const visibleFinderItems = matching(hereItems)
+  // Where the Finder is: the items its path goes through, the folder on
+  // show, and those of its items the search finds, in the list's order.
+  const finderAt = resolveFinder(volumes, finderPath, finderQuery, finderSort)
+  const { chain, placePath, here, hereItems, visible, narrowed } = finderAt
 
   const navigate = (path: string[]) => {
     // The place the Finder already shows (Patina HD from the desktop, at
     // first) is no step for Back: it would light the button, and going
     // back would go nowhere.
-    if (path.length === finderPath.length && path.every((label, i) => label === finderPath[i])) return
+    if (samePath(path, finderPath)) return
     setFinderHistory((h) => [...h, finderPath])
     setFinderPath(path)
     setSelected((sel) => new Set([...sel].filter((k) => !k.startsWith("finder:"))))
@@ -922,39 +851,6 @@ export function Desktop() {
   // Open an item as a double-click does: a folder opens in the Finder, a file
   // opens its window. `at` is the path of the folder it sits in.
   const openItem = (it: FinderItem, at: string[]) => (it.contents ? goTo([...at, it.label]) : it.onClick?.())
-
-  // The column view: the volumes, then a column for each folder on the path,
-  // marking the row the path goes through. The focused column is the deepest,
-  // where the last click landed; a file at the end of the path gets the
-  // inspector.
-  const columns = [
-    { items: volumes, on: chain[0]?.label, volume: true },
-    ...chain.flatMap((it, i) =>
-      it.contents ? [{ items: it === here ? visibleFinderItems : it.contents, on: chain[i + 1]?.label, volume: false }] : []
-    ),
-  ]
-  const columnShown = chain.at(-1)?.contents ? undefined : chain.at(-1)
-  // A phone, or any screen without a pointer that hovers (a touch screen):
-  // a tap in the Finder opens a file, as a double-click does with a mouse —
-  // there is no double-tap to find out about.
-  const tapOpens = useMediaQuery(`not all and ${DESKTOP}, (hover: none)`)
-  // A click in the list or icon view: select the item, and open it too
-  // where a tap is the only click there is.
-  const choose = (key: string, it: FinderItem) => {
-    selectOnly(key)
-    if (tapOpens) openItem(it, placePath)
-  }
-  // Clicking a folder descends into it; clicking a file selects it (and, on
-  // a touch screen, opens it).
-  const selectColumn = (depth: number, it: FinderItem) => {
-    const path = [...finderPath.slice(0, depth), it.label]
-    if (it.contents) navigate(path)
-    else {
-      setFinderPath(path)
-      if (tapOpens) it.onClick?.()
-    }
-  }
-
 
   const isDesktop = useMediaQuery(DESKTOP)
   // On a phone, scroll to a window as it opens (it goes to the top of the
@@ -1020,7 +916,7 @@ export function Desktop() {
   const toOpen = [...selected].flatMap((key) => {
     const [where, name] = key.split(/:(.*)/)
     if (where === "desktop") return desktopIcons.filter((it) => it.id === name).map((it) => it.onOpen)
-    if (where === "finder") return visibleFinderItems.filter((it) => it.label === name).map((it) => () => openItem(it, placePath))
+    if (where === "finder") return visible.filter((it) => finderKey(placePath, it) === key).map((it) => () => openItem(it, placePath))
     return []
   })
   const menus: MenuSpec[] = [
@@ -1200,7 +1096,7 @@ export function Desktop() {
             onToolbarToggle={() => setFinderToolbar((v) => !v)}
             className="desk:h-[400px] desk:w-[640px]"
             status={[
-              q ? `${visibleFinderItems.length} of ${hereItems.length} items` : `${hereItems.length} ${hereItems.length === 1 ? "item" : "items"}`,
+              narrowed ? `${visible.length} of ${hereItems.length} items` : `${hereItems.length} ${hereItems.length === 1 ? "item" : "items"}`,
               chain[0]?.size,
             ]
               .filter(Boolean)
@@ -1224,103 +1120,22 @@ export function Desktop() {
               )
             }
           >
-            {/* The Finder lays itself out by its own width, not the screen's:
-                under 600px (a phone, even on its side, or dragged narrow) the
-                Kind column goes and the icons take three columns. */}
-            <WindowScrollArea viewportRef={finderViewportRef} className={cn("@container/finder bg-white", finderView === "columns" && "overflow-hidden")}>
-              {q && visibleFinderItems.length === 0 ? (
-                <p className="p-6 text-center text-[12px] text-(--y2k-ink-secondary)">No items match “{finderQuery}”.</p>
-              ) : finderView === "columns" ? (
-                // Aqua column view, rebuilt from the 10.2 reference. The FIRST
-                // column lists volumes — double-height rows, 32px icons, a
-                // disclosure arrow on every one — and each folder on the path
-                // opens the next. Columns are COLUMN wide, parted by a 12px shade
-                // with a grip at its foot; the strip scrolls sideways once the
-                // path runs past the window, as the real Finder does.
-                <div className="flex min-h-full w-max min-w-full">
-                  {columns.map((col, depth) => (
-                    <React.Fragment key={depth}>
-                      <div data-finder-column className="shrink-0 overflow-y-auto py-1" style={{ width: columnWidths[depth] ?? COLUMN }}>
-                        {col.items.map((it) => (
-                          <ColumnRow
-                            key={it.label}
-                            item={it}
-                            volume={col.volume}
-                            on={col.on === it.label}
-                            focused={depth === chain.length - 1}
-                            chevron={it.contents !== undefined}
-                            onSelect={() => selectColumn(depth, it)}
-                          />
-                        ))}
-                      </div>
-                      <ColumnSplit width={columnWidths[depth] ?? COLUMN} onResize={(w) => setColumnWidth(depth, w)} />
-                    </React.Fragment>
-                  ))}
-                  {columnShown && <ColumnInspector item={columnShown} />}
-                  {/* The reference pads the rest of the width with an empty
-                      column, ready for the next level. */}
-                  <div className="w-44 min-w-0 flex-1 border-l border-black/10" />
-                </div>
-              ) : finderView === "list" ? (
-                // Aqua list view: the pack's Table — the list header, 12px
-                // rows, every other row pale blue, the selection in the tone.
-                <div className="relative min-h-full select-none" {...finderRootProps}>
-                  <Band rect={finderBand} z />
-                  <Table>
-                    <TableHeader>
-                      <tr>
-                        <TableHead sorted="ascending">Name</TableHead>
-                        <TableHead>Date Modified</TableHead>
-                        <TableHead>Size</TableHead>
-                        {/* A Finder under 600px wide has room for three columns; Kind goes. */}
-                        <TableHead className="@max-[600px]/finder:hidden">Kind</TableHead>
-                      </tr>
-                    </TableHeader>
-                    <TableBody>
-                      {visibleFinderItems.map((it) => {
-                        const key = `finder:${it.label}`
-                        return (
-                          <FileRow
-                            key={it.label}
-                            item={it}
-                            data-select-item={key}
-                            selected={selected.has(key)}
-                            onSelect={() => choose(key, it)}
-                            onOpen={() => openItem(it, placePath)}
-                            className="relative z-[2]"
-                          >
-                            <TableCell>{it.modified}</TableCell>
-                            <TableCell>{it.size}</TableCell>
-                            <TableCell className="@max-[600px]/finder:hidden">{it.kind}</TableCell>
-                          </FileRow>
-                        )
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                // A drag from anywhere that is not an icon or its name — the
-                // padding, the gaps, the sides of a cell, the space under the
-                // last row — draws the rubber band (an icon is only as wide as
-                // its name, centred in its cell, so the rest of the cell is free).
-                <div className="relative grid min-h-full grid-cols-3 content-start gap-y-3 p-3 select-none @min-[600px]/finder:grid-cols-4" {...finderRootProps}>
-                  <Band rect={finderBand} z />
-                  {visibleFinderItems.map((it) => {
-                    const key = `finder:${it.label}`
-                    return (
-                      <FileIcon
-                        key={it.label}
-                        item={it}
-                        data-select-item={key}
-                        selected={selected.has(key)}
-                        onSelect={() => choose(key, it)}
-                        onOpen={() => openItem(it, placePath)}
-                      />
-                    )
-                  })}
-                </div>
-              )}
-            </WindowScrollArea>
+            <FinderBody
+              volumes={volumes}
+              at={finderAt}
+              path={finderPath}
+              onNavigate={navigate}
+              onSelectPath={setFinderPath}
+              view={finderView}
+              query={finderQuery}
+              sort={finderSort}
+              onSort={(col) => setFinderSort((s) => toggleSort(s, col))}
+              selected={selected}
+              onSelect={selectOnly}
+              band={finderBand}
+              rootProps={finderRootProps}
+              onOpenItem={openItem}
+            />
           </DesktopWindow>
         )}
 

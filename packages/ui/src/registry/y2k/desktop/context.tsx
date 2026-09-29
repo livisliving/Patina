@@ -7,6 +7,7 @@ import { ICONS } from "@/components/ui/icons"
 import type { DocumentEntry, Entry, Img, Movie, Site } from "@/lib/content"
 
 import { findNode, indexSite, type Node } from "./disk"
+import { samePath } from "./finder-body"
 import { DocIcon, FaceIcon, IPodIcon, NoteIcon } from "./icons"
 import { PATINA } from "./patina"
 import { WindowActionsProvider, useWindows, type Place, type Point, type WinEntry, type WinSpec } from "./windows"
@@ -95,8 +96,9 @@ const loadPlace = (ipod: boolean): Record<"about" | "finder" | "ipod", Place> =>
  *  backslash need escaping (a Preview's id carries a path). */
 const attr = (id: string) => id.replace(/["\\]/g, "\\$&")
 
-/** Two Finder paths to the same place. */
-export const samePath = (a: string[], b: string[]) => a.length === b.length && a.every((label, i) => label === b[i])
+// Two Finder paths to the same place: finder-body.tsx's, still here for a
+// desktop.tsx of your own.
+export { samePath }
 
 type Desktop = {
   site: Site

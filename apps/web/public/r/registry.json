@@ -277,6 +277,7 @@
         { "path": "src/registry/y2k/desktop/document.tsx", "type": "registry:component", "target": "components/desktop/document.tsx" },
         { "path": "src/registry/y2k/desktop/files.tsx", "type": "registry:component", "target": "components/desktop/files.tsx" },
         { "path": "src/registry/y2k/desktop/finder.tsx", "type": "registry:component", "target": "components/desktop/finder.tsx" },
+        { "path": "src/registry/y2k/desktop/finder-body.tsx", "type": "registry:component", "target": "components/desktop/finder-body.tsx" },
         { "path": "src/registry/y2k/desktop/toolbar-fit.tsx", "type": "registry:component", "target": "components/desktop/toolbar-fit.tsx" },
         { "path": "src/registry/y2k/desktop/icon-data.ts", "type": "registry:component", "target": "components/desktop/icon-data.ts" },
         { "path": "src/registry/y2k/desktop/icons.tsx", "type": "registry:component", "target": "components/desktop/icons.tsx" },
