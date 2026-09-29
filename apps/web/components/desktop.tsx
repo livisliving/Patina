@@ -423,6 +423,10 @@ const FAVOURITE_LABELS = ["Read Me", "Design System", "Tone", "DESIGN.md"]
 const HOME = ["Macintosh HD", "Users", "olivia"]
 const FAVOURITES = ["Patina HD", "Favourites"]
 
+/** Each disk's free space: its window's status bar gives it, as 10.1's
+ *  does, and a list shows its Size as "—". */
+const AVAILABLE: Record<string, string> = { "Patina HD": "56k available", "Macintosh HD": "18.2 GB available" }
+
 /* ── A long document's sections, on a phone ───────────────────────── */
 
 /** A heading this close to the section bar's foot is the section in view. */
@@ -819,8 +823,8 @@ export function Desktop() {
   ]
 
   const volumes: FinderItem[] = [
-    { label: "Patina HD", icon: <DiskIcon />, kind: "Volume", size: "56k available", created: "14/09/26", info: infoOf("20/09/26"), contents: finderItems },
-    { label: "Macintosh HD", icon: <DiskIcon />, kind: "Volume", size: "18.2 GB available", created: "24/03/01", info: infoOf("20/09/26"), contents: macFolders },
+    { label: "Patina HD", icon: <DiskIcon />, kind: "Volume", size: "—", created: "14/09/26", info: infoOf("20/09/26"), contents: finderItems },
+    { label: "Macintosh HD", icon: <DiskIcon />, kind: "Volume", size: "—", created: "24/03/01", info: infoOf("20/09/26"), contents: macFolders },
   ]
 
   // Where the Finder is: the items its path goes through, the folder on
@@ -1097,7 +1101,7 @@ export function Desktop() {
             className="desk:h-[400px] desk:w-[640px]"
             status={[
               narrowed ? `${visible.length} of ${hereItems.length} items` : `${hereItems.length} ${hereItems.length === 1 ? "item" : "items"}`,
-              chain[0]?.size,
+              chain[0] && AVAILABLE[chain[0].label],
             ]
               .filter(Boolean)
               .join(", ")}
