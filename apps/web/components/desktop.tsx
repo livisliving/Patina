@@ -60,6 +60,17 @@ const WALLPAPERS = Object.fromEntries(
  *  entry; nothing before 0.1.0 is listed. */
 const CHANGELOG: { version: string; date: string; items: string[] }[] = [
   {
+    version: "0.4.9",
+    date: "29 September 2026",
+    items: [
+      "Olivia's pictures look one size side by side: each is sized when it is made, so the Finder's face and the folder no longer read small beside the Bin.",
+      "The arrow over everything you click, as the desktop has it; the pointing hand only on a link that leaves the site. A site's own button { cursor: pointer } no longer brings the hand back.",
+      "The Finder's three views, its toolbar, its rows and its icons are one set of the pack's files, which this site's Finder uses too: its list sorts by the header you click, and its search finds a Kind.",
+      "This site plays the pack's own iPod.",
+      "A disk's Size in the list is “—”; what is free on it is in the status bar.",
+    ],
+  },
+  {
     version: "0.4.8",
     date: "28 September 2026",
     items: [
@@ -205,7 +216,7 @@ const ICON_COLUMN = 84 + 12
 
 /** Patina's version, as the About boxes and the Finder show it: the newest
  *  release, listed in the Changelog or not. Bump it with every release. */
-const VERSION = "0.4.8"
+const VERSION = "0.4.9"
 
 /* ── Window manager ───────────────────────────────────────────────── */
 
